@@ -89,8 +89,8 @@ const Index = () => {
         <main className="flex-1 p-6">
           <div className="max-w-4xl mx-auto space-y-8">
             <div className="space-y-2">
-              <h1 className="text-2xl font-bold">WhatsApp Message Dispatcher</h1>
-              <p className="text-muted-foreground">Upload your contacts and send messages in bulk</p>
+              <h1 className="text-2xl font-bold">Disparador A.I</h1>
+              <p className="text-muted-foreground">Dispare mensagens com I.A Anonimouz A.I</p>
             </div>
 
             {contacts.length === 0 ? (
