@@ -16,7 +16,7 @@ export function AppSidebar() {
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>
-            <div className="flex items-center gap-3 mt-6 mb-6">
+            <div className="flex items-center gap-3 mt-6 mb-12">
               <img
                 src="https://d1muf25xaso8hp.cloudfront.net/https%3A%2F%2Fc34a4d04c3399b3a0ee4e48ab25ef55c.cdn.bubble.io%2Ff1732409705581x641240799581334800%2F1b560689-fc0e-48a1-8deb-4474283b9c76.jpg?w=64&h=64&auto=compress&dpr=1.5&fit=max"
                 alt="Logo"
