@@ -6,6 +6,10 @@ import { useToast } from "@/hooks/use-toast";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Switch } from "@/components/ui/switch";
+import { supabase } from "@/integrations/supabase/client";
+import { LogOut } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 interface Contact {
   name: string;
@@ -18,6 +22,7 @@ const Index = () => {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [selectedContacts, setSelectedContacts] = useState<Set<string>>(new Set());
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleContactsLoaded = (newContacts: Contact[]) => {
     setContacts(newContacts);
@@ -40,6 +45,11 @@ const Index = () => {
     } else {
       setSelectedContacts(new Set(contacts.map(c => c.phone)));
     }
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/login");
   };
 
   const sendMessages = async (message: string) => {
@@ -97,9 +107,19 @@ const Index = () => {
                   <span className="text-[#0099ff]">Imobiliária Gabriel</span>
                 </p>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-[#22c55e]">Ligado</span>
-                <Switch defaultChecked />
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-[#22c55e]">Ligado</span>
+                  <Switch defaultChecked />
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleLogout}
+                  className="text-gray-400 hover:text-white"
+                >
+                  <LogOut className="h-5 w-5" />
+                </Button>
               </div>
             </div>
 
