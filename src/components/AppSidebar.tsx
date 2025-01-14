@@ -34,7 +34,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar variant="floating" collapsible="icon">
-      <SidebarHeader className="border-b border-sidebar-border">
+      <SidebarHeader>
         <div className="flex items-center justify-between px-2">
           <div className="flex items-center gap-2">
             <img 
@@ -67,7 +67,7 @@ export function AppSidebar() {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarContent>
-      <SidebarFooter className="border-t border-sidebar-border p-4">
+      <SidebarFooter className="p-4">
         <div className="flex flex-col gap-4">
           <Button variant="outline" size="sm" className="w-full justify-start group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:aspect-square">
             <Settings className="mr-2 h-4 w-4 group-data-[collapsible=icon]:mr-0" />
