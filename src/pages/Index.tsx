@@ -5,6 +5,7 @@ import { MessageComposer } from "@/components/MessageComposer";
 import { useToast } from "@/hooks/use-toast";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
+import { Switch } from "@/components/ui/switch";
 
 interface Contact {
   name: string;
@@ -86,29 +87,51 @@ const Index = () => {
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
         <AppSidebar />
-        <main className="flex-1 p-6">
-          <div className="max-w-4xl mx-auto space-y-8">
-            <div className="space-y-2">
-              <h1 className="text-2xl font-bold">Disparador A.I</h1>
-              <p className="text-muted-foreground">Dispare mensagens com I.A Anonimouz A.I</p>
+        <main className="flex-1 p-6 bg-[#1a1a1a]">
+          <div className="max-w-6xl mx-auto space-y-8">
+            <div className="flex items-center justify-between bg-[#222222] rounded-lg p-4">
+              <div>
+                <h1 className="text-2xl font-bold text-white">Disparador A.I</h1>
+                <p className="text-gray-400">
+                  Dispare mensagens com I.A{" "}
+                  <span className="text-[#0099ff]">Imobiliária Gabriel</span>
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[#22c55e]">Ligado</span>
+                <Switch defaultChecked />
+              </div>
             </div>
 
             {contacts.length === 0 ? (
               <CSVUploader onContactsLoaded={handleContactsLoaded} />
             ) : (
               <div className="grid gap-6 md:grid-cols-2">
-                <ContactList
-                  contacts={contacts}
-                  selectedContacts={selectedContacts}
-                  onToggleContact={toggleContact}
-                  onSelectAll={handleSelectAll}
-                />
-                <div>
-                  <MessageComposer
-                    onSend={sendMessages}
-                    disabled={selectedContacts.size === 0}
-                  />
+                <div className="bg-[#222222] p-6 rounded-lg">
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-white">
+                        Selecione seus contatos para{" "}
+                        <span className="font-bold">disparo</span> a partir das{" "}
+                        <span className="text-[#22c55e]">TAGS</span>
+                      </p>
+                      <p className="text-white mt-2">
+                        <span className="font-bold">{selectedContacts.size}</span>{" "}
+                        contato(s) selecionado(s)
+                      </p>
+                    </div>
+                    <ContactList
+                      contacts={contacts}
+                      selectedContacts={selectedContacts}
+                      onToggleContact={toggleContact}
+                      onSelectAll={handleSelectAll}
+                    />
+                  </div>
                 </div>
+                <MessageComposer
+                  onSend={sendMessages}
+                  disabled={selectedContacts.size === 0}
+                />
               </div>
             )}
           </div>
