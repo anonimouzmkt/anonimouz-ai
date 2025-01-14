@@ -4,12 +4,11 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   Sidebar,
   SidebarContent,
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarGroupContent,
+  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuLabel,
 } from "@/components/ui/sidebar";
 
 export function AppSidebar() {
@@ -23,21 +22,15 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>
-            <div className="flex items-center gap-3 mt-8 mb-16">
-              <img
-                src="https://d1muf25xaso8hp.cloudfront.net/https%3A%2F%2Fc34a4d04c3399b3a0ee4e48ab25ef55c.cdn.bubble.io%2Ff1732409705581x641240799581334800%2F1b560689-fc0e-48a1-8deb-4474283b9c76.jpg?w=64&h=64&auto=compress&dpr=1.5&fit=max"
-                alt="Logo"
-                className="w-8 h-8 object-contain rounded-sm"
-              />
-              <span className="text-sm font-medium text-sidebar-foreground">
-                Anonimouz A.I
-              </span>
+        <div className="mt-20">
+          <SidebarHeader>
+            <div className="p-4">
+              <h2 className="text-lg font-semibold text-white">Disparo A.I</h2>
             </div>
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
+          </SidebarHeader>
+          <div className="px-3 py-2">
             <SidebarMenu>
+              <SidebarMenuLabel>Menu</SidebarMenuLabel>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <a href="/">
@@ -61,8 +54,8 @@ export function AppSidebar() {
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+          </div>
+        </div>
       </SidebarContent>
     </Sidebar>
   );
