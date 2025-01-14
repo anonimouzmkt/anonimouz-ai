@@ -22,15 +22,17 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarContent>
-        <div className="mt-12">
+        <div className="mt-4">
           <SidebarHeader>
             <div className="p-4">
-              <img 
-                src="/lovable-uploads/7a35d957-3e2b-485b-a149-d1899d36bc70.png" 
-                alt="Logo" 
-                className="w-8 h-8 mb-2"
-              />
-              <h2 className="text-lg font-semibold text-white">Anonimouz A.I</h2>
+              <div className="flex items-center gap-2">
+                <img 
+                  src="/lovable-uploads/7a35d957-3e2b-485b-a149-d1899d36bc70.png" 
+                  alt="Logo" 
+                  className="w-6 h-6"
+                />
+                <h2 className="text-lg font-semibold text-white">Anonimouz A.I</h2>
+              </div>
             </div>
           </SidebarHeader>
           <div className="px-3 py-2">
