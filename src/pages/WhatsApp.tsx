@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Plus } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { Plus, Trash } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -17,6 +17,7 @@ interface WhatsAppInstance {
 
 const WhatsApp = () => {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [isCreating, setIsCreating] = useState(false);
   const [showDialog, setShowDialog] = useState(false);
   const [instanceName, setInstanceName] = useState("");
@@ -82,6 +83,31 @@ const WhatsApp = () => {
     }
   };
 
+  const handleDeleteInstance = async (instanceId: string) => {
+    try {
+      const { error } = await supabase
+        .from("whatsapp_instances")
+        .delete()
+        .eq("id", instanceId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Sucesso",
+        description: "Instância do WhatsApp removida com sucesso",
+      });
+
+      queryClient.invalidateQueries({ queryKey: ["whatsapp-instances"] });
+    } catch (error) {
+      console.error("Error deleting instance:", error);
+      toast({
+        title: "Erro",
+        description: "Falha ao remover instância do WhatsApp",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <main className="flex-1 p-6 bg-[#1a1a1a]">
       <div className="max-w-6xl mx-auto space-y-8">
@@ -111,17 +137,27 @@ const WhatsApp = () => {
                 <h3 className="text-lg font-semibold text-white">
                   {instance.name}
                 </h3>
-                <span
-                  className={`px-2 py-1 text-xs font-medium rounded-full ${
-                    instance.status === "connected"
-                      ? "bg-green-500/20 text-green-500"
-                      : instance.status === "connecting"
-                      ? "bg-yellow-500/20 text-yellow-500"
-                      : "bg-red-500/20 text-red-500"
-                  }`}
-                >
-                  {instance.status}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`px-2 py-1 text-xs font-medium rounded-full ${
+                      instance.status === "connected"
+                        ? "bg-green-500/20 text-green-500"
+                        : instance.status === "connecting"
+                        ? "bg-yellow-500/20 text-yellow-500"
+                        : "bg-red-500/20 text-red-500"
+                    }`}
+                  >
+                    {instance.status}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleDeleteInstance(instance.id)}
+                    className="text-red-500 hover:text-red-600 hover:bg-red-500/10"
+                  >
+                    <Trash className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
               {instance.qr_code && (
                 <div className="bg-white p-4 rounded-lg">
