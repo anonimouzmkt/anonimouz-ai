@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -34,20 +33,33 @@ serve(async (req) => {
     const data = await response.json()
     console.log('API Response:', data)
 
-    // Verificar se a resposta foi bem sucedida
-    if (!response.ok || data.error) {
-      throw new Error(data.error || 'Failed to create WhatsApp instance')
+    // Check if the response was successful
+    if (!response.ok) {
+      console.error('API Error:', data)
+      return new Response(
+        JSON.stringify({ error: `API Error: ${response.status} - ${data.message || 'Unknown error'}` }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: response.status 
+        }
+      )
     }
 
     return new Response(
       JSON.stringify(data),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200
+      }
     )
   } catch (error) {
     console.error('Error:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500
+      }
     )
   }
 })

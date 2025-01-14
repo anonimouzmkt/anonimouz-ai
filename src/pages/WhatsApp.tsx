@@ -55,7 +55,6 @@ const WhatsApp = () => {
         throw new Error("User not authenticated");
       }
 
-      // Call the Edge Function to create the WhatsApp instance
       console.log('Calling Edge Function to create instance:', instanceName);
       const { data: apiResponse, error: apiError } = await supabase.functions.invoke(
         'create-whatsapp-instance',
@@ -66,12 +65,11 @@ const WhatsApp = () => {
 
       if (apiError) {
         console.error('Edge Function error:', apiError);
-        throw apiError;
+        throw new Error(`Erro na função: ${apiError.message}`);
       }
 
       console.log('API Response:', apiResponse);
 
-      // Verificar se a resposta da API foi bem sucedida
       if (!apiResponse || apiResponse.error) {
         throw new Error(apiResponse?.error || 'Falha ao criar instância na API do WhatsApp');
       }
@@ -85,7 +83,7 @@ const WhatsApp = () => {
 
       if (dbError) {
         console.error('Database error:', dbError);
-        throw dbError;
+        throw new Error(`Erro no banco de dados: ${dbError.message}`);
       }
 
       toast({
