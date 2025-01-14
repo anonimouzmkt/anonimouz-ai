@@ -25,7 +25,12 @@ export function AppSidebar() {
         <div className="mt-12">
           <SidebarHeader>
             <div className="p-4">
-              <h2 className="text-lg font-semibold text-white">Disparo A.I</h2>
+              <img 
+                src="/lovable-uploads/7a35d957-3e2b-485b-a149-d1899d36bc70.png" 
+                alt="Logo" 
+                className="w-8 h-8 mb-2"
+              />
+              <h2 className="text-lg font-semibold text-white">Anonimouz A.I</h2>
             </div>
           </SidebarHeader>
           <div className="px-3 py-2">
