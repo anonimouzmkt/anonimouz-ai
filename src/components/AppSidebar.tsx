@@ -33,7 +33,7 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar variant="floating" collapsible="icon">
+    <Sidebar variant="floating" collapsible="icon" className="border-none">
       <SidebarHeader>
         <div className="flex items-center justify-between px-2">
           <div className="flex items-center gap-2">
