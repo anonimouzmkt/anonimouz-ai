@@ -22,7 +22,7 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarContent>
-        <div className="mt-20">
+        <div className="mt-12">
           <SidebarHeader>
             <div className="p-4">
               <h2 className="text-lg font-semibold text-white">Disparo A.I</h2>
