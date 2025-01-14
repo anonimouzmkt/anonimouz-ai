@@ -32,9 +32,18 @@ const WhatsApp = () => {
   const handleCreateInstance = async () => {
     setIsCreating(true);
     try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        throw new Error("User not authenticated");
+      }
+
       const { error } = await supabase.from("whatsapp_instances").insert({
         name: `Instance ${(instances?.length || 0) + 1}`,
         status: "disconnected",
+        user_id: user.id,
       });
 
       if (error) throw error;
