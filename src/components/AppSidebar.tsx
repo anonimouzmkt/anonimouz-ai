@@ -1,4 +1,4 @@
-import { LogOut, Settings, User } from "lucide-react";
+import { LogOut, MessageSquare, Settings, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -41,8 +41,16 @@ export function AppSidebar() {
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <a href="/">
-                    <User className="w-4 h-4" />
-                    <span>Perfil</span>
+                    <MessageSquare className="w-4 h-4" />
+                    <span>Disparador</span>
+                  </a>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <a href="/whatsapp">
+                    <MessageSquare className="w-4 h-4" />
+                    <span>WhatsApp</span>
                   </a>
                 </SidebarMenuButton>
               </SidebarMenuItem>
