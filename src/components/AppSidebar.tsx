@@ -1,4 +1,6 @@
-import { Send } from "lucide-react";
+import { LogOut, Settings, User } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Sidebar,
   SidebarContent,
@@ -11,6 +13,13 @@ import {
 } from "@/components/ui/sidebar";
 
 export function AppSidebar() {
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/login");
+  };
+
   return (
     <Sidebar>
       <SidebarContent>
@@ -32,9 +41,23 @@ export function AppSidebar() {
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <a href="/">
-                    <Send className="w-4 h-4" />
-                    <span>Disparo A.I</span>
+                    <User className="w-4 h-4" />
+                    <span>Perfil</span>
                   </a>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <a href="/settings">
+                    <Settings className="w-4 h-4" />
+                    <span>Configurações</span>
+                  </a>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton onClick={handleLogout}>
+                  <LogOut className="w-4 h-4" />
+                  <span>Sair</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
