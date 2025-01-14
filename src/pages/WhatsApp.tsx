@@ -55,13 +55,24 @@ const WhatsApp = () => {
         throw new Error("User not authenticated");
       }
 
-      const { error } = await supabase.from("whatsapp_instances").insert({
+      // Call the Edge Function to create the WhatsApp instance
+      const { data: apiResponse, error: apiError } = await supabase.functions.invoke(
+        'create-whatsapp-instance',
+        {
+          body: { name: instanceName }
+        }
+      );
+
+      if (apiError) throw apiError;
+
+      // Create the instance in our database
+      const { error: dbError } = await supabase.from("whatsapp_instances").insert({
         name: instanceName,
-        status: "disconnected",
+        status: "connecting",
         user_id: user.id,
       });
 
-      if (error) throw error;
+      if (dbError) throw dbError;
 
       toast({
         title: "Sucesso",
