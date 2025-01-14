@@ -8,7 +8,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarMenuLabel,
+  SidebarGroupLabel,
 } from "@/components/ui/sidebar";
 
 export function AppSidebar() {
@@ -30,7 +30,7 @@ export function AppSidebar() {
           </SidebarHeader>
           <div className="px-3 py-2">
             <SidebarMenu>
-              <SidebarMenuLabel>Menu</SidebarMenuLabel>
+              <SidebarGroupLabel>Menu</SidebarGroupLabel>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <a href="/">
