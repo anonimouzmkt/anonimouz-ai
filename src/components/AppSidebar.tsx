@@ -33,7 +33,7 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar>
+    <Sidebar variant="floating" collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border">
         <div className="flex items-center justify-between px-2">
           <div className="flex items-center gap-2">
@@ -45,7 +45,7 @@ export function AppSidebar() {
       <SidebarContent>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild>
+            <SidebarMenuButton asChild tooltip="Disparador">
               <Link to="/">
                 <MessageSquare className="w-4 h-4" />
                 <span>Disparador</span>
@@ -53,7 +53,7 @@ export function AppSidebar() {
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild>
+            <SidebarMenuButton asChild tooltip="WhatsApp">
               <Link to="/whatsapp">
                 <MessageCircle className="w-4 h-4" />
                 <span>WhatsApp</span>
@@ -64,18 +64,18 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter className="border-t border-sidebar-border p-4">
         <div className="flex flex-col gap-4">
-          <Button variant="outline" size="sm" className="w-full justify-start">
-            <Settings className="mr-2 h-4 w-4" />
-            Settings
+          <Button variant="outline" size="sm" className="w-full justify-start group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:aspect-square">
+            <Settings className="mr-2 h-4 w-4 group-data-[collapsible=icon]:mr-0" />
+            <span className="group-data-[collapsible=icon]:hidden">Settings</span>
           </Button>
           <Button
             variant="outline"
             size="sm"
-            className="w-full justify-start"
+            className="w-full justify-start group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:aspect-square"
             onClick={handleLogout}
           >
-            <LogOut className="mr-2 h-4 w-4" />
-            Logout
+            <LogOut className="mr-2 h-4 w-4 group-data-[collapsible=icon]:mr-0" />
+            <span className="group-data-[collapsible=icon]:hidden">Logout</span>
           </Button>
         </div>
       </SidebarFooter>
