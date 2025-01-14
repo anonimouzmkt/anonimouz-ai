@@ -27,7 +27,7 @@ export function AppSidebar() {
             <div className="p-4">
               <div className="flex items-center gap-2">
                 <img 
-                  src="/lovable-uploads/7a35d957-3e2b-485b-a149-d1899d36bc70.png" 
+                  src="/lovable-uploads/4321434b-2144-462b-b83b-2b1129bccb08.png" 
                   alt="Logo" 
                   className="w-6 h-6"
                 />
