@@ -4,6 +4,9 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface WhatsAppInstance {
   id: string;
@@ -15,6 +18,8 @@ interface WhatsAppInstance {
 const WhatsApp = () => {
   const { toast } = useToast();
   const [isCreating, setIsCreating] = useState(false);
+  const [showDialog, setShowDialog] = useState(false);
+  const [instanceName, setInstanceName] = useState("");
 
   const { data: instances, refetch } = useQuery({
     queryKey: ["whatsapp-instances"],
@@ -30,6 +35,15 @@ const WhatsApp = () => {
   });
 
   const handleCreateInstance = async () => {
+    if (!instanceName.trim()) {
+      toast({
+        title: "Erro",
+        description: "O nome da instância é obrigatório",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsCreating(true);
     try {
       const {
@@ -41,7 +55,7 @@ const WhatsApp = () => {
       }
 
       const { error } = await supabase.from("whatsapp_instances").insert({
-        name: `Instance ${(instances?.length || 0) + 1}`,
+        name: instanceName,
         status: "disconnected",
         user_id: user.id,
       });
@@ -49,16 +63,18 @@ const WhatsApp = () => {
       if (error) throw error;
 
       toast({
-        title: "Success",
-        description: "WhatsApp instance created successfully",
+        title: "Sucesso",
+        description: "Instância do WhatsApp criada com sucesso",
       });
 
+      setShowDialog(false);
+      setInstanceName("");
       refetch();
     } catch (error) {
       console.error("Error creating instance:", error);
       toast({
-        title: "Error",
-        description: "Failed to create WhatsApp instance",
+        title: "Erro",
+        description: "Falha ao criar instância do WhatsApp",
         variant: "destructive",
       });
     } finally {
@@ -77,8 +93,7 @@ const WhatsApp = () => {
             </p>
           </div>
           <Button
-            onClick={handleCreateInstance}
-            disabled={isCreating}
+            onClick={() => setShowDialog(true)}
             className="bg-[#0099ff] hover:bg-[#0088ee]"
           >
             <Plus className="w-4 h-4 mr-2" />
@@ -121,6 +136,43 @@ const WhatsApp = () => {
           ))}
         </div>
       </div>
+
+      <Dialog open={showDialog} onOpenChange={setShowDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Nova Instância do WhatsApp</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Nome da Instância</Label>
+              <Input
+                id="name"
+                placeholder="Digite o nome da instância"
+                value={instanceName}
+                onChange={(e) => setInstanceName(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowDialog(false);
+                setInstanceName("");
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleCreateInstance}
+              disabled={isCreating}
+              className="bg-[#0099ff] hover:bg-[#0088ee]"
+            >
+              {isCreating ? "Criando..." : "Criar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </main>
   );
 };
