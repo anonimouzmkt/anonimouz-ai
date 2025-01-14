@@ -34,6 +34,11 @@ serve(async (req) => {
     const data = await response.json()
     console.log('API Response:', data)
 
+    // Verificar se a resposta foi bem sucedida
+    if (!response.ok || data.error) {
+      throw new Error(data.error || 'Failed to create WhatsApp instance')
+    }
+
     return new Response(
       JSON.stringify(data),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

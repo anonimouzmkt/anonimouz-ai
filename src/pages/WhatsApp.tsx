@@ -56,6 +56,7 @@ const WhatsApp = () => {
       }
 
       // Call the Edge Function to create the WhatsApp instance
+      console.log('Calling Edge Function to create instance:', instanceName);
       const { data: apiResponse, error: apiError } = await supabase.functions.invoke(
         'create-whatsapp-instance',
         {
@@ -63,7 +64,17 @@ const WhatsApp = () => {
         }
       );
 
-      if (apiError) throw apiError;
+      if (apiError) {
+        console.error('Edge Function error:', apiError);
+        throw apiError;
+      }
+
+      console.log('API Response:', apiResponse);
+
+      // Verificar se a resposta da API foi bem sucedida
+      if (!apiResponse || apiResponse.error) {
+        throw new Error(apiResponse?.error || 'Falha ao criar instância na API do WhatsApp');
+      }
 
       // Create the instance in our database
       const { error: dbError } = await supabase.from("whatsapp_instances").insert({
@@ -72,7 +83,10 @@ const WhatsApp = () => {
         user_id: user.id,
       });
 
-      if (dbError) throw dbError;
+      if (dbError) {
+        console.error('Database error:', dbError);
+        throw dbError;
+      }
 
       toast({
         title: "Sucesso",
@@ -86,7 +100,7 @@ const WhatsApp = () => {
       console.error("Error creating instance:", error);
       toast({
         title: "Erro",
-        description: "Falha ao criar instância do WhatsApp",
+        description: error.message || "Falha ao criar instância do WhatsApp",
         variant: "destructive",
       });
     } finally {
