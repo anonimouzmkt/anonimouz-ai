@@ -1,4 +1,4 @@
-import { Settings, LogOut, Users } from "lucide-react";
+import { Settings, LogOut, Users, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -59,6 +59,17 @@ export const SidebarFooterActions = ({
         <Settings className="mr-2 h-4 w-4 group-data-[collapsible=icon]:mr-0" />
         <span className="group-data-[collapsible=icon]:hidden">Settings</span>
       </Button>
+      {isAdmin && (
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="w-full justify-start group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:aspect-square"
+          onClick={() => handleNavigation("/admin-settings")}
+        >
+          <Shield className="mr-2 h-4 w-4 group-data-[collapsible=icon]:mr-0" />
+          <span className="group-data-[collapsible=icon]:hidden">Admin Settings</span>
+        </Button>
+      )}
       <Button
         variant="outline"
         size="sm"
