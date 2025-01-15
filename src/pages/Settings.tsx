@@ -7,7 +7,7 @@ import { APITokenSection } from "@/components/settings/APITokenSection";
 import { WebhookSection } from "@/components/settings/WebhookSection";
 import { SecuritySection } from "@/components/settings/SecuritySection";
 import { ThemeToggle } from "@/components/settings/ThemeToggle";
-import { useSelectedUser } from "@/components/AppSidebar";
+import { useSelectedUser } from "@/components/sidebar/SidebarContext";
 import { useToast } from "@/hooks/use-toast";
 
 const Settings = () => {

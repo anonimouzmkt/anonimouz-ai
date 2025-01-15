@@ -13,7 +13,10 @@ import { NavigationWarningDialog } from "./NavigationWarningDialog";
 import { SidebarHeader as CustomSidebarHeader } from "./sidebar/SidebarHeader";
 import { SidebarNavigation } from "./sidebar/SidebarNavigation";
 import { SidebarFooterActions } from "./sidebar/SidebarFooterActions";
-import { SelectedUserContext } from "./sidebar/SidebarContext";
+import { SelectedUserContext, useSelectedUser } from "./sidebar/SidebarContext";
+
+// Re-export the hook so other components can keep importing it from AppSidebar
+export { useSelectedUser };
 
 export function AppSidebar() {
   const navigate = useNavigate();

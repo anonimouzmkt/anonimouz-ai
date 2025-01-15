@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useSelectedUser } from "@/components/AppSidebar";
+import { useSelectedUser } from "@/components/sidebar/SidebarContext";
 import { useToast } from "@/hooks/use-toast";
 import { DispatchMetrics } from "@/components/dashboard/DispatchMetrics";
 import { DispatchStatistics } from "@/components/dashboard/DispatchStatistics";

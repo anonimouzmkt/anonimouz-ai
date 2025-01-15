@@ -1,7 +1,8 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { AppSidebar, useSelectedUser } from "../AppSidebar";
+import { AppSidebar } from "../AppSidebar";
+import { useSelectedUser } from "@/components/sidebar/SidebarContext";
 import { SidebarProvider } from "@/components/ui/sidebar";
 
 interface ProtectedLayoutProps {

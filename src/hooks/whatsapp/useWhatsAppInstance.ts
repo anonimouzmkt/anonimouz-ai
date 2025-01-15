@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { WhatsAppInstance } from "@/types/whatsapp";
-import { useSelectedUser } from "@/components/AppSidebar";
+import { useSelectedUser } from "@/components/sidebar/SidebarContext";
 
 export const useWhatsAppInstance = () => {
   const { selectedUserId } = useSelectedUser();

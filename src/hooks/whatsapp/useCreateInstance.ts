@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { useSelectedUser } from "@/components/AppSidebar";
+import { useSelectedUser } from "@/components/sidebar/SidebarContext";
 
 export const useCreateInstance = (refetchInstances: () => void) => {
   const { toast } = useToast();
