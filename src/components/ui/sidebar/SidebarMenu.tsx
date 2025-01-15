@@ -3,7 +3,7 @@ import { Slot } from "@radix-ui/react-slot"
 import { cn } from "@/lib/utils"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
-import { sidebarMenuButtonVariants } from "./SidebarBase"
+import { sidebarMenuButtonVariants, SidebarMenuButtonVariants } from "./SidebarBase"
 import { useSidebar } from "./SidebarContext"
 
 export function SidebarMenu({
@@ -33,12 +33,11 @@ export function SidebarMenuItem({
 }
 
 interface SidebarMenuButtonProps
-  extends React.ComponentProps<"button"> {
+  extends React.ComponentProps<"button">,
+    SidebarMenuButtonVariants {
   asChild?: boolean
   isActive?: boolean
   tooltip?: string | React.ComponentProps<typeof TooltipContent>
-  variant?: "default" | "outline"
-  size?: "sm" | "md" | "lg"
 }
 
 export function SidebarMenuButton({
