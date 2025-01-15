@@ -123,10 +123,15 @@ const AdminSettings = () => {
         .update({ role: newRole })
         .eq('id', userId);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error updating role:", error);
+        throw error;
+      }
 
       toast.success(`User role updated to ${newRole}`);
-      queryClient.invalidateQueries({ queryKey: ["users"] });
+      // Invalidate both the users list and the specific user's profile
+      await queryClient.invalidateQueries({ queryKey: ["users"] });
+      await queryClient.invalidateQueries({ queryKey: ["profile", userId] });
     } catch (error) {
       console.error("Error updating user role:", error);
       toast.error("Failed to update user role. Please try again.");
