@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { WhatsAppInstance } from "@/types/whatsapp";
 
 export const useWhatsAppInstances = () => {
-  const { generateQRCode } = useWhatsAppInstance({});
+  const { generateQRCode } = useWhatsAppInstance();
   const { createInstance } = useCreateInstance();
   const { deleteInstance } = useDeleteInstance();
 

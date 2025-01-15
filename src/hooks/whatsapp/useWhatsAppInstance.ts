@@ -3,7 +3,11 @@ import { useQueryClient } from "@tanstack/react-query";
 import { apiService } from "@/lib/api-service";
 import { useToast } from "@/hooks/use-toast";
 
-export const useWhatsAppInstance = () => {
+export interface WhatsAppInstanceOptions {
+  onSuccess?: () => void;
+}
+
+export const useWhatsAppInstance = (options?: WhatsAppInstanceOptions) => {
   const [isLoading, setIsLoading] = useState(false);
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -15,6 +19,8 @@ export const useWhatsAppInstance = () => {
       const response = await apiService.generateQRCode(instanceName);
       
       await queryClient.invalidateQueries({ queryKey: ['whatsapp-instances'] });
+      
+      options?.onSuccess?.();
       
       return response;
     } catch (error) {
