@@ -12,25 +12,40 @@ export const SidebarNavigation = ({ handleNavigation }: SidebarNavigationProps) 
     <SidebarMenu className="mt-12 flex flex-col h-full">
       <div>
         <SidebarMenuItem>
-          <SidebarMenuButton asChild tooltip="Disparador" onClick={() => handleNavigation("/")}>
+          <SidebarMenuButton 
+            asChild 
+            tooltip="Disparador" 
+            onClick={() => handleNavigation("/")}
+            className="text-base py-3 transition-all duration-200 hover:translate-x-1 hover:bg-sidebar-accent/70"
+          >
             <Link to="#" onClick={(e) => e.preventDefault()}>
-              <MessageSquare className="w-4 h-4" />
+              <MessageSquare className="w-5 h-5" />
               <span>Disparador</span>
             </Link>
           </SidebarMenuButton>
         </SidebarMenuItem>
         <SidebarMenuItem>
-          <SidebarMenuButton asChild tooltip="Dashboard" onClick={() => handleNavigation("/dispatch-dashboard")}>
+          <SidebarMenuButton 
+            asChild 
+            tooltip="Dashboard" 
+            onClick={() => handleNavigation("/dispatch-dashboard")}
+            className="text-base py-3 transition-all duration-200 hover:translate-x-1 hover:bg-sidebar-accent/70"
+          >
             <Link to="#" onClick={(e) => e.preventDefault()}>
-              <BarChart2 className="w-4 h-4" />
+              <BarChart2 className="w-5 h-5" />
               <span>Dashboard</span>
             </Link>
           </SidebarMenuButton>
         </SidebarMenuItem>
         <SidebarMenuItem>
-          <SidebarMenuButton asChild tooltip="WhatsApp" onClick={() => handleNavigation("/whatsapp")}>
+          <SidebarMenuButton 
+            asChild 
+            tooltip="WhatsApp" 
+            onClick={() => handleNavigation("/whatsapp")}
+            className="text-base py-3 transition-all duration-200 hover:translate-x-1 hover:bg-sidebar-accent/70"
+          >
             <Link to="#" onClick={(e) => e.preventDefault()}>
-              <MessageCircle className="w-4 h-4" />
+              <MessageCircle className="w-5 h-5" />
               <span>WhatsApp</span>
             </Link>
           </SidebarMenuButton>
