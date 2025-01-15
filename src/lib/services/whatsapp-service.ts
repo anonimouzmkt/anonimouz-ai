@@ -46,10 +46,14 @@ export class WhatsAppService extends BaseService {
       });
 
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Error response:', errorText);
         throw new Error(`Error creating WhatsApp instance: ${response.statusText}`);
       }
 
-      return await response.json();
+      const data = await response.json();
+      console.log('Instance created successfully:', data);
+      return data;
     } catch (error) {
       console.error('Error creating WhatsApp instance:', error);
       throw error;
@@ -68,10 +72,14 @@ export class WhatsAppService extends BaseService {
       });
 
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Error response:', errorText);
         throw new Error(`Error generating QR code: ${response.statusText}`);
       }
 
-      return await response.json();
+      const data = await response.json();
+      console.log('QR code generated successfully:', data);
+      return data;
     } catch (error) {
       console.error('Error generating QR code:', error);
       throw error;
@@ -83,17 +91,31 @@ export class WhatsAppService extends BaseService {
     
     try {
       const headers = await this.getAuthHeaders();
+      console.log('Request headers:', headers);
+      
       const response = await fetch(`${this.baseUrl}/whatsapp/dispatch`, {
         method: 'POST',
         headers,
         body: JSON.stringify(data)
       });
 
+      // Log the raw response for debugging
+      const responseText = await response.text();
+      console.log('Raw API response:', responseText);
+
       if (!response.ok) {
+        console.error('Error response:', responseText);
         throw new Error(`Error handling dispatch: ${response.statusText}`);
       }
 
-      return await response.json();
+      try {
+        const jsonData = JSON.parse(responseText);
+        console.log('Dispatch handled successfully:', jsonData);
+        return jsonData;
+      } catch (parseError) {
+        console.error('Error parsing JSON response:', parseError);
+        throw new Error('Invalid JSON response from server');
+      }
     } catch (error) {
       console.error('Error handling dispatch:', error);
       throw error;
@@ -112,10 +134,14 @@ export class WhatsAppService extends BaseService {
       });
 
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Error response:', errorText);
         throw new Error(`Error updating dispatch status: ${response.statusText}`);
       }
 
-      return await response.json();
+      const jsonData = await response.json();
+      console.log('Status updated successfully:', jsonData);
+      return jsonData;
     } catch (error) {
       console.error('Error updating dispatch status:', error);
       throw error;
@@ -134,10 +160,14 @@ export class WhatsAppService extends BaseService {
       });
 
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Error response:', errorText);
         throw new Error(`Error updating AI dispatch status: ${response.statusText}`);
       }
 
-      return await response.json();
+      const jsonData = await response.json();
+      console.log('AI status updated successfully:', jsonData);
+      return jsonData;
     } catch (error) {
       console.error('Error updating AI dispatch status:', error);
       throw error;
@@ -156,10 +186,14 @@ export class WhatsAppService extends BaseService {
       });
 
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Error response:', errorText);
         throw new Error(`Error handling webhook: ${response.statusText}`);
       }
 
-      return await response.json();
+      const jsonData = await response.json();
+      console.log('Webhook handled successfully:', jsonData);
+      return jsonData;
     } catch (error) {
       console.error('Error handling webhook:', error);
       throw error;
