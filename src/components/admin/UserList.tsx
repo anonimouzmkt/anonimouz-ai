@@ -18,6 +18,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
+import { Database } from "@/integrations/supabase/types";
+
+type UserRole = Database["public"]["Enums"]["user_role"];
 
 export function UserList() {
   const queryClient = useQueryClient();
@@ -58,7 +61,7 @@ export function UserList() {
   });
 
   const updateRoleMutation = useMutation({
-    mutationFn: async ({ userId, newRole }: { userId: string; newRole: string }) => {
+    mutationFn: async ({ userId, newRole }: { userId: string; newRole: UserRole }) => {
       console.log("Updating user role:", userId, newRole);
       const { error } = await supabase
         .from("profiles")
@@ -82,7 +85,7 @@ export function UserList() {
     }
   };
 
-  const handleRoleChange = async (userId: string, newRole: string) => {
+  const handleRoleChange = async (userId: string, newRole: UserRole) => {
     await updateRoleMutation.mutate({ userId, newRole });
   };
 
@@ -114,7 +117,7 @@ export function UserList() {
                 <TableCell>
                   <Select
                     value={user.role}
-                    onValueChange={(value) => handleRoleChange(user.id, value)}
+                    onValueChange={(value: UserRole) => handleRoleChange(user.id, value)}
                   >
                     <SelectTrigger className="w-32">
                       <SelectValue placeholder="Select role" />

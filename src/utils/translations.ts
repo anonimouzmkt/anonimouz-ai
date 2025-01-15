@@ -8,7 +8,12 @@ export type TranslationKey =
   | "success"
   | "error"
   | "languageUpdated"
-  | "errorUpdatingLanguage";
+  | "errorUpdatingLanguage"
+  | "settings"
+  | "invalidCredentials"
+  | "emailNotConfirmed"
+  | "welcomeBack"
+  | "signIn";
 
 export const translations = {
   en: {
@@ -20,6 +25,11 @@ export const translations = {
     error: "Error",
     languageUpdated: "Language updated successfully",
     errorUpdatingLanguage: "Error updating language",
+    settings: "Settings",
+    invalidCredentials: "Invalid email or password",
+    emailNotConfirmed: "Please confirm your email address",
+    welcomeBack: "Welcome back",
+    signIn: "Sign in to your account",
   },
   "pt-BR": {
     language: "Idioma",
@@ -30,5 +40,10 @@ export const translations = {
     error: "Erro",
     languageUpdated: "Idioma atualizado com sucesso",
     errorUpdatingLanguage: "Erro ao atualizar idioma",
+    settings: "Configurações",
+    invalidCredentials: "Email ou senha inválidos",
+    emailNotConfirmed: "Por favor, confirme seu email",
+    welcomeBack: "Bem-vindo de volta",
+    signIn: "Entre na sua conta",
   },
 };
