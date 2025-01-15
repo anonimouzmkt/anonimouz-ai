@@ -24,3 +24,9 @@ export const sidebarMenuButtonVariants = cva(
 )
 
 export type SidebarMenuButtonVariants = VariantProps<typeof sidebarMenuButtonVariants>
+
+export interface SidebarProps extends React.ComponentProps<"div"> {
+  variant?: "sidebar" | "floating" | "inset"
+  collapsible?: "offcanvas" | "icon" | "none"
+  side?: "left" | "right"
+}
