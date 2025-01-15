@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Key, Copy } from "lucide-react";
@@ -9,7 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 export const APITokenSection = () => {
   const [token, setToken] = useState<string>("");
 
-  // Check if current user is admin and fetch their api_key
+  // Check if current user is admin
   const { data: profile } = useQuery({
     queryKey: ["profile"],
     queryFn: async () => {
@@ -26,13 +26,6 @@ export const APITokenSection = () => {
     },
   });
 
-  // Set the token when profile is loaded
-  useEffect(() => {
-    if (profile?.api_key) {
-      setToken(profile.api_key);
-    }
-  }, [profile]);
-
   const isAdmin = profile?.role === 'admin_user';
 
   const handleGenerateToken = async () => {
@@ -42,23 +35,14 @@ export const APITokenSection = () => {
         return;
       }
 
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("No user found");
-
-      // Generate a new UUID for the api_key
-      const { data, error } = await supabase
-        .from("profiles")
-        .update({ api_key: crypto.randomUUID() })
-        .eq("id", user.id)
-        .select()
-        .single();
-
-      if (error) throw error;
+      const { data: { session }, error } = await supabase.auth.getSession();
       
-      if (data?.api_key) {
-        setToken(data.api_key);
-        toast.success("Token generated successfully!");
-      }
+      if (error) throw error;
+      if (!session) throw new Error("No active session");
+
+      const newToken = session.access_token;
+      setToken(newToken);
+      toast.success("Token generated successfully!");
     } catch (error) {
       console.error("Error generating token:", error);
       toast.error("Failed to generate token");

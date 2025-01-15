@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Send } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,7 +8,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { InstanceSelector } from "./message-composer/InstanceSelector";
 import { AIContextInput } from "./message-composer/AIContextInput";
 import { MessageInput } from "./message-composer/MessageInput";
-import { apiService } from "@/lib/api-service";
 
 interface MessageComposerProps {
   onSend: (message: string, instanceId: string, isAiDispatch: boolean, aiContext?: string) => Promise<string | undefined>;
@@ -55,6 +54,10 @@ export function MessageComposer({ onSend, disabled, contacts = [] }: MessageComp
       errors.push("Digite o contexto do disparo quando usar I.A");
     }
 
+    if (useAI && !profile?.webhook_url) {
+      errors.push("Configure o webhook de IA nas configurações");
+    }
+
     setValidationErrors(errors);
     return errors.length === 0;
   };
@@ -62,41 +65,15 @@ export function MessageComposer({ onSend, disabled, contacts = [] }: MessageComp
   const handleSend = async () => {
     if (validateFields() && profile?.unique_id) {
       try {
-        // Create dispatch record first
-        const { data: dispatch, error: dispatchError } = await supabase
-          .from("dispatch_results")
-          .insert({
-            user_id: profile.id,
-            instance_id: selectedInstance,
-            total_contacts: contacts.length,
-            is_ai_dispatch: useAI,
-            initial_message: message,
-            ai_context: useAI ? context : undefined
-          })
-          .select()
-          .single();
-
-        if (dispatchError) throw dispatchError;
-
-        // Create contact results
-        const { error: contactsError } = await supabase
-          .from("dispatch_contact_results")
-          .insert(
-            contacts.map(contact => ({
-              dispatch_id: dispatch.id,
-              contact_name: contact.name,
-              contact_phone: contact.phone,
-              status: "pending"
-            }))
-          );
-
-        if (contactsError) throw contactsError;
+        // Chama onSend e espera o ID do disparo
+        const dispatchId = await onSend(message, selectedInstance, useAI, useAI ? context : undefined);
         
-        if (useAI && dispatch.id) {
-          console.log('Sending dispatch data through API service');
+        if (useAI && dispatchId && profile.webhook_url) {
+          console.log('Sending dispatch data to webhook:', profile.webhook_url);
           
-          await apiService.handleDispatch({
-            dispatchId: dispatch.id,
+          // Prepara o payload para o webhook
+          const webhookPayload = {
+            dispatchId,
             uniqueId: profile.unique_id,
             message,
             context,
@@ -104,7 +81,20 @@ export function MessageComposer({ onSend, disabled, contacts = [] }: MessageComp
               name: contact.name,
               phone: contact.phone
             }))
+          };
+
+          // Envia para o webhook configurado
+          const response = await fetch(profile.webhook_url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(webhookPayload)
           });
+
+          if (!response.ok) {
+            throw new Error('Failed to send to webhook');
+          }
 
           toast({
             title: "Disparo iniciado",
@@ -113,12 +103,11 @@ export function MessageComposer({ onSend, disabled, contacts = [] }: MessageComp
         }
 
         setMessage("");
-        setContext("");
       } catch (error) {
         console.error('Error sending dispatch:', error);
         toast({
           title: "Erro no disparo",
-          description: "Ocorreu um erro ao enviar os contatos",
+          description: "Ocorreu um erro ao enviar os contatos para o webhook",
           variant: "destructive"
         });
       }
