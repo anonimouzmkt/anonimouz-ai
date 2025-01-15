@@ -17,8 +17,10 @@ export const InstanceList = ({ instances, onDelete }: InstanceListProps) => {
   const [isQRDialogOpen, setIsQRDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [qrCodeBase64, setQrCodeBase64] = useState<string>();
+  const [selectedInstance, setSelectedInstance] = useState<WhatsAppInstance | null>(null);
 
   const handleGenerateQR = async (instance: WhatsAppInstance) => {
+    setSelectedInstance(instance);
     setIsQRDialogOpen(true);
     setIsLoading(true);
     setQrCodeBase64(undefined);
@@ -109,6 +111,7 @@ export const InstanceList = ({ instances, onDelete }: InstanceListProps) => {
         onOpenChange={setIsQRDialogOpen}
         qrCodeBase64={qrCodeBase64}
         isLoading={isLoading}
+        instanceName={selectedInstance?.name || ""}
       />
     </>
   );

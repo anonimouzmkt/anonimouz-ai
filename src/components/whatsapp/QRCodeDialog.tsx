@@ -6,17 +6,17 @@ interface QRCodeDialogProps {
   onOpenChange: (open: boolean) => void;
   qrCodeBase64?: string;
   isLoading: boolean;
+  instanceName: string;
 }
 
-export function QRCodeDialog({ isOpen, onOpenChange, qrCodeBase64, isLoading }: QRCodeDialogProps) {
+export function QRCodeDialog({ isOpen, onOpenChange, qrCodeBase64, isLoading, instanceName }: QRCodeDialogProps) {
   const requestDetails = {
-    url: 'https://evo2.anonimouz.com/instance/qrcode',
-    method: 'POST',
-    body: {
-      instanceName: "Instance name",
-      qrcode: true,
-      integration: "WHATSAPP-BAILEYS"
-    }
+    method: "GET",
+    url: `https://evo2.anonimouz.com/instance/connect/${instanceName}`,
+    headers: {
+      apikey: "i4Q8lXOheRb7qgVxiJlmePAYsJSBDc"
+    },
+    sendBody: false
   };
 
   return (
