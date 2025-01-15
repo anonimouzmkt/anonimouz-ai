@@ -37,10 +37,12 @@ export default function AdminSettings() {
     },
     retry: false,
     staleTime: 1000 * 60 * 5, // Cache for 5 minutes
-    onError: (error) => {
-      console.error("Error loading user data:", error);
-      toast.error("Error loading user data. Please try again.");
-      navigate("/");
+    meta: {
+      onError: (error: Error) => {
+        console.error("Error loading user data:", error);
+        toast.error("Error loading user data. Please try again.");
+        navigate("/");
+      }
     }
   });
 
