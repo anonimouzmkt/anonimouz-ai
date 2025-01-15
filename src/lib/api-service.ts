@@ -160,6 +160,33 @@ class ApiService {
       throw error;
     }
   }
+
+  public async updateAIDispatchStatus(data: {
+    dispatchId: string;
+    phone: string;
+    status: string;
+    error?: string;
+  }) {
+    console.log('Updating AI dispatch status:', data);
+    
+    try {
+      const headers = await this.getAuthHeaders();
+      const response = await fetch(`${this.baseUrl}/whatsapp/ai-status`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(data)
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error updating AI dispatch status: ${response.statusText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error updating AI dispatch status:', error);
+      throw error;
+    }
+  }
 }
 
 export const apiService = ApiService.getInstance();
