@@ -1,11 +1,10 @@
-import { Trash, QrCode } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { WhatsAppInstance } from "@/types/whatsapp";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useState, useEffect } from "react";
+import { WhatsAppInstance } from "@/types/whatsapp";
 import { QRCodeDialog } from "./QRCodeDialog";
+import { InstanceCard } from "./InstanceCard";
+import { useInstanceStatus } from "./hooks/useInstanceStatus";
 
 interface InstanceListProps {
   instances: WhatsAppInstance[];
@@ -20,56 +19,7 @@ export const InstanceList = ({ instances, onDelete }: InstanceListProps) => {
   const [selectedInstance, setSelectedInstance] = useState<WhatsAppInstance | null>(null);
   const [localInstances, setLocalInstances] = useState<WhatsAppInstance[]>(instances);
 
-  // Helper function to validate status
-  const validateStatus = (status: string): "connected" | "disconnected" | "connecting" => {
-    if (status === "connected" || status === "disconnected" || status === "connecting") {
-      return status;
-    }
-    return "disconnected"; // Default fallback
-  };
-
-  // Effect to refresh instances every second for connection status
-  useEffect(() => {
-    if (!selectedInstance) return;
-
-    const fetchInstanceStatus = async () => {
-      console.log('Checking connection status for instance:', selectedInstance.name);
-      const { data, error } = await supabase
-        .from("whatsapp_instances")
-        .select("*")
-        .eq("id", selectedInstance.id)
-        .single();
-
-      if (error) {
-        console.error('Error fetching instance status:', error);
-        return;
-      }
-
-      if (data) {
-        // Transform the data to match WhatsAppInstance type
-        const validatedInstance: WhatsAppInstance = {
-          ...data,
-          status: validateStatus(data.status)
-        };
-
-        setLocalInstances(prev => 
-          prev.map(inst => 
-            inst.id === validatedInstance.id ? validatedInstance : inst
-          )
-        );
-        
-        // Update selected instance if status changed
-        if (validatedInstance.status !== selectedInstance.status) {
-          console.log('Instance status changed:', validatedInstance.status);
-          setSelectedInstance(validatedInstance);
-        }
-      }
-    };
-
-    // Check connection status every second
-    const statusInterval = setInterval(fetchInstanceStatus, 1000);
-    return () => clearInterval(statusInterval);
-  }, [selectedInstance]);
+  const { currentInstance } = useInstanceStatus(selectedInstance, setLocalInstances);
 
   // Update local instances when prop changes
   useEffect(() => {
@@ -125,45 +75,12 @@ export const InstanceList = ({ instances, onDelete }: InstanceListProps) => {
     <>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {localInstances?.map((instance) => (
-          <Card
+          <InstanceCard
             key={instance.id}
-            className="bg-[#222222] p-4 space-y-2"
-          >
-            <div className="flex items-center justify-between space-x-2">
-              <h3 className="text-lg font-semibold text-white">
-                {instance.name}
-              </h3>
-              <div className="flex items-center gap-2">
-                <span
-                  className={`px-2 py-1 text-xs font-medium rounded-full ${
-                    instance.status === "connected"
-                      ? "bg-green-500/20 text-green-500"
-                      : instance.status === "connecting"
-                      ? "bg-yellow-500/20 text-yellow-500"
-                      : "bg-red-500/20 text-red-500"
-                  }`}
-                >
-                  {instance.status}
-                </span>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => handleGenerateQR(instance)}
-                  className="hover:bg-white/10"
-                >
-                  <QrCode className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => onDelete(instance.id)}
-                  className="text-red-500 hover:text-red-600 hover:bg-red-500/10"
-                >
-                  <Trash className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
-          </Card>
+            instance={instance}
+            onDelete={onDelete}
+            onGenerateQR={handleGenerateQR}
+          />
         ))}
       </div>
 
@@ -174,7 +91,7 @@ export const InstanceList = ({ instances, onDelete }: InstanceListProps) => {
         isLoading={isLoading}
         instanceName={selectedInstance?.name || ""}
         onRefresh={() => selectedInstance && refreshQRCode(selectedInstance)}
-        instanceStatus={selectedInstance?.status}
+        instanceStatus={currentInstance?.status}
       />
     </>
   );
