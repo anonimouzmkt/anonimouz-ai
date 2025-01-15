@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Profile } from "@/integrations/supabase/types";
+import type { Profile } from "@/integrations/supabase/types";
 
 export function useDispatchValidation() {
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
