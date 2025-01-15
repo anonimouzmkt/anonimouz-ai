@@ -92,6 +92,20 @@ const Settings = () => {
 
         <div className="space-y-6">
           <div className="space-y-2">
+            <h2 className="text-lg font-semibold">Account Information</h2>
+            <div className="space-y-2">
+              <div>
+                <label className="text-sm font-medium">Email</label>
+                <Input value={profile.email || ''} readOnly />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Unique ID</label>
+                <Input value={profile.unique_id || ''} readOnly />
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-2">
             <h2 className="text-lg font-semibold">API Token</h2>
             <div className="flex gap-2">
               <Input value={token} readOnly placeholder="Generate a token..." />

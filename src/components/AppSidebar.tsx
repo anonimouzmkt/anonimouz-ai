@@ -103,7 +103,7 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
       <SidebarContent>
-        <SidebarMenu>
+        <SidebarMenu className="mt-12">
           <SidebarMenuItem>
             <SidebarMenuButton asChild tooltip="Disparador">
               <Link to="/">
