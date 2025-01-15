@@ -5,7 +5,6 @@ import { corsHeaders } from "../_shared/cors.ts"
 console.log("Handle Dispatch function started")
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
@@ -14,20 +13,9 @@ serve(async (req) => {
     const { dispatchId, message, contacts } = await req.json()
     console.log('Handling dispatch:', { dispatchId, contactCount: contacts?.length })
 
-    const authHeader = req.headers.get('Authorization')
-    if (!authHeader) {
-      throw new Error('No authorization header')
-    }
-
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false
-        }
-      }
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
     // Get the dispatch details
@@ -38,7 +26,7 @@ serve(async (req) => {
       .single()
 
     if (dispatchError) {
-      throw new Error(`Error fetching dispatch: ${dispatchError.message}`)
+      throw dispatchError
     }
 
     if (!dispatch) {
@@ -53,18 +41,18 @@ serve(async (req) => {
       .single()
 
     if (instanceError) {
-      throw new Error(`Error fetching instance: ${instanceError.message}`)
+      throw instanceError
     }
 
     if (!instance) {
       throw new Error('WhatsApp instance not found')
     }
 
-    // Create contact results for each contact
+    // Create contact results
     const contactResults = contacts.map(contact => ({
       dispatch_id: dispatchId,
-      name: contact.name,
-      phone: contact.phone,
+      contact_name: contact.name,
+      contact_phone: contact.phone,
       status: 'pending'
     }))
 
@@ -73,7 +61,7 @@ serve(async (req) => {
       .insert(contactResults)
 
     if (contactResultsError) {
-      throw new Error(`Error creating contact results: ${contactResultsError.message}`)
+      throw contactResultsError
     }
 
     // Update dispatch status
@@ -83,30 +71,18 @@ serve(async (req) => {
       .eq('id', dispatchId)
 
     if (updateError) {
-      throw new Error(`Error updating dispatch status: ${updateError.message}`)
+      throw updateError
     }
 
     return new Response(
       JSON.stringify({ success: true }), 
-      {
-        headers: { 
-          ...corsHeaders, 
-          'Content-Type': 'application/json' 
-        },
-        status: 200,
-      }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     )
   } catch (error) {
     console.error('Error:', error)
     return new Response(
       JSON.stringify({ error: error.message }), 
-      {
-        headers: { 
-          ...corsHeaders, 
-          'Content-Type': 'application/json' 
-        },
-        status: 400,
-      }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
     )
   }
 })
