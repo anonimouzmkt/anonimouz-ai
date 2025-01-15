@@ -5,7 +5,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { useSelectedUser } from "@/components/sidebar/SidebarContext";
 import {
   Card,
   CardContent,
@@ -45,7 +44,6 @@ const AdminSettings = () => {
   const [loading, setLoading] = useState(false);
   const [impersonating, setImpersonating] = useState<string | null>(null);
   const queryClient = useQueryClient();
-  const { setSelectedUserId } = useSelectedUser();
 
   const { data: currentUser } = useQuery({
     queryKey: ["currentUser"],
@@ -164,9 +162,29 @@ const AdminSettings = () => {
       setImpersonating(userId);
       console.log("Logging in as user:", userId);
       
-      setSelectedUserId(userId);
+      // First, get the user's email
+      const { data: userData, error: userError } = await supabase
+        .from('profiles')
+        .select('email')
+        .eq('id', userId)
+        .single();
+
+      if (userError || !userData?.email) {
+        throw new Error("Could not find user email");
+      }
+
+      // Sign out current user
+      const { error: signOutError } = await supabase.auth.signOut();
+      if (signOutError) throw signOutError;
+
+      // Generate a magic link for the impersonated user
+      const { error: signInError } = await supabase.auth.signInWithOtp({
+        email: userData.email,
+      });
+
+      if (signInError) throw signInError;
       
-      toast.success("Successfully switched to selected user account");
+      toast.success("Magic link sent to user's email");
     } catch (error) {
       console.error("Error logging in as user:", error);
       toast.error("Failed to login as user. Please try again.");
