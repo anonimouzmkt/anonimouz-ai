@@ -90,7 +90,7 @@ serve(async (req) => {
       if (newStatus) {
         console.log(`Attempting to update instance ${instanceName} status to ${newStatus}`);
         
-        // First, get the instance to update using maybeSingle() instead of single()
+        // Get the instance by name
         const { data: instance, error: fetchError } = await supabaseClient
           .from('whatsapp_instances')
           .select('id, status')
@@ -118,14 +118,11 @@ serve(async (req) => {
 
         console.log(`Found instance with id ${instance.id}, current status: ${instance.status}`);
 
-        // Perform the update using the service role key
-        const { error: updateError } = await supabaseClient
-          .from('whatsapp_instances')
-          .update({ 
-            status: newStatus,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', instance.id);
+        // Update the instance status using RPC call for atomic update
+        const { error: updateError } = await supabaseClient.rpc('update_instance_status', {
+          p_instance_id: instance.id,
+          p_status: newStatus
+        });
 
         if (updateError) {
           console.error('Error updating instance status:', updateError);
