@@ -28,12 +28,12 @@ export const InstanceList = ({ instances, onDelete }: InstanceListProps) => {
     return "disconnected"; // Default fallback
   };
 
-  // Effect to refresh instances every second
+  // Effect to refresh instances every second for connection status
   useEffect(() => {
     if (!selectedInstance) return;
 
     const fetchInstanceStatus = async () => {
-      console.log('Fetching instance status for:', selectedInstance.name);
+      console.log('Checking connection status for instance:', selectedInstance.name);
       const { data, error } = await supabase
         .from("whatsapp_instances")
         .select("*")
@@ -60,13 +60,15 @@ export const InstanceList = ({ instances, onDelete }: InstanceListProps) => {
         
         // Update selected instance if status changed
         if (validatedInstance.status !== selectedInstance.status) {
+          console.log('Instance status changed:', validatedInstance.status);
           setSelectedInstance(validatedInstance);
         }
       }
     };
 
-    const intervalId = setInterval(fetchInstanceStatus, 1000);
-    return () => clearInterval(intervalId);
+    // Check connection status every second
+    const statusInterval = setInterval(fetchInstanceStatus, 1000);
+    return () => clearInterval(statusInterval);
   }, [selectedInstance]);
 
   // Update local instances when prop changes

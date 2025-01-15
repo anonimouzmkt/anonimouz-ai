@@ -27,6 +27,7 @@ export function QRCodeDialog({
   // Effect to handle connection success
   useEffect(() => {
     if (instanceStatus === 'connected' && isOpen) {
+      console.log('WhatsApp connected! Showing success animation');
       setShowSuccess(true);
       // Show success animation for 2 seconds before closing
       const timer = setTimeout(() => {
@@ -37,18 +38,20 @@ export function QRCodeDialog({
     }
   }, [instanceStatus, isOpen, onOpenChange]);
 
+  // Effect for QR code refresh (every 15 seconds)
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && !showSuccess) {
+      console.log('Setting up QR code refresh interval (15s) for instance:', instanceName);
       const interval = setInterval(() => {
         if (onRefresh) {
           console.log('Refreshing QR code for instance:', instanceName);
           onRefresh();
         }
-      }, 12000); // 12 segundos
+      }, 15000); // 15 seconds
 
       return () => clearInterval(interval);
     }
-  }, [isOpen, onRefresh, instanceName]);
+  }, [isOpen, onRefresh, instanceName, showSuccess]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
