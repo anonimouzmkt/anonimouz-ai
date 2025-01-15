@@ -112,6 +112,12 @@ const Settings = () => {
     retry: 1,
   });
 
+  // Effect to refetch data when selectedUserId changes
+  useEffect(() => {
+    console.log("Selected user changed in Settings, refetching data...");
+    refetch();
+  }, [selectedUserId, refetch]);
+
   if (isCurrentUserError || isProfileError || isAdminError) {
     return (
       <div className="flex-1 p-8">
