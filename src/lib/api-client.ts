@@ -3,6 +3,7 @@ import { API_BASE_URL } from "./api-config";
 
 class ApiClient {
   private apiKey: string | null = null;
+  private accessToken: string | null = null;
 
   async initialize() {
     try {
@@ -15,9 +16,15 @@ class ApiClient {
         .eq('id', user.id)
         .single();
 
-      if (profile) {
+      if (profile?.api_key) {
         this.apiKey = profile.api_key;
-        console.log('API client initialized with key');
+        console.log('API client initialized with api_key');
+      }
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.access_token) {
+        this.accessToken = session.access_token;
+        console.log('API client initialized with access_token');
       }
     } catch (error) {
       console.error('Error initializing API client:', error);
@@ -25,10 +32,18 @@ class ApiClient {
   }
 
   private getHeaders() {
-    return {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      'X-API-Key': this.apiKey || '',
     };
+
+    // Prefer API Key for external requests if available
+    if (this.apiKey) {
+      headers['apikey'] = this.apiKey;
+    } else if (this.accessToken) {
+      headers['Authorization'] = `Bearer ${this.accessToken}`;
+    }
+
+    return headers;
   }
 
   async createDispatch(data: {
@@ -95,8 +110,6 @@ class ApiClient {
       throw error;
     }
   }
-
-  // Adicione mais métodos conforme necessário
 }
 
 export const apiClient = new ApiClient();
