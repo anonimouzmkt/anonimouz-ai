@@ -5,38 +5,10 @@ export class BaseService {
   protected accessToken: string | null = null;
 
   constructor() {
-    this.initializeToken();
     console.log('Base Service initialized with URL:', this.baseUrl);
   }
 
-  protected async initializeToken() {
-    const { data: { session } } = await supabase.auth.getSession();
-    this.accessToken = session?.access_token || null;
-    console.log('Token initialized:', this.accessToken ? 'Token present' : 'No token');
-  }
-
-  protected async refreshTokenIfNeeded() {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        const { data, error } = await supabase.auth.refreshSession();
-        if (error) throw error;
-        this.accessToken = data.session?.access_token || null;
-        console.log('Token refreshed:', this.accessToken ? 'New token obtained' : 'Failed to refresh');
-      } else {
-        this.accessToken = session.access_token;
-        console.log('Using existing valid token');
-      }
-    } catch (error) {
-      console.error('Error refreshing token:', error);
-      throw error;
-    }
-  }
-
   protected async getAuthHeaders() {
-    await this.refreshTokenIfNeeded();
-    
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('No authenticated user');
 
@@ -47,6 +19,16 @@ export class BaseService {
       .single();
 
     if (!profile?.unique_id) throw new Error('No unique_id found for user');
+
+    // Get a fresh session to ensure we have a valid JWT
+    const { data: { session }, error } = await supabase.auth.getSession();
+    if (error || !session) {
+      console.error('Error getting session:', error);
+      throw new Error('Failed to get valid session');
+    }
+
+    this.accessToken = session.access_token;
+    console.log('Generated new JWT token for API request');
 
     return {
       'Authorization': `Bearer ${this.accessToken}`,
