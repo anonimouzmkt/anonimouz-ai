@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Settings as SettingsIcon, UserPlus, UserCheck, UserX } from "lucide-react";
+import { Settings as SettingsIcon, UserPlus, UserCheck, UserX, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface Profile {
   id: string;
@@ -137,12 +148,64 @@ const AdminSettings = () => {
       }
 
       toast.success(`User role updated to ${newRole}`);
-      // Invalidate both the users list and the specific user's profile
       await queryClient.invalidateQueries({ queryKey: ["users"] });
       await queryClient.invalidateQueries({ queryKey: ["profile", userId] });
     } catch (error) {
       console.error("Error updating user role:", error);
       toast.error("Failed to update user role. Please try again.");
+    }
+  };
+
+  const handleDeleteUser = async (userId: string) => {
+    try {
+      console.log("Deleting user and related data:", userId);
+      
+      // Delete WhatsApp instances
+      const { error: instancesError } = await supabase
+        .from('whatsapp_instances')
+        .delete()
+        .eq('user_id', userId);
+
+      if (instancesError) {
+        console.error("Error deleting WhatsApp instances:", instancesError);
+        throw instancesError;
+      }
+
+      // Delete dispatch results (this will cascade to dispatch_contact_results)
+      const { error: dispatchError } = await supabase
+        .from('dispatch_results')
+        .delete()
+        .eq('user_id', userId);
+
+      if (dispatchError) {
+        console.error("Error deleting dispatch results:", dispatchError);
+        throw dispatchError;
+      }
+
+      // Delete profile
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', userId);
+
+      if (profileError) {
+        console.error("Error deleting profile:", profileError);
+        throw profileError;
+      }
+
+      // Delete auth user
+      const { error: authError } = await supabase.auth.admin.deleteUser(userId);
+
+      if (authError) {
+        console.error("Error deleting auth user:", authError);
+        throw authError;
+      }
+
+      toast.success("User deleted successfully");
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      toast.error("Failed to delete user. Please try again.");
     }
   };
 
@@ -206,7 +269,7 @@ const AdminSettings = () => {
                   <TableRow key={user.id}>
                     <TableCell>{user.email}</TableCell>
                     <TableCell>{user.role}</TableCell>
-                    <TableCell>
+                    <TableCell className="space-x-2">
                       <Button
                         variant="ghost"
                         size="sm"
@@ -220,6 +283,38 @@ const AdminSettings = () => {
                         )}
                         {user.admin_users ? 'Remove Admin' : 'Make Admin'}
                       </Button>
+
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            disabled={user.id === currentUser?.id}
+                            className="text-destructive hover:text-destructive"
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Delete
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This action cannot be undone. This will permanently delete the user
+                              account and all associated data including WhatsApp instances and dispatch history.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleDeleteUser(user.id)}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </TableCell>
                   </TableRow>
                 ))}
