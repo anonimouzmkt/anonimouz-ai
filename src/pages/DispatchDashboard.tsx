@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, CheckCircle2, XCircle } from "lucide-react";
+import { RefreshCw, CheckCircle2, XCircle, Users, Robot, Send } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 
@@ -13,6 +13,7 @@ interface DispatchResult {
   error_count: number;
   total_contacts: number;
   created_at: string;
+  is_ai_dispatch: boolean;
 }
 
 interface ChartData {
@@ -102,6 +103,11 @@ export default function DispatchDashboard() {
     failed: dispatch.error_count
   })) || [];
 
+  // Calculate totals
+  const totalDispatches = lastFiveDispatches?.length || 0;
+  const aiDispatches = lastFiveDispatches?.filter(d => d.is_ai_dispatch).length || 0;
+  const normalDispatches = totalDispatches - aiDispatches;
+
   // Subscribe to real-time updates
   useEffect(() => {
     const channel = supabase
@@ -135,73 +141,108 @@ export default function DispatchDashboard() {
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold tracking-tight">Dashboard de Disparos</h2>
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={handleRefresh}
-          className="h-8 w-8"
-        >
-          <RefreshCw className="h-4 w-4" />
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setAutoRefresh(!autoRefresh)}
+          >
+            {autoRefresh ? 'Pausar Atualização' : 'Retomar Atualização'}
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={handleRefresh}
+            className="h-8 w-8"
+          >
+            <RefreshCw className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        {/* Latest Dispatch Status */}
-        <div className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Último Disparo</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Sucesso</CardTitle>
-                      <CheckCircle2 className="h-4 w-4 text-primary" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">
-                        {latestDispatch?.success_count || 0}
-                      </div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Falhas</CardTitle>
-                      <XCircle className="h-4 w-4 text-destructive" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">
-                        {latestDispatch?.error_count || 0}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total de Contatos</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{latestDispatch?.total_contacts || 0}</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Sucesso</CardTitle>
+            <CheckCircle2 className="h-4 w-4 text-primary" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{latestDispatch?.success_count || 0}</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Falhas</CardTitle>
+            <XCircle className="h-4 w-4 text-destructive" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{latestDispatch?.error_count || 0}</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Taxa de Sucesso</CardTitle>
+            <Send className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {latestDispatch?.total_contacts
+                ? Math.round((latestDispatch.success_count / latestDispatch.total_contacts) * 100)
+                : 0}%
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+        <Card className="col-span-3">
+          <CardHeader>
+            <CardTitle>Estatísticas de Disparos</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Taxa de Sucesso</CardTitle>
+                    <CardTitle className="text-sm font-medium">Com I.A.</CardTitle>
+                    <Robot className="h-4 w-4 text-primary" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">
-                      {latestDispatch?.total_contacts
-                        ? Math.round((latestDispatch.success_count / latestDispatch.total_contacts) * 100)
-                        : 0}%
-                    </div>
+                    <div className="text-2xl font-bold">{aiDispatches}</div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Normais</CardTitle>
+                    <Send className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{normalDispatches}</div>
                   </CardContent>
                 </Card>
               </div>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
 
-        {/* Chart */}
-        <Card>
+        <Card className="col-span-4">
           <CardHeader>
             <CardTitle>Resultados dos Últimos 5 Disparos</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-[400px]">
+            <div className="h-[300px]">
               <ChartContainer config={chartConfig}>
                 <BarChart 
                   data={chartData} 
