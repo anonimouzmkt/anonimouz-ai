@@ -138,22 +138,20 @@ export function AppSidebar() {
     <Sidebar 
       variant="floating" 
       collapsible="icon" 
-      className="fixed left-0 top-0 z-20 h-full w-64 border-r border-border/50 bg-background/80 shadow-lg backdrop-blur-sm transition-all duration-300 ease-in-out dark:bg-background/90 group-data-[collapsible=icon]:w-16"
+      className="border-none bg-[#111111] shadow-[1px_0_5px_rgba(0,149,255,0.5)]"
     >
-      <SidebarHeader className="px-4 py-3 border-b border-border/50">
+      <SidebarHeader>
         <CustomSidebarHeader />
       </SidebarHeader>
-      
-      <SidebarContent className="flex-1 px-3 py-4">
+      <SidebarContent>
         <SidebarNavigation 
           handleNavigation={handleNavigation}
-          isAdmin={profile?.admin_users === true}
+          isAdmin={isAdmin}
         />
       </SidebarContent>
-      
-      <SidebarFooter className="mt-auto border-t border-border/50 px-4 py-3">
+      <SidebarFooter className="p-4">
         <SidebarFooterActions
-          isAdmin={profile?.admin_users === true}
+          isAdmin={isAdmin}
           currentUserId={currentUser?.id || ''}
           impersonatedUserId={selectedUserId}
           profiles={profiles}
