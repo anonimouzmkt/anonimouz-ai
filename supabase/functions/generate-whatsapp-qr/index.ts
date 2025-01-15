@@ -37,8 +37,11 @@ serve(async (req) => {
     const data = await response.json()
     console.log('API Response:', data)
 
+    // Extrair apenas a parte base64 do QR code
+    const qrCodeData = data.base64 ? data.base64.split(',')[1] : null;
+
     return new Response(
-      JSON.stringify(data),
+      JSON.stringify({ qrcode: qrCodeData }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200 
