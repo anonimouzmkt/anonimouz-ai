@@ -27,31 +27,8 @@ serve(async (req) => {
       )
     }
 
-    const response = await fetch(`https://evo2.anonimouz.com/instance/connect/${instanceName}`, {
-      headers: {
-        'apikey': apiKey,
-      }
-    })
-
-    const data = await response.json()
-    console.log('API Response:', data)
-
-    if (!response.ok) {
-      console.error('API Error:', data)
-      return new Response(
-        JSON.stringify({ 
-          error: `API Error: ${response.status}`,
-          details: data 
-        }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: response.status 
-        }
-      )
-    }
-
     return new Response(
-      JSON.stringify(data),
+      JSON.stringify({ message: 'Function ready for implementation' }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200
