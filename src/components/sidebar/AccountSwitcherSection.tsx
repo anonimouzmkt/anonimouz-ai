@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Users } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -8,7 +8,6 @@ import {
 } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Users } from "lucide-react";
 
 interface Profile {
   id: string;
@@ -17,12 +16,12 @@ interface Profile {
   admin_users: boolean;
 }
 
-interface AccountSwitcherProps {
+interface AccountSwitcherSectionProps {
   currentUserId: string;
   onAccountSwitch: (userId: string) => void;
 }
 
-export const AccountSwitcher = ({ currentUserId, onAccountSwitch }: AccountSwitcherProps) => {
+export function AccountSwitcherSection({ currentUserId, onAccountSwitch }: AccountSwitcherSectionProps) {
   const { data: profiles } = useQuery({
     queryKey: ["profiles"],
     queryFn: async () => {
@@ -64,7 +63,7 @@ export const AccountSwitcher = ({ currentUserId, onAccountSwitch }: AccountSwitc
   });
 
   return (
-    <div className="flex items-center gap-2 mb-6">
+    <div className="flex items-center gap-2 px-2">
       <Users className="w-4 h-4" />
       <Select
         value={currentUserId}
@@ -73,7 +72,7 @@ export const AccountSwitcher = ({ currentUserId, onAccountSwitch }: AccountSwitc
           onAccountSwitch(value);
         }}
       >
-        <SelectTrigger className="w-[250px]">
+        <SelectTrigger className="w-full">
           <SelectValue placeholder="Select an account">
             {currentProfile?.email || "My Account"}
           </SelectValue>
@@ -93,4 +92,4 @@ export const AccountSwitcher = ({ currentUserId, onAccountSwitch }: AccountSwitc
       </Select>
     </div>
   );
-};
+}

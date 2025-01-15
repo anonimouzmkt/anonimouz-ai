@@ -1,4 +1,4 @@
-import { useState, createContext, useContext, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -13,17 +13,7 @@ import { NavigationWarningDialog } from "./NavigationWarningDialog";
 import { SidebarHeader as CustomSidebarHeader } from "./sidebar/SidebarHeader";
 import { SidebarNavigation } from "./sidebar/SidebarNavigation";
 import { SidebarFooterActions } from "./sidebar/SidebarFooterActions";
-
-// Create context for selected user
-export const SelectedUserContext = createContext<{
-  selectedUserId: string;
-  setSelectedUserId: (id: string) => void;
-}>({
-  selectedUserId: "",
-  setSelectedUserId: () => {},
-});
-
-export const useSelectedUser = () => useContext(SelectedUserContext);
+import { SelectedUserContext } from "./sidebar/SidebarContext";
 
 export function AppSidebar() {
   const navigate = useNavigate();
