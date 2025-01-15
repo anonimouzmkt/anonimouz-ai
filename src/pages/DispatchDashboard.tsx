@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { useState } from "react";
+import { RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, CheckCircle2, XCircle, Users, Bot, Send } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { DispatchMetrics } from "@/components/dashboard/DispatchMetrics";
+import { DispatchStatistics } from "@/components/dashboard/DispatchStatistics";
+import { DispatchChart } from "@/components/dashboard/DispatchChart";
 
 interface DispatchResult {
   id: string;
@@ -108,30 +108,6 @@ export default function DispatchDashboard() {
   const aiDispatches = lastFiveDispatches?.filter(d => d.is_ai_dispatch).length || 0;
   const normalDispatches = totalDispatches - aiDispatches;
 
-  // Subscribe to real-time updates
-  useEffect(() => {
-    const channel = supabase
-      .channel('dispatch-updates')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'dispatch_results'
-        },
-        (payload) => {
-          console.log('Real-time update received:', payload);
-          refetchLatest();
-          refetchChart();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [refetchLatest, refetchChart]);
-
   const handleRefresh = () => {
     refetchLatest();
     refetchChart();
@@ -160,141 +136,21 @@ export default function DispatchDashboard() {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Contatos</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{latestDispatch?.total_contacts || 0}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Sucesso</CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{latestDispatch?.success_count || 0}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Falhas</CardTitle>
-            <XCircle className="h-4 w-4 text-destructive" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{latestDispatch?.error_count || 0}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Taxa de Sucesso</CardTitle>
-            <Send className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {latestDispatch?.total_contacts
-                ? Math.round((latestDispatch.success_count / latestDispatch.total_contacts) * 100)
-                : 0}%
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <DispatchMetrics
+        totalContacts={latestDispatch?.total_contacts || 0}
+        successCount={latestDispatch?.success_count || 0}
+        errorCount={latestDispatch?.error_count || 0}
+      />
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-3">
-          <CardHeader>
-            <CardTitle>Estatísticas de Disparos</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Com I.A.</CardTitle>
-                    <Bot className="h-4 w-4 text-primary" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{aiDispatches}</div>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Normais</CardTitle>
-                    <Send className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{normalDispatches}</div>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="col-span-4">
-          <CardHeader>
-            <CardTitle>Resultados dos Últimos 5 Disparos</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px]">
-              <ChartContainer config={chartConfig}>
-                <BarChart 
-                  data={chartData} 
-                  margin={{ top: 10, right: 30, bottom: 20, left: 10 }}
-                >
-                  <CartesianGrid 
-                    strokeDasharray="3 3" 
-                    opacity={0.2} 
-                    vertical={false}
-                  />
-                  <XAxis 
-                    dataKey="date" 
-                    axisLine={false}
-                    tickLine={false}
-                    dy={10}
-                    fontSize={12}
-                  />
-                  <YAxis 
-                    axisLine={false}
-                    tickLine={false}
-                    dx={-10}
-                    fontSize={12}
-                  />
-                  <ChartTooltip
-                    content={({ active, payload }) => (
-                      <ChartTooltipContent
-                        active={active}
-                        payload={payload}
-                        labelKey="date"
-                        nameKey="dataKey"
-                      />
-                    )}
-                  />
-                  <Bar 
-                    dataKey="success" 
-                    name="Sucesso" 
-                    fill="var(--color-success)"
-                    radius={[4, 4, 0, 0]}
-                    maxBarSize={35}
-                  />
-                  <Bar 
-                    dataKey="failed" 
-                    name="Falha" 
-                    fill="var(--color-failed)"
-                    radius={[4, 4, 0, 0]}
-                    maxBarSize={35}
-                  />
-                </BarChart>
-              </ChartContainer>
-            </div>
-          </CardContent>
-        </Card>
+        <DispatchStatistics
+          aiDispatches={aiDispatches}
+          normalDispatches={normalDispatches}
+        />
+        <DispatchChart
+          data={chartData}
+          config={chartConfig}
+        />
       </div>
     </div>
   );
