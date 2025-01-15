@@ -33,6 +33,16 @@
     --ring: 0 0% 0%;
 
     --radius: 0.75rem;
+
+    /* Sidebar Light Theme */
+    --sidebar-bg: #FFFFFF;
+    --sidebar-fg: #000000;
+    --sidebar-primary: #000000;
+    --sidebar-primary-fg: #FFFFFF;
+    --sidebar-accent: rgba(0, 0, 0, 0.05);
+    --sidebar-accent-fg: #000000;
+    --sidebar-border: rgba(0, 0, 0, 0.1);
+    --sidebar-ring: #000000;
   }
 
   .dark {
@@ -63,6 +73,16 @@
     --border: 0 0% 13%;
     --input: 0 0% 13%;
     --ring: 0 0% 100%;
+
+    /* Sidebar Dark Theme */
+    --sidebar-bg: #111111;
+    --sidebar-fg: #FFFFFF;
+    --sidebar-primary: #FFFFFF;
+    --sidebar-primary-fg: #111111;
+    --sidebar-accent: rgba(255, 255, 255, 0.1);
+    --sidebar-accent-fg: #FFFFFF;
+    --sidebar-border: rgba(255, 255, 255, 0.2);
+    --sidebar-ring: #FFFFFF;
   }
 }
 
