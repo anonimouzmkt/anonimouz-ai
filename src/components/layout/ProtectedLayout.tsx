@@ -32,17 +32,29 @@ export const ProtectedLayout = ({ children }: ProtectedLayoutProps) => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  // Modify the Supabase client's headers to include the impersonated user ID
+  // Set up impersonation when selectedUserId changes
   useEffect(() => {
-    if (selectedUserId) {
-      supabase.headers = {
-        ...supabase.headers,
-        'x-impersonated-user': selectedUserId,
-      };
-    } else {
-      // Remove the header if no user is being impersonated
-      delete supabase.headers['x-impersonated-user'];
-    }
+    const setupImpersonation = async () => {
+      if (selectedUserId) {
+        console.log("Setting up impersonation for user:", selectedUserId);
+        try {
+          const { data, error } = await supabase.functions.invoke('handle-impersonation', {
+            body: { impersonatedUserId: selectedUserId },
+          });
+
+          if (error) {
+            console.error("Error setting up impersonation:", error);
+            return;
+          }
+
+          console.log("Impersonation setup successful:", data);
+        } catch (error) {
+          console.error("Failed to setup impersonation:", error);
+        }
+      }
+    };
+
+    setupImpersonation();
   }, [selectedUserId]);
 
   return (
