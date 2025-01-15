@@ -1,13 +1,12 @@
 import React, { useState } from "react";
-import { Send } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { InstanceSelector } from "./message-composer/InstanceSelector";
 import { AIContextInput } from "./message-composer/AIContextInput";
 import { MessageInput } from "./message-composer/MessageInput";
+import { ValidationErrors } from "./message-composer/ValidationErrors";
+import { SendButton } from "./message-composer/SendButton";
 
 interface MessageComposerProps {
   onSend: (message: string, instanceId: string, isAiDispatch: boolean, aiContext?: string) => Promise<string | undefined>;
@@ -65,13 +64,11 @@ export function MessageComposer({ onSend, disabled, contacts = [] }: MessageComp
   const handleSend = async () => {
     if (validateFields() && profile?.unique_id) {
       try {
-        // Chama onSend e espera o ID do disparo
         const dispatchId = await onSend(message, selectedInstance, useAI, useAI ? context : undefined);
         
         if (useAI && dispatchId && profile.webhook_url) {
           console.log('Sending dispatch data to webhook:', profile.webhook_url);
           
-          // Prepara o payload para o webhook
           const webhookPayload = {
             dispatchId,
             uniqueId: profile.unique_id,
@@ -83,7 +80,6 @@ export function MessageComposer({ onSend, disabled, contacts = [] }: MessageComp
             }))
           };
 
-          // Envia para o webhook configurado
           const response = await fetch(profile.webhook_url, {
             method: 'POST',
             headers: {
@@ -149,29 +145,15 @@ export function MessageComposer({ onSend, disabled, contacts = [] }: MessageComp
         />
       </div>
 
-      {validationErrors.length > 0 && (
-        <Alert variant="destructive">
-          <AlertDescription>
-            <ul className="list-disc pl-4">
-              {validationErrors.map((error, index) => (
-                <li key={index}>{error}</li>
-              ))}
-            </ul>
-          </AlertDescription>
-        </Alert>
-      )}
+      <ValidationErrors errors={validationErrors} />
 
-      <Button
-        className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-12"
+      <SendButton
         onClick={handleSend}
         disabled={
           disabled || !message.trim() || !selectedInstance ||
           (useAI && !context.trim())
         }
-      >
-        <Send className="w-5 h-5 mr-2" />
-        Disparar mensagens
-      </Button>
+      />
     </div>
   );
 }
