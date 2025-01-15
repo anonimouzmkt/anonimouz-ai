@@ -58,10 +58,15 @@ export default function DispatchDashboard() {
     queryKey: ['latestDispatch', selectedUserId],
     queryFn: async () => {
       console.log("Fetching latest dispatch...");
+      const { data: { user } } = await supabase.auth.getUser();
+      const userId = selectedUserId || user?.id;
+      
+      if (!userId) throw new Error("No user ID available");
+
       const { data, error } = await supabase
         .from('dispatch_results')
         .select('*')
-        .eq('user_id', selectedUserId || auth.uid())
+        .eq('user_id', userId)
         .order('created_at', { ascending: false })
         .limit(1)
         .single();
@@ -85,10 +90,15 @@ export default function DispatchDashboard() {
     queryKey: ['lastFiveDispatches', selectedUserId],
     queryFn: async () => {
       console.log("Fetching last 5 dispatches...");
+      const { data: { user } } = await supabase.auth.getUser();
+      const userId = selectedUserId || user?.id;
+      
+      if (!userId) throw new Error("No user ID available");
+
       const { data, error } = await supabase
         .from('dispatch_results')
         .select('*')
-        .eq('user_id', selectedUserId || auth.uid())
+        .eq('user_id', userId)
         .order('created_at', { ascending: false })
         .limit(5);
 
@@ -110,10 +120,15 @@ export default function DispatchDashboard() {
     queryKey: ['latestContactResults', selectedUserId],
     queryFn: async () => {
       console.log("Fetching latest contact results...");
+      const { data: { user } } = await supabase.auth.getUser();
+      const userId = selectedUserId || user?.id;
+      
+      if (!userId) throw new Error("No user ID available");
+
       const { data: latestDispatch } = await supabase
         .from('dispatch_results')
         .select('id')
-        .eq('user_id', selectedUserId || auth.uid())
+        .eq('user_id', userId)
         .order('created_at', { ascending: false })
         .limit(1)
         .single();
