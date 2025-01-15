@@ -70,25 +70,35 @@ export default function DispatchDashboard() {
         </Card>
       </div>
 
-      <Card className="col-span-4">
+      <Card>
         <CardHeader>
           <CardTitle>Resultados dos Últimos 5 Dias</CardTitle>
         </CardHeader>
-        <CardContent className="pl-2">
-          <div className="h-[300px] w-full">
+        <CardContent>
+          <div className="h-[400px]">
             <ChartContainer config={chartConfig}>
-              <BarChart data={mockData} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
-                <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+              <BarChart 
+                data={mockData} 
+                margin={{ top: 10, right: 30, bottom: 20, left: 10 }}
+              >
+                <CartesianGrid 
+                  strokeDasharray="3 3" 
+                  opacity={0.2} 
+                  vertical={false}
+                />
                 <XAxis 
                   dataKey="date" 
                   axisLine={false}
                   tickLine={false}
                   dy={10}
+                  fontSize={12}
                 />
                 <YAxis 
                   axisLine={false}
                   tickLine={false}
                   dx={-10}
+                  fontSize={12}
+                  tickFormatter={(value) => `${value}%`}
                 />
                 <ChartTooltip
                   content={({ active, payload }) => (
@@ -105,14 +115,14 @@ export default function DispatchDashboard() {
                   name="Sucesso" 
                   fill="var(--color-success)"
                   radius={[4, 4, 0, 0]}
-                  maxBarSize={40}
+                  maxBarSize={35}
                 />
                 <Bar 
                   dataKey="failed" 
                   name="Falha" 
                   fill="var(--color-failed)"
                   radius={[4, 4, 0, 0]}
-                  maxBarSize={40}
+                  maxBarSize={35}
                 />
               </BarChart>
             </ChartContainer>
