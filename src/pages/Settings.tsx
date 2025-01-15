@@ -6,21 +6,34 @@ import { useQuery } from "@tanstack/react-query";
 import { Settings as SettingsIcon, Key, Copy, Webhook } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
+import { AccountSwitcher } from "@/components/AccountSwitcher";
 
 const Settings = () => {
   const [token, setToken] = useState<string>("");
   const [webhookUrl, setWebhookUrl] = useState<string>("");
+  const [impersonatedUserId, setImpersonatedUserId] = useState<string>("");
+
+  const { data: currentUser } = useQuery({
+    queryKey: ["currentUser"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("User not found");
+      return user;
+    },
+  });
 
   const { data: profile, refetch } = useQuery({
-    queryKey: ["profile"],
+    queryKey: ["profile", impersonatedUserId],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not found");
 
+      const userId = impersonatedUserId || user.id;
+
       const { data: profile } = await supabase
         .from("profiles")
         .select("*")
-        .eq("id", user.id)
+        .eq("id", userId)
         .single();
 
       if (profile?.webhook_url) {
@@ -28,7 +41,8 @@ const Settings = () => {
       }
 
       return profile;
-    }
+    },
+    enabled: !!currentUser,
   });
 
   const handleResetPassword = async () => {
@@ -77,6 +91,14 @@ const Settings = () => {
     refetch();
   };
 
+  const handleAccountSwitch = (userId: string) => {
+    setImpersonatedUserId(userId === currentUser?.id ? "" : userId);
+    setToken("");
+    refetch();
+  };
+
+  if (!profile || !currentUser) return null;
+
   return (
     <div className="flex-1 p-8">
       <div className="max-w-2xl mx-auto space-y-8">
@@ -84,6 +106,13 @@ const Settings = () => {
           <SettingsIcon className="w-6 h-6" />
           <h1 className="text-2xl font-bold">Settings</h1>
         </div>
+
+        {profile.role === 'admin_user' && (
+          <AccountSwitcher
+            currentUserId={currentUser.id}
+            onAccountSwitch={handleAccountSwitch}
+          />
+        )}
 
         <div className="space-y-6">
           <div className="space-y-2">
