@@ -5,7 +5,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { useSelectedUser } from "@/components/sidebar/SidebarContext";
 import {
   Card,
   CardContent,
@@ -45,7 +44,6 @@ const AdminSettings = () => {
   const [loading, setLoading] = useState(false);
   const [impersonating, setImpersonating] = useState<string | null>(null);
   const queryClient = useQueryClient();
-  const { setSelectedUserId } = useSelectedUser();
 
   const { data: currentUser } = useQuery({
     queryKey: ["currentUser"],
@@ -164,9 +162,47 @@ const AdminSettings = () => {
       setImpersonating(userId);
       console.log("Logging in as user:", userId);
       
-      setSelectedUserId(userId);
+      // Get the user's email
+      const { data: userProfile, error: profileError } = await supabase
+        .from('profiles')
+        .select('email')
+        .eq('id', userId)
+        .single();
+
+      if (profileError || !userProfile?.email) {
+        throw new Error('Could not find user email');
+      }
+
+      // Sign in as the user
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: userProfile.email,
+        password: 'temp-password', // This will fail, but that's expected
+      });
+
+      if (signInError) {
+        // This is expected since we don't have the user's password
+        console.log("Expected sign-in error:", signInError);
+      }
+
+      // Call our edge function to handle the impersonation
+      const response = await fetch(`${window.location.origin}/functions/v1/handle-impersonation`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+        },
+        body: JSON.stringify({ impersonatedUserId: userId }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to impersonate user');
+      }
+
+      // Redirect to the dashboard
+      window.location.href = '/';
       
-      toast.success("Successfully switched to selected user account");
+      toast.success("Successfully logged in as user");
     } catch (error) {
       console.error("Error logging in as user:", error);
       toast.error("Failed to login as user. Please try again.");
