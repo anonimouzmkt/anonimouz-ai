@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { LogOut, MessageSquare, Settings, MessageCircle, Users } from "lucide-react";
+import { LogOut, MessageSquare, Settings, MessageCircle, Users, BarChart2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -113,6 +113,14 @@ export function AppSidebar() {
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
+            <SidebarMenuButton asChild tooltip="Dashboard">
+              <Link to="/dispatch-dashboard">
+                <BarChart2 className="w-4 h-4" />
+                <span>Dashboard</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
             <SidebarMenuButton asChild tooltip="WhatsApp">
               <Link to="/whatsapp">
                 <MessageCircle className="w-4 h-4" />
@@ -159,7 +167,7 @@ export function AppSidebar() {
           <Button
             variant="outline"
             size="sm"
-            className="w-full justify-start group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:aspect-square"
+            className="w-full justify-start group-data-[collapsible=icon]:w-8 group-data-[collapsible-icon]:p-0 group-data-[collapsible=icon]:aspect-square"
             onClick={handleLogout}
           >
             <LogOut className="mr-2 h-4 w-4 group-data-[collapsible=icon]:mr-0" />

@@ -11,6 +11,7 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import WhatsApp from "./pages/WhatsApp";
 import Settings from "./pages/Settings";
+import DispatchDashboard from "./pages/DispatchDashboard";
 
 const queryClient = new QueryClient();
 
@@ -73,6 +74,19 @@ const App = () => (
                   <div className="min-h-screen flex w-full">
                     <AppSidebar />
                     <WhatsApp />
+                  </div>
+                </SidebarProvider>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dispatch-dashboard"
+            element={
+              <ProtectedRoute>
+                <SidebarProvider>
+                  <div className="min-h-screen flex w-full">
+                    <AppSidebar />
+                    <DispatchDashboard />
                   </div>
                 </SidebarProvider>
               </ProtectedRoute>
