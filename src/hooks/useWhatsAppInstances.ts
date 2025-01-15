@@ -38,7 +38,7 @@ export const useWhatsAppInstances = () => {
 
   return {
     instances,
-    createInstance,
+    createInstance: (name: string) => createInstance(name),
     deleteInstance,
     generateQRCode,
     refetch,
