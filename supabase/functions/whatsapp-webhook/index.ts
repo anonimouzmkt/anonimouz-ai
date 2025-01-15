@@ -89,53 +89,75 @@ serve(async (req) => {
       )
     }
 
-    // If it's a connection event, update the instance status
-    if (event === 'connection' || status === 'connected') {
-      console.log(`Updating instance ${instanceName} status to connected`)
+    // If it's a connection event or status is provided, update the instance status
+    if (event === 'connection' || status) {
+      const newStatus = status || (event === 'connection' ? 'connected' : null);
       
-      const { error: updateError } = await supabaseClient
-        .from('whatsapp_instances')
-        .update({ 
-          status: 'connected',
-          updated_at: new Date().toISOString()
-        })
-        .eq('name', instanceName)
-        .eq('user_id', profile.id);
+      if (newStatus) {
+        console.log(`Updating instance ${instanceName} status to ${newStatus}`);
+        
+        const { data: instance, error: instanceError } = await supabaseClient
+          .from('whatsapp_instances')
+          .select('id, status')
+          .eq('name', instanceName)
+          .eq('user_id', profile.id)
+          .single();
 
-      if (updateError) {
-        console.error('Error updating instance status:', updateError)
+        if (instanceError) {
+          console.error('Error fetching instance:', instanceError);
+          throw instanceError;
+        }
+
+        if (!instance) {
+          console.error(`Instance ${instanceName} not found`);
+          return new Response(
+            JSON.stringify({ 
+              error: 'Instance not found',
+              details: `No instance found with name ${instanceName}`
+            }),
+            { 
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+              status: 404
+            }
+          )
+        }
+
+        console.log(`Current instance status: ${instance.status}, New status: ${newStatus}`);
+        
+        const { error: updateError } = await supabaseClient
+          .from('whatsapp_instances')
+          .update({ 
+            status: newStatus,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', instance.id);
+
+        if (updateError) {
+          console.error('Error updating instance status:', updateError);
+          throw updateError;
+        }
+
+        console.log(`Successfully updated status for instance ${instanceName} to ${newStatus}`);
         return new Response(
           JSON.stringify({ 
-            error: 'Database error',
-            details: 'Failed to update instance status'
+            success: true,
+            message: `Instance ${instanceName} status updated to ${newStatus}`,
+            data: {
+              instanceName,
+              status: newStatus,
+              timestamp: new Date().toISOString()
+            }
           }),
           { 
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-            status: 500
+            status: 200 
           }
         )
       }
-
-      console.log(`Successfully updated status for instance ${instanceName}`)
-      return new Response(
-        JSON.stringify({ 
-          success: true,
-          message: `Instance ${instanceName} status updated to connected`,
-          data: {
-            instanceName,
-            status: 'connected',
-            timestamp: new Date().toISOString()
-          }
-        }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 200 
-        }
-      )
     }
 
     // For non-connection events, just acknowledge receipt
-    console.log(`Received ${event} event for instance ${instanceName}`)
+    console.log(`Received ${event} event for instance ${instanceName}`);
     return new Response(
       JSON.stringify({ 
         success: true,
@@ -154,7 +176,7 @@ serve(async (req) => {
     )
 
   } catch (error) {
-    console.error('Error processing webhook:', error)
+    console.error('Error processing webhook:', error);
     return new Response(
       JSON.stringify({ 
         error: 'Internal server error',
