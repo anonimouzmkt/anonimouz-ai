@@ -71,9 +71,14 @@ const Index = () => {
   };
 
   const handleSelectAll = () => {
+    console.log("Select all clicked. Current contacts:", contacts.length);
+    console.log("Current selected:", selectedContacts.size);
+    
     if (selectedContacts.size === contacts.length) {
+      console.log("Unselecting all contacts");
       setSelectedContacts(new Set());
     } else {
+      console.log("Selecting all contacts");
       const allPhones = contacts.map(c => c.phone);
       setSelectedContacts(new Set(allPhones));
     }
@@ -150,8 +155,7 @@ const Index = () => {
                 <div>
                   <p className="text-card-foreground">
                     Selecione seus contatos para{" "}
-                    <span className="font-bold">disparo</span> a partir das{" "}
-                    <span className="text-[#22c55e]">TAGS</span>
+                    <span className="font-bold">disparo</span>
                   </p>
                   <p className="text-card-foreground mt-2">
                     <span className="font-bold">{selectedContacts.size}</span>{" "}
