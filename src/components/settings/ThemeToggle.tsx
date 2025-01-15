@@ -8,9 +8,17 @@ interface ThemeToggleProps {
 
 export const ThemeToggle = ({ isDarkMode, toggleTheme }: ThemeToggleProps) => {
   return (
-    <div className="flex items-center gap-2">
-      {isDarkMode ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
-      <Switch checked={isDarkMode} onCheckedChange={toggleTheme} />
+    <div className="flex items-center gap-3 p-2 rounded-lg bg-secondary/50">
+      {isDarkMode ? (
+        <Moon className="w-4 h-4 text-primary" />
+      ) : (
+        <Sun className="w-4 h-4 text-primary" />
+      )}
+      <Switch 
+        checked={isDarkMode} 
+        onCheckedChange={toggleTheme}
+        className="data-[state=checked]:bg-primary"
+      />
     </div>
   );
 };
