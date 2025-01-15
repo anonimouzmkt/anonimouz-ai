@@ -45,6 +45,7 @@ serve(async (req) => {
     const data = await response.json()
     console.log('API Response:', data)
 
+    // Check if the response was successful
     if (!response.ok) {
       console.error('API Error:', data)
       return new Response(
