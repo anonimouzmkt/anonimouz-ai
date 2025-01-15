@@ -69,9 +69,16 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter className="p-4">
         <div className="flex flex-col gap-4">
-          <Button variant="outline" size="sm" className="w-full justify-start group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:aspect-square">
-            <Settings className="mr-2 h-4 w-4 group-data-[collapsible=icon]:mr-0" />
-            <span className="group-data-[collapsible=icon]:hidden">Settings</span>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="w-full justify-start group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:aspect-square"
+            asChild
+          >
+            <Link to="/settings">
+              <Settings className="mr-2 h-4 w-4 group-data-[collapsible=icon]:mr-0" />
+              <span className="group-data-[collapsible=icon]:hidden">Settings</span>
+            </Link>
           </Button>
           <Button
             variant="outline"
