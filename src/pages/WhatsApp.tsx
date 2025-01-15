@@ -15,6 +15,13 @@ interface WhatsAppInstance {
   qr_code: string | null;
 }
 
+interface QRCodeResponse {
+  pairingCode: string | null;
+  code: string;
+  base64: string;
+  count: number;
+}
+
 const WhatsApp = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -78,7 +85,6 @@ const WhatsApp = () => {
         throw new Error(apiResponse?.error || 'Falha ao criar instância na API do WhatsApp');
       }
 
-      // Create the instance in our database
       const { error: dbError } = await supabase.from("whatsapp_instances").insert({
         name: instanceName,
         status: "connecting",
@@ -131,10 +137,16 @@ const WhatsApp = () => {
         return;
       }
 
-      if (apiResponse.qrcode?.base64?.value) {
-        setQRCode(apiResponse.qrcode.base64.value);
+      // Handle array response and extract base64 image
+      if (Array.isArray(apiResponse) && apiResponse.length > 0) {
+        const qrData = apiResponse[0] as QRCodeResponse;
+        if (qrData.base64) {
+          setQRCode(qrData.base64);
+        } else {
+          setQRError('QR Code não disponível');
+        }
       } else {
-        setQRError('QR Code não disponível');
+        setQRError('Resposta inválida da API');
       }
     } catch (error) {
       console.error('Error generating QR code:', error);
