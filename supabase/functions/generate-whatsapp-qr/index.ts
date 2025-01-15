@@ -6,7 +6,6 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
@@ -15,9 +14,8 @@ serve(async (req) => {
     const { instanceName } = await req.json()
     const apiKey = Deno.env.get('WHATSAPP_API_KEY')
     
-    console.log('Generating QR code for instance:', instanceName)
-    console.log('API Key present:', !!apiKey)
-
+    console.log('Getting QR code for instance:', instanceName)
+    
     if (!apiKey) {
       console.error('WHATSAPP_API_KEY is not set')
       return new Response(
@@ -29,53 +27,21 @@ serve(async (req) => {
       )
     }
 
-    // Generate a truly unique instance name using timestamp and random string
-    const randomString = Math.random().toString(36).substring(7)
-    const uniqueInstanceName = `${instanceName}_${Date.now()}_${randomString}`
-    console.log('Using unique instance name:', uniqueInstanceName)
-
-    // First, try to get instance status
-    const statusResponse = await fetch(`https://evo2.anonimouz.com/instance/status/${uniqueInstanceName}`, {
+    // Get QR code for existing instance
+    const response = await fetch(`https://evo2.anonimouz.com/instance/connect/${instanceName}`, {
       headers: {
-        'Content-Type': 'application/json',
         'apikey': apiKey,
       }
-    })
-
-    console.log('Status check response:', await statusResponse.text())
-
-    // Create new instance
-    const response = await fetch('https://evo2.anonimouz.com/instance/create', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': apiKey,
-      },
-      body: JSON.stringify({
-        instanceName: uniqueInstanceName,
-        qrcode: true,
-        integration: "WHATSAPP-BAILEYS"
-      })
     })
 
     const data = await response.json()
     console.log('API Response:', data)
 
-    // Check if the response was successful
     if (!response.ok) {
       console.error('API Error:', data)
-      let errorMessage = 'Unknown error occurred'
-      
-      // Handle specific error cases
-      if (data.response?.message) {
-        errorMessage = Array.isArray(data.response.message) 
-          ? data.response.message.join(', ')
-          : data.response.message
-      }
-      
       return new Response(
         JSON.stringify({ 
-          error: `API Error: ${response.status} - ${errorMessage}`,
+          error: `API Error: ${response.status}`,
           details: data 
         }),
         { 
