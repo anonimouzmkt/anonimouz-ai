@@ -1,41 +1,37 @@
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { WhatsAppInstance } from "@/types/whatsapp";
-import { useSelectedUser } from "@/components/sidebar/SidebarContext";
+import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { apiService } from "@/lib/api-service";
+import { useToast } from "@/hooks/use-toast";
 
 export const useWhatsAppInstance = () => {
-  const { selectedUserId } = useSelectedUser();
+  const [isLoading, setIsLoading] = useState(false);
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
 
-  const { data: currentUser } = useQuery({
-    queryKey: ["currentUser"],
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("User not authenticated");
-      return user;
-    },
-  });
-
-  const { data: instances, refetch } = useQuery({
-    queryKey: ["whatsapp-instances", selectedUserId],
-    queryFn: async () => {
-      console.log("Fetching WhatsApp instances for user:", selectedUserId || currentUser?.id);
-      const { data, error } = await supabase
-        .from("whatsapp_instances")
-        .select("*")
-        .eq("user_id", selectedUserId || currentUser?.id)
-        .order("created_at", { ascending: false });
-
-      if (error) {
-        console.error("Error fetching WhatsApp instances:", error);
-        throw error;
-      }
-      return data as WhatsAppInstance[];
-    },
-    enabled: !!currentUser,
-  });
+  const generateQRCode = async (instanceName: string) => {
+    setIsLoading(true);
+    try {
+      console.log('Generating QR code for instance:', instanceName);
+      const response = await apiService.generateQRCode(instanceName);
+      
+      await queryClient.invalidateQueries({ queryKey: ['whatsapp-instances'] });
+      
+      return response;
+    } catch (error) {
+      console.error('Error generating QR code:', error);
+      toast({
+        title: "Erro",
+        description: "Ocorreu um erro ao gerar o QR code",
+        variant: "destructive"
+      });
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return {
-    instances,
-    refetch,
+    generateQRCode,
+    isLoading
   };
 };

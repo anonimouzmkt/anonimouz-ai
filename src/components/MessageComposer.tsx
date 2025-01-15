@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { InstanceSelector } from "./message-composer/InstanceSelector";
 import { AIContextInput } from "./message-composer/AIContextInput";
 import { MessageInput } from "./message-composer/MessageInput";
+import { apiService } from "@/lib/api-service";
 
 interface MessageComposerProps {
   onSend: (message: string, instanceId: string, isAiDispatch: boolean, aiContext?: string) => Promise<string | undefined>;
@@ -92,24 +93,18 @@ export function MessageComposer({ onSend, disabled, contacts = [] }: MessageComp
         if (contactsError) throw contactsError;
         
         if (useAI && dispatch.id) {
-          console.log('Sending dispatch data to intermediary endpoint');
+          console.log('Sending dispatch data through API service');
           
-          const response = await supabase.functions.invoke('handle-dispatch', {
-            body: {
-              dispatchId: dispatch.id,
-              uniqueId: profile.unique_id,
-              message,
-              context,
-              contacts: contacts.map(contact => ({
-                name: contact.name,
-                phone: contact.phone
-              }))
-            }
+          await apiService.handleDispatch({
+            dispatchId: dispatch.id,
+            uniqueId: profile.unique_id,
+            message,
+            context,
+            contacts: contacts.map(contact => ({
+              name: contact.name,
+              phone: contact.phone
+            }))
           });
-
-          if (response.error) {
-            throw new Error('Failed to send to webhook');
-          }
 
           toast({
             title: "Disparo iniciado",
@@ -123,7 +118,7 @@ export function MessageComposer({ onSend, disabled, contacts = [] }: MessageComp
         console.error('Error sending dispatch:', error);
         toast({
           title: "Erro no disparo",
-          description: "Ocorreu um erro ao enviar os contatos para o webhook",
+          description: "Ocorreu um erro ao enviar os contatos",
           variant: "destructive"
         });
       }
