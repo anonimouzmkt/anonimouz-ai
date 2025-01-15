@@ -1,10 +1,11 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Settings as SettingsIcon, UserPlus, UserCheck, UserX, Trash2 } from "lucide-react";
+import { Settings as SettingsIcon, UserPlus, UserCheck, UserX, Trash2, LogIn } from "lucide-react";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { useSelectedUser } from "@/components/sidebar/SidebarContext";
 import {
   Card,
   CardContent,
@@ -42,7 +43,9 @@ interface Profile {
 const AdminSettings = () => {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
+  const [impersonating, setImpersonating] = useState<string | null>(null);
   const queryClient = useQueryClient();
+  const { setSelectedUserId } = useSelectedUser();
 
   const { data: currentUser } = useQuery({
     queryKey: ["currentUser"],
@@ -153,6 +156,22 @@ const AdminSettings = () => {
     } catch (error) {
       console.error("Error updating user role:", error);
       toast.error("Failed to update user role. Please try again.");
+    }
+  };
+
+  const handleLoginAs = async (userId: string) => {
+    try {
+      setImpersonating(userId);
+      console.log("Logging in as user:", userId);
+      
+      setSelectedUserId(userId);
+      
+      toast.success("Successfully switched to selected user account");
+    } catch (error) {
+      console.error("Error logging in as user:", error);
+      toast.error("Failed to login as user. Please try again.");
+    } finally {
+      setImpersonating(null);
     }
   };
 
@@ -270,6 +289,16 @@ const AdminSettings = () => {
                     <TableCell>{user.email}</TableCell>
                     <TableCell>{user.role}</TableCell>
                     <TableCell className="space-x-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleLoginAs(user.id)}
+                        disabled={user.id === currentUser?.id || impersonating === user.id}
+                      >
+                        <LogIn className="w-4 h-4 mr-2" />
+                        {impersonating === user.id ? 'Switching...' : 'Login as'}
+                      </Button>
+
                       <Button
                         variant="ghost"
                         size="sm"
