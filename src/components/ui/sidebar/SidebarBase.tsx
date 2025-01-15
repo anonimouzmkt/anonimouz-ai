@@ -1,4 +1,5 @@
 import * as React from "react"
+import { type VariantProps, cva } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 export interface SidebarProps extends React.ComponentProps<"div"> {
@@ -6,6 +7,29 @@ export interface SidebarProps extends React.ComponentProps<"div"> {
   collapsible?: "offcanvas" | "icon" | "none"
   side?: "left" | "right"
 }
+
+export const sidebarMenuButtonVariants = cva(
+  "group/menu-button relative flex w-full items-center gap-2 rounded-md px-2 py-1.5 outline-none transition-colors [&>svg]:size-4 [&>svg]:shrink-0",
+  {
+    variants: {
+      variant: {
+        default: "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:bg-sidebar-accent focus-visible:text-sidebar-accent-foreground",
+        ghost: "hover:bg-transparent hover:text-sidebar-accent-foreground focus-visible:bg-transparent focus-visible:text-sidebar-accent-foreground",
+      },
+      size: {
+        sm: "h-8 text-xs",
+        md: "h-9 text-sm",
+        lg: "h-10",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "md",
+    },
+  }
+)
+
+export type SidebarMenuButtonVariants = VariantProps<typeof sidebarMenuButtonVariants>
 
 export const Sidebar = React.forwardRef<HTMLDivElement, SidebarProps>(
   ({ className, variant = "sidebar", collapsible = "none", side = "left", ...props }, ref) => {
