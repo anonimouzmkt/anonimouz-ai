@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { WhatsAppInstance } from "@/types/whatsapp";
 import { useToast } from "@/hooks/use-toast";
+import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 
 // Helper function to validate status
 const validateStatus = (status: string): "connected" | "disconnected" | "connecting" => {
@@ -10,6 +11,13 @@ const validateStatus = (status: string): "connected" | "disconnected" | "connect
   }
   return "disconnected"; // Default fallback
 };
+
+type WhatsAppInstanceChanges = RealtimePostgresChangesPayload<{
+  id: string;
+  name: string;
+  status: string;
+  [key: string]: any;
+}>;
 
 export const useInstanceStatus = (
   selectedInstance: WhatsAppInstance | null,
@@ -34,7 +42,7 @@ export const useInstanceStatus = (
           table: 'whatsapp_instances',
           filter: `id=eq.${selectedInstance.id}`,
         },
-        (payload) => {
+        (payload: WhatsAppInstanceChanges) => {
           console.log('Instance status changed:', payload);
           
           if (payload.new) {
