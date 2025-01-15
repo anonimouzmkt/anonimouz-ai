@@ -18,7 +18,15 @@ export const InstanceList = ({ instances, onDelete }: InstanceListProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [qrCodeBase64, setQrCodeBase64] = useState<string>();
   const [selectedInstance, setSelectedInstance] = useState<WhatsAppInstance | null>(null);
-  const [localInstances, setLocalInstances] = useState(instances);
+  const [localInstances, setLocalInstances] = useState<WhatsAppInstance[]>(instances);
+
+  // Helper function to validate status
+  const validateStatus = (status: string): "connected" | "disconnected" | "connecting" => {
+    if (status === "connected" || status === "disconnected" || status === "connecting") {
+      return status;
+    }
+    return "disconnected"; // Default fallback
+  };
 
   // Effect to refresh instances every second
   useEffect(() => {
@@ -38,15 +46,21 @@ export const InstanceList = ({ instances, onDelete }: InstanceListProps) => {
       }
 
       if (data) {
+        // Transform the data to match WhatsAppInstance type
+        const validatedInstance: WhatsAppInstance = {
+          ...data,
+          status: validateStatus(data.status)
+        };
+
         setLocalInstances(prev => 
           prev.map(inst => 
-            inst.id === data.id ? data : inst
+            inst.id === validatedInstance.id ? validatedInstance : inst
           )
         );
         
         // Update selected instance if status changed
-        if (data.status !== selectedInstance.status) {
-          setSelectedInstance(data);
+        if (validatedInstance.status !== selectedInstance.status) {
+          setSelectedInstance(validatedInstance);
         }
       }
     };
