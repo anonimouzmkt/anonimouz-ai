@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { CSVUploader } from "@/components/CSVUploader";
-import { ContactList } from "@/components/ContactList";
 import { MessageComposer } from "@/components/MessageComposer";
 import { useToast } from "@/hooks/use-toast";
-import { Switch } from "@/components/ui/switch";
+import { Header } from "@/components/Header";
+import { ContactSection } from "@/components/ContactSection";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,7 +30,6 @@ const Index = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Add warning before user leaves page with unsaved changes
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (hasUnsavedChanges) {
         e.preventDefault();
@@ -71,14 +70,9 @@ const Index = () => {
   };
 
   const handleSelectAll = () => {
-    console.log("Select all clicked. Current contacts:", contacts.length);
-    console.log("Current selected:", selectedContacts.size);
-    
     if (selectedContacts.size === contacts.length) {
-      console.log("Unselecting all contacts");
       setSelectedContacts(new Set());
     } else {
-      console.log("Selecting all contacts");
       const allPhones = contacts.map(c => c.phone);
       setSelectedContacts(new Set(allPhones));
     }
@@ -130,46 +124,18 @@ const Index = () => {
   return (
     <main className="flex-1 p-6 bg-background">
       <div className="max-w-6xl mx-auto space-y-8">
-        <div className="flex items-center justify-between bg-card rounded-lg p-4">
-          <div>
-            <h1 className="text-2xl font-bold text-card-foreground">Disparador A.I</h1>
-            <p className="text-muted-foreground">
-              Dispare mensagens com I.A{" "}
-              <span className="text-primary">Imobiliária Gabriel</span>
-            </p>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <span className="text-[#22c55e]">Ligado</span>
-              <Switch defaultChecked />
-            </div>
-          </div>
-        </div>
+        <Header />
 
         {contacts.length === 0 ? (
           <CSVUploader onContactsLoaded={handleContactsLoaded} />
         ) : (
           <div className="grid gap-6 md:grid-cols-2">
-            <div className="bg-card p-6 rounded-lg">
-              <div className="space-y-4">
-                <div>
-                  <p className="text-card-foreground">
-                    Selecione seus contatos para{" "}
-                    <span className="font-bold">disparo</span>
-                  </p>
-                  <p className="text-card-foreground mt-2">
-                    <span className="font-bold">{selectedContacts.size}</span>{" "}
-                    contato(s) selecionado(s)
-                  </p>
-                </div>
-                <ContactList
-                  contacts={contacts}
-                  selectedContacts={selectedContacts}
-                  onToggleContact={toggleContact}
-                  onSelectAll={handleSelectAll}
-                />
-              </div>
-            </div>
+            <ContactSection
+              contacts={contacts}
+              selectedContacts={selectedContacts}
+              onToggleContact={toggleContact}
+              onSelectAll={handleSelectAll}
+            />
             <MessageComposer
               onSend={sendMessages}
               disabled={selectedContacts.size === 0}
@@ -193,7 +159,6 @@ const Index = () => {
             <AlertDialogAction onClick={() => {
               setHasUnsavedChanges(false);
               setShowExitWarning(false);
-              // Navigate away
               window.history.back();
             }}>
               Sair mesmo assim
