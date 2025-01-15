@@ -7,13 +7,11 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
 
   try {
-    // Validate Authorization header
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       console.error('Missing Authorization header');
@@ -29,7 +27,6 @@ serve(async (req) => {
       )
     }
 
-    // Validate x-unique-id header
     const uniqueId = req.headers.get('x-unique-id');
     if (!uniqueId) {
       console.error('Missing x-unique-id header');
@@ -50,7 +47,6 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Validate if unique_id exists in profiles
     const { data: profile, error: profileError } = await supabaseClient
       .from('profiles')
       .select('id')
@@ -74,7 +70,6 @@ serve(async (req) => {
     const body = await req.json()
     console.log('Received webhook payload:', body)
 
-    // Validate required fields in payload
     const { instanceName, status, event } = body
     if (!instanceName) {
       return new Response(
@@ -94,22 +89,21 @@ serve(async (req) => {
       const newStatus = status || (event === 'connection' ? 'connected' : null);
       
       if (newStatus) {
-        console.log(`Updating instance ${instanceName} status to ${newStatus}`);
+        console.log(`Attempting to update instance ${instanceName} status to ${newStatus}`);
         
-        const { data: instance, error: instanceError } = await supabaseClient
+        // First, get the instance to update
+        const { data: instances, error: fetchError } = await supabaseClient
           .from('whatsapp_instances')
           .select('id, status')
-          .eq('name', instanceName)
-          .eq('user_id', profile.id)
-          .single();
+          .eq('name', instanceName);
 
-        if (instanceError) {
-          console.error('Error fetching instance:', instanceError);
-          throw instanceError;
+        if (fetchError) {
+          console.error('Error fetching instance:', fetchError);
+          throw fetchError;
         }
 
-        if (!instance) {
-          console.error(`Instance ${instanceName} not found`);
+        if (!instances || instances.length === 0) {
+          console.error(`No instance found with name: ${instanceName}`);
           return new Response(
             JSON.stringify({ 
               error: 'Instance not found',
@@ -122,8 +116,10 @@ serve(async (req) => {
           )
         }
 
-        console.log(`Current instance status: ${instance.status}, New status: ${newStatus}`);
-        
+        const instance = instances[0];
+        console.log(`Found instance with id ${instance.id}, current status: ${instance.status}`);
+
+        // Perform the update
         const { error: updateError } = await supabaseClient
           .from('whatsapp_instances')
           .update({ 
@@ -137,7 +133,20 @@ serve(async (req) => {
           throw updateError;
         }
 
-        console.log(`Successfully updated status for instance ${instanceName} to ${newStatus}`);
+        // Verify the update
+        const { data: verifyInstance, error: verifyError } = await supabaseClient
+          .from('whatsapp_instances')
+          .select('status')
+          .eq('id', instance.id)
+          .single();
+
+        if (verifyError) {
+          console.error('Error verifying update:', verifyError);
+          throw verifyError;
+        }
+
+        console.log(`Instance status after update: ${verifyInstance.status}`);
+
         return new Response(
           JSON.stringify({ 
             success: true,
