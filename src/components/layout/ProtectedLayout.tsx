@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AppSidebar } from "../AppSidebar";
 import { useSelectedUser, SelectedUserProvider } from "@/components/sidebar/SidebarContext";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { toast } from "sonner";
 
 interface ProtectedLayoutProps {
   children: React.ReactNode;
@@ -11,7 +12,7 @@ interface ProtectedLayoutProps {
 
 export const ProtectedLayout = ({ children }: ProtectedLayoutProps) => {
   const navigate = useNavigate();
-  const { selectedUserId } = useSelectedUser();
+  const { selectedUserId, setSelectedUserId } = useSelectedUser();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -46,18 +47,23 @@ export const ProtectedLayout = ({ children }: ProtectedLayoutProps) => {
 
           if (error) {
             console.error("Error setting up impersonation:", error);
+            toast.error("Failed to switch user account");
+            setSelectedUserId(""); // Reset selected user on error
             return;
           }
 
           console.log("Impersonation setup successful:", data);
+          toast.success("Successfully switched user account");
         } catch (error) {
           console.error("Failed to setup impersonation:", error);
+          toast.error("Failed to switch user account");
+          setSelectedUserId(""); // Reset selected user on error
         }
       }
     };
 
     setupImpersonation();
-  }, [selectedUserId]);
+  }, [selectedUserId, setSelectedUserId]);
 
   return (
     <SelectedUserProvider>

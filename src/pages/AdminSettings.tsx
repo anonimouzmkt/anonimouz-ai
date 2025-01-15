@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -35,7 +35,6 @@ export default function AdminSettings() {
   const { t } = useTranslation();
   const [adminEmail, setAdminEmail] = useState("");
   const [loading, setLoading] = useState(false);
-  const [impersonating, setImpersonating] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const { setSelectedUserId } = useSelectedUser();
 
@@ -100,18 +99,11 @@ export default function AdminSettings() {
 
   const handleLoginAs = async (userId: string) => {
     try {
-      setImpersonating(userId);
-      console.log("Logging in as user:", userId);
-      
-      // Set the selected user ID in context
+      console.log("Switching to user:", userId);
       setSelectedUserId(userId);
-      
-      toast.success("Successfully switched to selected user account");
     } catch (error) {
-      console.error("Error logging in as user:", error);
-      toast.error("Failed to login as user. Please try again.");
-    } finally {
-      setImpersonating(null);
+      console.error("Error switching user:", error);
+      toast.error("Failed to switch user account");
     }
   };
 
@@ -207,9 +199,9 @@ export default function AdminSettings() {
                       variant="outline"
                       size="sm"
                       onClick={() => handleLoginAs(user.id)}
-                      disabled={impersonating === user.id || user.id === currentUser.id}
+                      disabled={user.id === currentUser.id}
                     >
-                      {impersonating === user.id ? "Switching..." : "Login as"}
+                      Login as
                     </Button>
                     
                     {user.id !== currentUser.id && (
