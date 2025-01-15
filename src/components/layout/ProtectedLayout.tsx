@@ -5,6 +5,7 @@ import { AppSidebar } from "../AppSidebar";
 import { useSelectedUser, SelectedUserProvider } from "@/components/sidebar/SidebarContext";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
 
 interface ProtectedLayoutProps {
   children: React.ReactNode;
@@ -14,16 +15,22 @@ export const ProtectedLayout = ({ children }: ProtectedLayoutProps) => {
   const navigate = useNavigate();
   const { selectedUserId, setSelectedUserId } = useSelectedUser();
 
-  useEffect(() => {
-    const checkAuth = async () => {
+  // Check auth status and get session
+  const { data: session, isLoading: isSessionLoading } = useQuery({
+    queryKey: ["session"],
+    queryFn: async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         navigate("/login");
+        return null;
       }
-    };
+      return session;
+    },
+    retry: false,
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+  });
 
-    checkAuth();
-
+  useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (event === "SIGNED_OUT") {
@@ -64,6 +71,18 @@ export const ProtectedLayout = ({ children }: ProtectedLayoutProps) => {
 
     setupImpersonation();
   }, [selectedUserId, setSelectedUserId]);
+
+  if (isSessionLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!session) {
+    return null; // The useQuery hook will handle navigation
+  }
 
   return (
     <SelectedUserProvider>
