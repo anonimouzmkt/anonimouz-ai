@@ -9,8 +9,8 @@ interface SidebarNavigationProps {
 
 export const SidebarNavigation = ({ handleNavigation }: SidebarNavigationProps) => {
   return (
-    <SidebarMenu className="mt-8 flex flex-col h-full">
-      <div className="px-2">
+    <SidebarMenu className="mt-8 flex flex-col h-full space-y-2">
+      <div className="px-2 space-y-2">
         <SidebarMenuItem>
           <SidebarMenuButton 
             asChild 
