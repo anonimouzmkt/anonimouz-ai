@@ -34,6 +34,14 @@ export const SidebarNavigation = ({ handleNavigation, isAdmin }: SidebarNavigati
           </Link>
         </SidebarMenuButton>
       </SidebarMenuItem>
+      <SidebarMenuItem>
+        <SidebarMenuButton asChild tooltip="Settings" onClick={() => handleNavigation("/settings")}>
+          <Link to="#" onClick={(e) => e.preventDefault()}>
+            <MessageCircle className="w-4 h-4" />
+            <span>Settings</span>
+          </Link>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
       {isAdmin && (
         <SidebarMenuItem>
           <SidebarMenuButton asChild tooltip="Admin Settings" onClick={() => handleNavigation("/admin-settings")}>
