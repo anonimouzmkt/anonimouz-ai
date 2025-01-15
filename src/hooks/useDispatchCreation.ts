@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { Profile } from "@/integrations/supabase/types";
+import type { Profile } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
 
 interface Contact {
