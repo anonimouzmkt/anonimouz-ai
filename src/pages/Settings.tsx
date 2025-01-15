@@ -3,10 +3,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
-import { Settings as SettingsIcon, Key } from "lucide-react";
+import { Settings as SettingsIcon, Key, Copy } from "lucide-react";
 import { toast } from "sonner";
+import { useState } from "react";
 
 const Settings = () => {
+  const [token, setToken] = useState<string>("");
+
   const { data: profile } = useQuery({
     queryKey: ["profile"],
     queryFn: async () => {
@@ -35,6 +38,23 @@ const Settings = () => {
     }
 
     toast.success("Reset password email sent!");
+  };
+
+  const handleGetToken = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.access_token) {
+      setToken(session.access_token);
+      toast.success("Token obtido com sucesso!");
+    } else {
+      toast.error("Não foi possível obter o token");
+    }
+  };
+
+  const handleCopyToken = () => {
+    if (token) {
+      navigator.clipboard.writeText(token);
+      toast.success("Token copiado para a área de transferência!");
+    }
   };
 
   return (
@@ -70,6 +90,36 @@ const Settings = () => {
             </div>
             <p className="text-sm text-muted-foreground">
               This is your unique identifier for external integrations
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Token</Label>
+            <div className="flex items-center gap-2">
+              <Input 
+                value={token} 
+                disabled 
+                type="password"
+                placeholder="Clique no botão para obter o token"
+              />
+              <Button
+                variant="outline"
+                onClick={handleGetToken}
+              >
+                Obter Token
+              </Button>
+              {token && (
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={handleCopyToken}
+                >
+                  <Copy className="w-4 h-4" />
+                </Button>
+              )}
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Este é seu token de autorização para fazer requisições à API
             </p>
           </div>
 
