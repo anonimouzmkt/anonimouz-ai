@@ -56,7 +56,7 @@ class ApiClient {
     try {
       console.log('Creating dispatch with data:', data);
       
-      const response = await fetch(`${API_BASE_URL}/dispatch`, {
+      const response = await fetch(`${API_BASE_URL}/create-whatsapp-dispatch`, {
         method: 'POST',
         headers: this.getHeaders(),
         body: JSON.stringify(data)
