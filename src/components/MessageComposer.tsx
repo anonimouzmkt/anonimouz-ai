@@ -28,15 +28,22 @@ export function MessageComposer({ onSend, disabled }: MessageComposerProps) {
   const [context, setContext] = useState("");
   const [selectedInstance, setSelectedInstance] = useState<string>("");
 
-  const { data: instances } = useQuery({
+  const { data: instances, isLoading: isLoadingInstances } = useQuery({
     queryKey: ["whatsapp-instances"],
     queryFn: async () => {
+      console.log('Fetching WhatsApp instances for current user...');
+      
       const { data, error } = await supabase
         .from("whatsapp_instances")
         .select("*")
         .eq("status", "connected");
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching instances:', error);
+        throw error;
+      }
+
+      console.log('Fetched instances:', data);
       return data as WhatsAppInstance[];
     },
   });
@@ -60,7 +67,13 @@ export function MessageComposer({ onSend, disabled }: MessageComposerProps) {
             onValueChange={setSelectedInstance}
           >
             <SelectTrigger className="w-full bg-[#333333] border-[#0099ff] text-white">
-              <SelectValue placeholder="Selecione uma instância" />
+              <SelectValue placeholder={
+                isLoadingInstances 
+                  ? "Carregando instâncias..." 
+                  : instances?.length 
+                    ? "Selecione uma instância" 
+                    : "Nenhuma instância conectada"
+              } />
             </SelectTrigger>
             <SelectContent>
               {instances?.map((instance) => (
@@ -74,6 +87,11 @@ export function MessageComposer({ onSend, disabled }: MessageComposerProps) {
               ))}
             </SelectContent>
           </Select>
+          {!isLoadingInstances && !instances?.length && (
+            <p className="text-[#0099ff] text-sm mt-2">
+              Você precisa conectar uma instância do WhatsApp primeiro
+            </p>
+          )}
         </div>
       </div>
 
