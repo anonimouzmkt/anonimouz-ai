@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { Send } from "lucide-react";
+import { Send, Bot, AlertCircle } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -12,6 +13,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface MessageComposerProps {
   onSend: (message: string) => void;
@@ -28,9 +35,9 @@ export function MessageComposer({ onSend, disabled }: MessageComposerProps) {
   const [message, setMessage] = useState("");
   const [context, setContext] = useState("");
   const [selectedInstance, setSelectedInstance] = useState<string>("");
+  const [useAI, setUseAI] = useState(false);
   const { toast } = useToast();
 
-  // Add query to fetch user profile to get unique_id
   const { data: profile } = useQuery({
     queryKey: ["profile"],
     queryFn: async () => {
@@ -80,14 +87,12 @@ export function MessageComposer({ onSend, disabled }: MessageComposerProps) {
         },
         (payload) => {
           console.log('Instance updated:', payload);
-          // Show toast notification when an instance connects
           if (payload.new.status === 'connected') {
             toast({
               title: "WhatsApp Conectado",
               description: `A instância ${payload.new.name} foi conectada com sucesso!`,
             });
           }
-          // Refresh the instances list
           refetch();
         }
       )
@@ -100,7 +105,14 @@ export function MessageComposer({ onSend, disabled }: MessageComposerProps) {
 
   const handleSend = () => {
     if (message.trim() && selectedInstance && profile?.unique_id) {
-      // Add unique_id to the request headers when sending
+      if (useAI && !profile?.webhook_url) {
+        toast({
+          title: "Webhook não configurado",
+          description: "Entre em contato com o suporte para configurar o webhook de IA.",
+          variant: "destructive",
+        });
+        return;
+      }
       const headers = {
         'x-unique-id': profile.unique_id
       };
@@ -119,41 +131,68 @@ export function MessageComposer({ onSend, disabled }: MessageComposerProps) {
   return (
     <div className="space-y-6">
       <div className="bg-card p-6 rounded-lg space-y-4 border border-border">
-        <div>
+        <div className="flex items-center justify-between">
           <h2 className="text-card-foreground mb-1">
             Selecione a instância do WhatsApp para envio
           </h2>
-          <Select
-            value={selectedInstance}
-            onValueChange={setSelectedInstance}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder={
-                isLoadingInstances 
-                  ? "Carregando instâncias..." 
-                  : instances?.length 
-                    ? "Selecione uma instância" 
-                    : "Nenhuma instância conectada"
-              } />
-            </SelectTrigger>
-            <SelectContent>
-              {instances?.map((instance) => (
-                <SelectItem
-                  key={instance.id}
-                  value={instance.id}
-                  className="cursor-pointer"
-                >
-                  {instance.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {!isLoadingInstances && !instances?.length && (
-            <p className="text-primary text-sm mt-2">
-              Você precisa conectar uma instância do WhatsApp primeiro
-            </p>
-          )}
+          <div className="flex items-center gap-2">
+            <Bot className={`w-5 h-5 ${useAI ? 'text-primary' : 'text-muted-foreground'}`} />
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      checked={useAI}
+                      onCheckedChange={setUseAI}
+                    />
+                    <span className="text-sm text-muted-foreground">
+                      Usar I.A
+                    </span>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Ative para usar I.A nos disparos</p>
+                  {!profile?.webhook_url && (
+                    <p className="text-destructive flex items-center gap-1 mt-1">
+                      <AlertCircle className="w-4 h-4" />
+                      Webhook não configurado
+                    </p>
+                  )}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
         </div>
+        <Select
+          value={selectedInstance}
+          onValueChange={setSelectedInstance}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder={
+              isLoadingInstances 
+                ? "Carregando instâncias..." 
+                : instances?.length 
+                  ? "Selecione uma instância" 
+                  : "Nenhuma instância conectada"
+            } />
+          </SelectTrigger>
+          <SelectContent>
+            {instances?.map((instance) => (
+              <SelectItem
+                key={instance.id}
+                value={instance.id}
+                className="cursor-pointer"
+              >
+                {instance.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {!isLoadingInstances && !instances?.length && (
+          <p className="text-primary text-sm mt-2">
+            Você precisa conectar uma instância do WhatsApp primeiro
+          </p>
+        )}
       </div>
 
       <div className="bg-card p-6 rounded-lg space-y-4 border border-border">
