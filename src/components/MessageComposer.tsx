@@ -239,7 +239,7 @@ export function MessageComposer({ onSend, disabled }: MessageComposerProps) {
       <div className="bg-card p-6 rounded-lg space-y-4 border border-border">
         <div>
           <h2 className="text-card-foreground mb-1">
-            Digite a mensagem inicial do <span className="font-bold">Agent</span>
+            Digite a mensagem inicial do <span className="font-bold">{useAI ? "Agent" : "disparo"}</span>
           </h2>
           <p className="text-primary text-sm">
             Exemplo: "Olá [[nome]], tudo bem?"
