@@ -118,16 +118,16 @@ export function MessageComposer({ onSend, disabled }: MessageComposerProps) {
 
   return (
     <div className="space-y-6">
-      <div className="bg-[#222222] p-6 rounded-lg space-y-4">
+      <div className="bg-card p-6 rounded-lg space-y-4 border border-border">
         <div>
-          <h2 className="text-white mb-1">
+          <h2 className="text-card-foreground mb-1">
             Selecione a instância do WhatsApp para envio
           </h2>
           <Select
             value={selectedInstance}
             onValueChange={setSelectedInstance}
           >
-            <SelectTrigger className="w-full bg-[#333333] border-[#0099ff] text-white">
+            <SelectTrigger className="w-full">
               <SelectValue placeholder={
                 isLoadingInstances 
                   ? "Carregando instâncias..." 
@@ -149,23 +149,23 @@ export function MessageComposer({ onSend, disabled }: MessageComposerProps) {
             </SelectContent>
           </Select>
           {!isLoadingInstances && !instances?.length && (
-            <p className="text-[#0099ff] text-sm mt-2">
+            <p className="text-primary text-sm mt-2">
               Você precisa conectar uma instância do WhatsApp primeiro
             </p>
           )}
         </div>
       </div>
 
-      <div className="bg-[#222222] p-6 rounded-lg space-y-4">
+      <div className="bg-card p-6 rounded-lg space-y-4 border border-border">
         <div>
-          <h2 className="text-white mb-1">
+          <h2 className="text-card-foreground mb-1">
             Descreva pro <span className="font-bold">Agent</span> qual o contexto
             do disparo
           </h2>
-          <p className="text-gray-400">
+          <p className="text-muted-foreground">
             ou caso <span className="font-bold">esteja no prompt</span> avise
           </p>
-          <p className="text-[#0099ff] text-sm mt-2">
+          <p className="text-primary text-sm mt-2">
             Exemplo: Seu objetivo está dentro do seu prompt principal na área
             disparo
           </p>
@@ -174,16 +174,16 @@ export function MessageComposer({ onSend, disabled }: MessageComposerProps) {
           placeholder="Escreva o contexto do disparo para o seu agente"
           value={context}
           onChange={(e) => setContext(e.target.value)}
-          className="min-h-[100px] bg-[#333333] border-[#0099ff] text-white"
+          className="min-h-[100px]"
         />
       </div>
 
-      <div className="bg-[#222222] p-6 rounded-lg space-y-4">
+      <div className="bg-card p-6 rounded-lg space-y-4 border border-border">
         <div>
-          <h2 className="text-white mb-1">
+          <h2 className="text-card-foreground mb-1">
             Digite a mensagem inicial do <span className="font-bold">Agent</span>
           </h2>
-          <p className="text-[#0099ff] text-sm">
+          <p className="text-primary text-sm">
             Exemplo: "Olá [[nome]], tudo bem?"
           </p>
         </div>
@@ -191,12 +191,12 @@ export function MessageComposer({ onSend, disabled }: MessageComposerProps) {
           placeholder="Digite sua mensagem de disparo"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          className="min-h-[100px] bg-[#333333] border-[#0099ff] text-white"
+          className="min-h-[100px]"
         />
       </div>
 
       <Button
-        className="w-full bg-[#0099ff] hover:bg-[#0088ee] text-white h-12"
+        className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-12"
         onClick={handleSend}
         disabled={
           disabled || !message.trim() || !selectedInstance || !instances?.length
