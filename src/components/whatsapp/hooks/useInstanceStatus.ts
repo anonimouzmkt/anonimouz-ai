@@ -12,12 +12,14 @@ const validateStatus = (status: string): "connected" | "disconnected" | "connect
   return "disconnected"; // Default fallback
 };
 
-type WhatsAppInstanceChanges = RealtimePostgresChangesPayload<{
+interface WhatsAppInstancePayload {
   id: string;
   name: string;
   status: string;
   [key: string]: any;
-}>;
+}
+
+type WhatsAppInstanceChanges = RealtimePostgresChangesPayload<WhatsAppInstancePayload>;
 
 export const useInstanceStatus = (
   selectedInstance: WhatsAppInstance | null,
@@ -45,7 +47,7 @@ export const useInstanceStatus = (
         (payload: WhatsAppInstanceChanges) => {
           console.log('Instance status changed:', payload);
           
-          if (payload.new) {
+          if (payload.new && typeof payload.new === 'object' && 'status' in payload.new) {
             const updatedInstance = {
               ...payload.new,
               status: validateStatus(payload.new.status)
