@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { ContactList } from "@/components/ContactList";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface Contact {
   name: string;
@@ -17,6 +18,8 @@ interface ContactSectionProps {
 export function ContactSection({ contacts, dispatchId }: ContactSectionProps) {
   useEffect(() => {
     if (!dispatchId) return;
+
+    console.log('Setting up real-time subscription for dispatch:', dispatchId);
 
     // Subscribe to real-time updates for contact results
     const channel = supabase
@@ -35,9 +38,17 @@ export function ContactSection({ contacts, dispatchId }: ContactSectionProps) {
           // This will be handled by the parent component through React Query
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Subscription status:', status);
+        if (status === 'SUBSCRIBED') {
+          toast.success('Connected to real-time updates');
+        } else if (status === 'CLOSED') {
+          toast.error('Lost connection to real-time updates');
+        }
+      });
 
     return () => {
+      console.log('Cleaning up subscription');
       supabase.removeChannel(channel);
     };
   }, [dispatchId]);
