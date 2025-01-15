@@ -9,6 +9,7 @@ import { InstanceSelector } from "./message-composer/InstanceSelector";
 import { AIContextInput } from "./message-composer/AIContextInput";
 import { MessageInput } from "./message-composer/MessageInput";
 import { apiService } from "@/lib/api-service";
+import { useSelectedUser } from "./sidebar/SidebarContext";
 
 interface MessageComposerProps {
   onSend: (message: string, instanceId: string, isAiDispatch: boolean, aiContext?: string) => Promise<string | undefined>;
@@ -23,19 +24,23 @@ export function MessageComposer({ onSend, disabled, contacts = [] }: MessageComp
   const [useAI, setUseAI] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const { toast } = useToast();
+  const { selectedUserId } = useSelectedUser();
 
   const { data: profile } = useQuery({
-    queryKey: ["profile"],
+    queryKey: ["profile", selectedUserId],
     queryFn: async () => {
+      console.log("Fetching profile for user:", selectedUserId || "current user");
+      
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not found");
 
       const { data: profile } = await supabase
         .from("profiles")
         .select("*")
-        .eq("id", user.id)
+        .eq("id", selectedUserId || user.id)
         .single();
 
+      console.log("Fetched profile:", profile);
       return profile;
     }
   });
