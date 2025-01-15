@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 
 const mockData = [
   { date: '01/03', success: 85, failed: 15 },
@@ -8,6 +9,23 @@ const mockData = [
   { date: '04/03', success: 88, failed: 12 },
   { date: '05/03', success: 95, failed: 5 },
 ];
+
+const chartConfig = {
+  success: {
+    label: "Sucesso",
+    theme: {
+      light: "hsl(var(--primary))",
+      dark: "hsl(var(--primary))",
+    },
+  },
+  failed: {
+    label: "Falha",
+    theme: {
+      light: "hsl(var(--destructive))",
+      dark: "hsl(var(--destructive))",
+    },
+  },
+};
 
 export default function DispatchDashboard() {
   return (
@@ -58,16 +76,46 @@ export default function DispatchDashboard() {
         </CardHeader>
         <CardContent className="pl-2">
           <div className="h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={mockData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="success" name="Sucesso" fill="hsl(var(--primary))" />
-                <Bar dataKey="failed" name="Falha" fill="hsl(var(--destructive))" />
+            <ChartContainer config={chartConfig}>
+              <BarChart data={mockData} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                <XAxis 
+                  dataKey="date" 
+                  axisLine={false}
+                  tickLine={false}
+                  dy={10}
+                />
+                <YAxis 
+                  axisLine={false}
+                  tickLine={false}
+                  dx={-10}
+                />
+                <ChartTooltip
+                  content={({ active, payload }) => (
+                    <ChartTooltipContent
+                      active={active}
+                      payload={payload}
+                      labelKey="date"
+                      nameKey="dataKey"
+                    />
+                  )}
+                />
+                <Bar 
+                  dataKey="success" 
+                  name="Sucesso" 
+                  fill="var(--color-success)"
+                  radius={[4, 4, 0, 0]}
+                  maxBarSize={40}
+                />
+                <Bar 
+                  dataKey="failed" 
+                  name="Falha" 
+                  fill="var(--color-failed)"
+                  radius={[4, 4, 0, 0]}
+                  maxBarSize={40}
+                />
               </BarChart>
-            </ResponsiveContainer>
+            </ChartContainer>
           </div>
         </CardContent>
       </Card>
