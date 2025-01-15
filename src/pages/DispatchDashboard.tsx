@@ -24,12 +24,6 @@ interface ContactResult {
   status: string;
 }
 
-interface ChartData {
-  date: string;
-  success: number;
-  failed: number;
-}
-
 const chartConfig = {
   success: {
     label: "Sucesso",
@@ -54,6 +48,7 @@ export default function DispatchDashboard() {
 
   const fetchUserData = async () => {
     try {
+      console.log("Fetching user data...");
       const { data: { user }, error: authError } = await supabase.auth.getUser();
       if (authError) {
         console.error("Auth error:", authError);
@@ -64,7 +59,20 @@ export default function DispatchDashboard() {
         });
         throw authError;
       }
-      return user;
+
+      // Check if user has admin role
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+
+      if (profileError) {
+        console.error("Profile error:", profileError);
+        throw profileError;
+      }
+
+      return { user, isAdmin: profile?.role === 'admin_user' };
     } catch (error) {
       console.error("Error fetching user:", error);
       throw error;
@@ -80,12 +88,17 @@ export default function DispatchDashboard() {
     queryKey: ['latestDispatch', selectedUserId],
     queryFn: async () => {
       console.log("Fetching latest dispatch...");
-      const user = await fetchUserData();
+      const { user, isAdmin } = await fetchUserData();
       const userId = selectedUserId || user?.id;
       
       if (!userId) {
         console.error("No user ID available");
         throw new Error("No user ID available");
+      }
+
+      // Only allow admin users to view other users' data
+      if (selectedUserId && !isAdmin) {
+        throw new Error("Unauthorized");
       }
 
       const { data, error } = await supabase
@@ -116,12 +129,17 @@ export default function DispatchDashboard() {
     queryKey: ['lastFiveDispatches', selectedUserId],
     queryFn: async () => {
       console.log("Fetching last 5 dispatches...");
-      const user = await fetchUserData();
+      const { user, isAdmin } = await fetchUserData();
       const userId = selectedUserId || user?.id;
       
       if (!userId) {
         console.error("No user ID available");
         throw new Error("No user ID available");
+      }
+
+      // Only allow admin users to view other users' data
+      if (selectedUserId && !isAdmin) {
+        throw new Error("Unauthorized");
       }
 
       const { data, error } = await supabase
@@ -150,12 +168,17 @@ export default function DispatchDashboard() {
     queryKey: ['latestContactResults', selectedUserId],
     queryFn: async () => {
       console.log("Fetching latest contact results...");
-      const user = await fetchUserData();
+      const { user, isAdmin } = await fetchUserData();
       const userId = selectedUserId || user?.id;
       
       if (!userId) {
         console.error("No user ID available");
         throw new Error("No user ID available");
+      }
+
+      // Only allow admin users to view other users' data
+      if (selectedUserId && !isAdmin) {
+        throw new Error("Unauthorized");
       }
 
       const { data: latestDispatch, error: dispatchError } = await supabase
@@ -189,17 +212,6 @@ export default function DispatchDashboard() {
     },
     refetchInterval: autoRefresh ? 3000 : false,
   });
-
-  const chartData: ChartData[] = lastFiveDispatches?.map(dispatch => ({
-    date: new Date(dispatch.created_at).toLocaleDateString(),
-    success: dispatch.success_count,
-    failed: dispatch.error_count
-  })) || [];
-
-  // Calculate totals
-  const totalDispatches = lastFiveDispatches?.length || 0;
-  const aiDispatches = lastFiveDispatches?.filter(d => d.is_ai_dispatch).length || 0;
-  const normalDispatches = totalDispatches - aiDispatches;
 
   const handleRefresh = () => {
     refetchLatest();
