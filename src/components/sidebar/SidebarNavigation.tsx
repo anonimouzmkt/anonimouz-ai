@@ -1,4 +1,4 @@
-import { LayoutGrid, MessageSquare, Kanban, Bot } from "lucide-react";
+import { LayoutGrid, Server, Bot } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
 
@@ -17,19 +17,14 @@ export const SidebarNavigation = ({ handleNavigation }: SidebarNavigationProps) 
       path: "/dispatch-dashboard"
     },
     {
-      icon: MessageSquare,
-      text: "Chat",
-      path: "/"
-    },
-    {
-      icon: Kanban,
-      text: "KanBan",
-      path: "/kanban"
+      icon: Server,
+      text: "Instances",
+      path: "/whatsapp"
     },
     {
       icon: Bot,
-      text: "A.I Agent",
-      path: "/ai-agent"
+      text: "Disparo A.I",
+      path: "/"
     }
   ];
 
@@ -44,19 +39,19 @@ export const SidebarNavigation = ({ handleNavigation }: SidebarNavigationProps) 
               onClick={() => handleNavigation(item.path)}
               className={`text-base py-3 w-full transition-all duration-200 hover:translate-x-1 group
                 ${location.pathname === item.path 
-                  ? 'bg-sidebar-primary text-sidebar-primary-foreground' 
-                  : 'hover:bg-sidebar-accent'}`}
+                  ? 'bg-sidebar-primary text-sidebar-primary-foreground dark:bg-white dark:text-black' 
+                  : 'hover:bg-sidebar-accent dark:hover:bg-white/10'}`}
             >
               <Link to="#" onClick={(e) => e.preventDefault()}>
                 <item.icon className={`w-5 h-5 ${
                   location.pathname === item.path 
-                    ? 'text-sidebar-primary-foreground' 
-                    : 'text-sidebar-foreground group-hover:text-sidebar-accent-foreground'
+                    ? 'text-sidebar-primary-foreground dark:text-black' 
+                    : 'text-sidebar-foreground dark:text-white group-hover:text-sidebar-accent-foreground'
                 }`} />
                 <span className={
                   location.pathname === item.path 
-                    ? 'text-sidebar-primary-foreground' 
-                    : 'text-sidebar-foreground group-hover:text-sidebar-accent-foreground'
+                    ? 'text-sidebar-primary-foreground dark:text-black' 
+                    : 'text-sidebar-foreground dark:text-white group-hover:text-sidebar-accent-foreground'
                 }>{item.text}</span>
               </Link>
             </SidebarMenuButton>
