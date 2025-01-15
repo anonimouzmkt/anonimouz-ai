@@ -75,8 +75,10 @@ const Settings = () => {
         throw error;
       }
 
-      if (profile?.webhook_url) {
-        setWebhookUrl(profile.webhook_url);
+      // Update webhook URL state when profile is fetched
+      if (profile?.webhook_url !== undefined) {
+        console.log("Setting webhook URL from profile:", profile.webhook_url);
+        setWebhookUrl(profile.webhook_url || "");
       }
 
       return profile;
@@ -117,6 +119,14 @@ const Settings = () => {
     console.log("Selected user changed in Settings, refetching data...");
     refetch();
   }, [selectedUserId, refetch]);
+
+  // Effect to update webhook URL when profile changes
+  useEffect(() => {
+    if (profile?.webhook_url !== undefined) {
+      console.log("Profile updated, setting webhook URL:", profile.webhook_url);
+      setWebhookUrl(profile.webhook_url || "");
+    }
+  }, [profile]);
 
   if (isCurrentUserError || isProfileError || isAdminError) {
     return (
