@@ -3,9 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 class ApiService {
   private static instance: ApiService;
   private accessToken: string | null = null;
+  private baseUrl: string = "https://anonimouz-ai.lovable.app/api";
 
   private constructor() {
-    // Initialize token from current session if available
     this.initializeToken();
   }
 
@@ -41,21 +41,43 @@ class ApiService {
     }
   }
 
-  public async createWhatsAppInstance(name: string) {
+  private async getAuthHeaders() {
     await this.refreshTokenIfNeeded();
     
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('No authenticated user');
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('unique_id')
+      .eq('id', user.id)
+      .single();
+
+    if (!profile?.unique_id) throw new Error('No unique_id found for user');
+
+    return {
+      'Authorization': `Bearer ${this.accessToken}`,
+      'Content-Type': 'application/json',
+      'x-unique-id': profile.unique_id
+    };
+  }
+
+  public async createWhatsAppInstance(name: string) {
     console.log('Creating WhatsApp instance:', name);
     
     try {
-      const response = await supabase.functions.invoke('create-whatsapp-instance', {
-        body: { name }
+      const headers = await this.getAuthHeaders();
+      const response = await fetch(`${this.baseUrl}/whatsapp/instance`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ name })
       });
 
-      if (response.error) {
-        throw new Error(response.error.message);
+      if (!response.ok) {
+        throw new Error(`Error creating WhatsApp instance: ${response.statusText}`);
       }
 
-      return response.data;
+      return await response.json();
     } catch (error) {
       console.error('Error creating WhatsApp instance:', error);
       throw error;
@@ -63,49 +85,78 @@ class ApiService {
   }
 
   public async generateQRCode(instanceName: string) {
-    await this.refreshTokenIfNeeded();
-    
     console.log('Generating QR code for instance:', instanceName);
     
     try {
-      const response = await supabase.functions.invoke('generate-whatsapp-qr', {
-        body: { instanceName }
+      const headers = await this.getAuthHeaders();
+      const response = await fetch(`${this.baseUrl}/whatsapp/qr`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ instanceName })
       });
 
-      if (response.error) {
-        throw new Error(response.error.message);
+      if (!response.ok) {
+        throw new Error(`Error generating QR code: ${response.statusText}`);
       }
 
-      return response.data;
+      return await response.json();
     } catch (error) {
       console.error('Error generating QR code:', error);
       throw error;
     }
   }
 
-  public async handleDispatch(dispatchData: {
+  public async handleDispatch(data: {
     dispatchId: string;
     uniqueId: string;
     message: string;
     context?: string;
     contacts: Array<{ name: string; phone: string; }>;
   }) {
-    await this.refreshTokenIfNeeded();
-    
-    console.log('Handling dispatch with data:', dispatchData);
+    console.log('Handling dispatch:', data);
     
     try {
-      const response = await supabase.functions.invoke('handle-dispatch', {
-        body: dispatchData
+      const headers = await this.getAuthHeaders();
+      const response = await fetch(`${this.baseUrl}/whatsapp/dispatch`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(data)
       });
 
-      if (response.error) {
-        throw new Error(response.error.message);
+      if (!response.ok) {
+        throw new Error(`Error handling dispatch: ${response.statusText}`);
       }
 
-      return response.data;
+      return await response.json();
     } catch (error) {
-      console.error('Error in handleDispatch:', error);
+      console.error('Error handling dispatch:', error);
+      throw error;
+    }
+  }
+
+  public async updateDispatchStatus(data: {
+    dispatchId: string;
+    phone: string;
+    status: string;
+    error?: string;
+  }) {
+    console.log('Updating dispatch status:', data);
+    
+    try {
+      const headers = await this.getAuthHeaders();
+      const response = await fetch(`${this.baseUrl}/whatsapp/status`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(data)
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error updating dispatch status: ${response.statusText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error updating dispatch status:', error);
       throw error;
     }
   }

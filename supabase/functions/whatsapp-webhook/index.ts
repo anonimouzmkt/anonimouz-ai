@@ -87,7 +87,6 @@ serve(async (req) => {
     if (status) {
       console.log(`Attempting to update instance ${instanceName} status to ${status}`);
       
-      // Get the instance by name
       const { data: instance, error: fetchError } = await supabaseClient
         .from('whatsapp_instances')
         .select('id, status')
@@ -115,7 +114,6 @@ serve(async (req) => {
 
       console.log(`Found instance with id ${instance.id}, current status: ${instance.status}`);
 
-      // Update the instance status using RPC call for atomic update
       const { error: updateError } = await supabaseClient.rpc('update_instance_status', {
         p_instance_id: instance.id,
         p_status: status
@@ -125,20 +123,6 @@ serve(async (req) => {
         console.error('Error updating instance status:', updateError);
         throw updateError;
       }
-
-      // Verify the update
-      const { data: verifyInstance, error: verifyError } = await supabaseClient
-        .from('whatsapp_instances')
-        .select('status')
-        .eq('id', instance.id)
-        .single();
-
-      if (verifyError) {
-        console.error('Error verifying update:', verifyError);
-        throw verifyError;
-      }
-
-      console.log(`Instance status after update: ${verifyInstance.status}`);
 
       return new Response(
         JSON.stringify({ 
@@ -157,8 +141,6 @@ serve(async (req) => {
       )
     }
 
-    // For non-status events, just acknowledge receipt
-    console.log(`Received event for instance ${instanceName}`);
     return new Response(
       JSON.stringify({ 
         success: true,
