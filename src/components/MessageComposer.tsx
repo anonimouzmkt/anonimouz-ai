@@ -10,11 +10,12 @@ import { AIContextInput } from "./message-composer/AIContextInput";
 import { MessageInput } from "./message-composer/MessageInput";
 
 interface MessageComposerProps {
-  onSend: (message: string, instanceId: string, isAiDispatch: boolean, aiContext?: string) => void;
+  onSend: (message: string, instanceId: string, isAiDispatch: boolean, aiContext?: string) => Promise<string | undefined>;
   disabled?: boolean;
+  contacts?: { name: string; phone: string }[];
 }
 
-export function MessageComposer({ onSend, disabled }: MessageComposerProps) {
+export function MessageComposer({ onSend, disabled, contacts = [] }: MessageComposerProps) {
   const [message, setMessage] = useState("");
   const [context, setContext] = useState("");
   const [selectedInstance, setSelectedInstance] = useState<string>("");
@@ -61,10 +62,55 @@ export function MessageComposer({ onSend, disabled }: MessageComposerProps) {
     return errors.length === 0;
   };
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (validateFields() && profile?.unique_id) {
-      onSend(message, selectedInstance, useAI, useAI ? context : undefined);
-      setMessage("");
+      try {
+        // Chama onSend e espera o ID do disparo
+        const dispatchId = await onSend(message, selectedInstance, useAI, useAI ? context : undefined);
+        
+        if (useAI && dispatchId && profile.webhook_url) {
+          console.log('Sending dispatch data to webhook:', profile.webhook_url);
+          
+          // Prepara o payload para o webhook
+          const webhookPayload = {
+            dispatchId,
+            uniqueId: profile.unique_id,
+            message,
+            context,
+            contacts: contacts.map(contact => ({
+              name: contact.name,
+              phone: contact.phone
+            }))
+          };
+
+          // Envia para o webhook configurado
+          const response = await fetch(profile.webhook_url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(webhookPayload)
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to send to webhook');
+          }
+
+          toast({
+            title: "Disparo iniciado",
+            description: "Os contatos foram enviados para processamento com I.A"
+          });
+        }
+
+        setMessage("");
+      } catch (error) {
+        console.error('Error sending dispatch:', error);
+        toast({
+          title: "Erro no disparo",
+          description: "Ocorreu um erro ao enviar os contatos para o webhook",
+          variant: "destructive"
+        });
+      }
     } else if (!profile?.unique_id) {
       toast({
         title: "Erro",

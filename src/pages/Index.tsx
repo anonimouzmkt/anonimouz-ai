@@ -107,10 +107,8 @@ const Index = () => {
 
       setCurrentDispatchId(dispatch.id);
       
-      toast({
-        title: "Disparo iniciado",
-        description: "O disparo foi iniciado com sucesso!"
-      });
+      // Retorna o ID do disparo para ser usado no webhook
+      return dispatch.id;
     } catch (error) {
       console.error("Error starting dispatch:", error);
       toast({
@@ -144,6 +142,7 @@ const Index = () => {
           <MessageComposer 
             onSend={handleSendMessage} 
             disabled={!contacts.length}
+            contacts={contacts}
           />
         </div>
       </div>
