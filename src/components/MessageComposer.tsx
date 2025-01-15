@@ -18,7 +18,6 @@ export function MessageComposer({ onSend, disabled, contacts = [] }: MessageComp
   const [message, setMessage] = useState("");
   const [context, setContext] = useState("");
   const [selectedInstance, setSelectedInstance] = useState<string>("");
-  const [useAI, setUseAI] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const { toast } = useToast();
 
@@ -49,11 +48,11 @@ export function MessageComposer({ onSend, disabled, contacts = [] }: MessageComp
       errors.push("Digite uma mensagem inicial");
     }
 
-    if (useAI && !context.trim()) {
-      errors.push("Digite o contexto do disparo quando usar I.A");
+    if (!context.trim()) {
+      errors.push("Digite o contexto do disparo");
     }
 
-    if (useAI && !profile?.webhook_url) {
+    if (!profile?.webhook_url) {
       errors.push("Configure o webhook de IA nas configurações");
     }
 
@@ -64,9 +63,9 @@ export function MessageComposer({ onSend, disabled, contacts = [] }: MessageComp
   const handleSend = async () => {
     if (validateFields() && profile?.unique_id) {
       try {
-        const dispatchId = await onSend(message, selectedInstance, useAI, useAI ? context : undefined);
+        const dispatchId = await onSend(message, selectedInstance, true, context);
         
-        if (useAI && dispatchId && profile.webhook_url) {
+        if (dispatchId && profile.webhook_url) {
           console.log('Sending dispatch data to webhook:', profile.webhook_url);
           
           const webhookPayload = {
@@ -122,26 +121,22 @@ export function MessageComposer({ onSend, disabled, contacts = [] }: MessageComp
         <InstanceSelector
           selectedInstance={selectedInstance}
           onInstanceSelect={setSelectedInstance}
-          useAI={useAI}
-          onAIToggle={setUseAI}
           webhookUrl={profile?.webhook_url}
         />
       </div>
 
-      {useAI && (
-        <div className="bg-card p-6 rounded-lg space-y-4 border border-border">
-          <AIContextInput
-            context={context}
-            onContextChange={setContext}
-          />
-        </div>
-      )}
+      <div className="bg-card p-6 rounded-lg space-y-4 border border-border">
+        <AIContextInput
+          context={context}
+          onContextChange={setContext}
+        />
+      </div>
 
       <div className="bg-card p-6 rounded-lg space-y-4 border border-border">
         <MessageInput
           message={message}
           onMessageChange={setMessage}
-          isAI={useAI}
+          isAI={true}
         />
       </div>
 
@@ -151,7 +146,7 @@ export function MessageComposer({ onSend, disabled, contacts = [] }: MessageComp
         onClick={handleSend}
         disabled={
           disabled || !message.trim() || !selectedInstance ||
-          (useAI && !context.trim())
+          !context.trim()
         }
       />
     </div>

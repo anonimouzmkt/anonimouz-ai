@@ -84,7 +84,7 @@ export const useDispatchData = (selectedUserId: string) => {
       console.log("Latest dispatch data:", data);
       return data as DispatchResult | null;
     },
-    refetchInterval: 3000,
+    refetchInterval: 1000,
   });
 
   const {
@@ -123,7 +123,7 @@ export const useDispatchData = (selectedUserId: string) => {
       console.log("Last 5 dispatches data:", data);
       return data as DispatchResult[];
     },
-    refetchInterval: 3000,
+    refetchInterval: 1000,
   });
 
   const {
@@ -175,7 +175,7 @@ export const useDispatchData = (selectedUserId: string) => {
       console.log("Latest contact results:", data);
       return data as ContactResult[];
     },
-    refetchInterval: 3000,
+    refetchInterval: 1000,
   });
 
   return {

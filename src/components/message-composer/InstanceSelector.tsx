@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Bot, AlertCircle } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Select,
@@ -8,7 +8,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
 import {
   Tooltip,
   TooltipContent,
@@ -25,16 +24,12 @@ interface WhatsAppInstance {
 interface InstanceSelectorProps {
   selectedInstance: string;
   onInstanceSelect: (instanceId: string) => void;
-  useAI: boolean;
-  onAIToggle: (useAI: boolean) => void;
   webhookUrl?: string | null;
 }
 
 export function InstanceSelector({
   selectedInstance,
   onInstanceSelect,
-  useAI,
-  onAIToggle,
   webhookUrl,
 }: InstanceSelectorProps) {
   const { data: instances, isLoading: isLoadingInstances } = useQuery({
@@ -55,6 +50,7 @@ export function InstanceSelector({
       console.log('Fetched instances:', data);
       return data as WhatsAppInstance[];
     },
+    refetchInterval: 1000, // Set to 1 second
   });
 
   return (
@@ -63,33 +59,21 @@ export function InstanceSelector({
         <h2 className="text-card-foreground mb-1">
           Selecione a instância do WhatsApp para envio
         </h2>
-        <div className="flex items-center gap-2">
-          <Bot className={`w-5 h-5 ${useAI ? 'text-primary' : 'text-muted-foreground'}`} />
+        {!webhookUrl && (
           <TooltipProvider>
             <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="flex items-center gap-2">
-                  <Switch
-                    checked={useAI}
-                    onCheckedChange={onAIToggle}
-                  />
-                  <span className="text-sm text-muted-foreground">
-                    Usar I.A
-                  </span>
+              <TooltipTrigger>
+                <div className="flex items-center gap-2 text-destructive">
+                  <AlertCircle className="w-4 h-4" />
+                  <span className="text-sm">Webhook não configurado</span>
                 </div>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Ative para usar I.A nos disparos</p>
-                {!webhookUrl && (
-                  <p className="text-destructive flex items-center gap-1 mt-1">
-                    <AlertCircle className="w-4 h-4" />
-                    Webhook não configurado
-                  </p>
-                )}
+                <p>Configure o webhook nas configurações para usar o disparo com I.A</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
-        </div>
+        )}
       </div>
       <Select
         value={selectedInstance}
