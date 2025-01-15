@@ -104,18 +104,33 @@ export const useWhatsAppInstances = () => {
     try {
       console.log('Starting deletion process for instance:', instanceId);
 
-      // First, delete all related dispatch_contact_results
-      const { error: contactResultsError } = await supabase
-        .from('dispatch_contact_results')
-        .delete()
-        .eq('dispatch_id', supabase.from('dispatch_results').select('id').eq('instance_id', instanceId));
+      // First, get all dispatch_results IDs for this instance
+      const { data: dispatchResults, error: dispatchQueryError } = await supabase
+        .from('dispatch_results')
+        .select('id')
+        .eq('instance_id', instanceId);
 
-      if (contactResultsError) {
-        console.error('Error deleting contact results:', contactResultsError);
-        throw contactResultsError;
+      if (dispatchQueryError) {
+        console.error('Error querying dispatch results:', dispatchQueryError);
+        throw dispatchQueryError;
       }
 
-      // Then, delete related dispatch_results
+      const dispatchIds = dispatchResults?.map(dr => dr.id) || [];
+
+      // If there are dispatch results, delete their contact results first
+      if (dispatchIds.length > 0) {
+        const { error: contactResultsError } = await supabase
+          .from('dispatch_contact_results')
+          .delete()
+          .in('dispatch_id', dispatchIds);
+
+        if (contactResultsError) {
+          console.error('Error deleting contact results:', contactResultsError);
+          throw contactResultsError;
+        }
+      }
+
+      // Then, delete the dispatch_results
       const { error: dispatchError } = await supabase
         .from('dispatch_results')
         .delete()
