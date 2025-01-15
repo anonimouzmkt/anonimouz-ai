@@ -171,7 +171,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      update_instance_status: {
+        Args: {
+          p_instance_id: string
+          p_status: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       user_role: "admin_user" | "user"
