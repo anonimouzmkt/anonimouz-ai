@@ -2,13 +2,29 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Settings as SettingsIcon, Key, Copy, Webhook } from "lucide-react";
+import { Settings as SettingsIcon, Key, Copy, Webhook, Moon, Sun } from "lucide-react";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { Switch } from "@/components/ui/switch";
 
 const Settings = () => {
   const [token, setToken] = useState<string>("");
   const [webhookUrl, setWebhookUrl] = useState<string>("");
+  const [isDarkMode, setIsDarkMode] = useState(true);
+
+  useEffect(() => {
+    // Check if user has a theme preference
+    const theme = localStorage.getItem("theme");
+    const prefersDark = theme === "dark" || (!theme && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    setIsDarkMode(prefersDark);
+    document.documentElement.classList.toggle("dark", prefersDark);
+  }, []);
+
+  const toggleTheme = () => {
+    setIsDarkMode(!isDarkMode);
+    document.documentElement.classList.toggle("dark");
+    localStorage.setItem("theme", !isDarkMode ? "dark" : "light");
+  };
 
   const { data: currentUser } = useQuery({
     queryKey: ["currentUser"],
@@ -85,9 +101,15 @@ const Settings = () => {
   return (
     <div className="flex-1 p-8">
       <div className="max-w-2xl mx-auto space-y-8">
-        <div className="flex items-center gap-2">
-          <SettingsIcon className="w-6 h-6" />
-          <h1 className="text-2xl font-bold">Settings</h1>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <SettingsIcon className="w-6 h-6" />
+            <h1 className="text-2xl font-bold">Settings</h1>
+          </div>
+          <div className="flex items-center gap-2">
+            {isDarkMode ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+            <Switch checked={isDarkMode} onCheckedChange={toggleTheme} />
+          </div>
         </div>
 
         <div className="space-y-6">

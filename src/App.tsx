@@ -18,6 +18,12 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
   useEffect(() => {
+    // Check and apply theme on initial load
+    const theme = localStorage.getItem("theme");
+    if (theme === "dark" || (!theme && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+      document.documentElement.classList.add("dark");
+    }
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setIsAuthenticated(!!session);
     });
@@ -30,8 +36,8 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   if (isAuthenticated === null) {
-    return <div className="min-h-screen bg-[#1a1a1a] flex items-center justify-center">
-      <div className="text-white">Carregando...</div>
+    return <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="text-foreground">Carregando...</div>
     </div>;
   }
 
