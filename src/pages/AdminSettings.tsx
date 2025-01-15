@@ -25,6 +25,7 @@ interface Profile {
   id: string;
   email: string;
   role: 'admin_user' | 'user';
+  admin_users: boolean;
 }
 
 const AdminSettings = () => {
@@ -96,7 +97,10 @@ const AdminSettings = () => {
       if (authData.user) {
         const { error: profileError } = await supabase
           .from('profiles')
-          .update({ role: 'admin_user' })
+          .update({ 
+            role: 'admin_user',
+            admin_users: true 
+          })
           .eq('id', authData.user.id);
 
         if (profileError) throw profileError;
@@ -113,14 +117,18 @@ const AdminSettings = () => {
     }
   };
 
-  const handleToggleRole = async (userId: string, currentRole: 'admin_user' | 'user') => {
+  const handleToggleRole = async (userId: string, currentRole: 'admin_user' | 'user', isAdmin: boolean) => {
     try {
-      console.log(`Toggling role for user ${userId} from ${currentRole}`);
+      console.log(`Toggling role for user ${userId} from ${currentRole}, admin status: ${isAdmin}`);
       const newRole = currentRole === 'admin_user' ? 'user' : 'admin_user';
+      const newAdminStatus = !isAdmin;
       
       const { error } = await supabase
         .from('profiles')
-        .update({ role: newRole })
+        .update({ 
+          role: newRole,
+          admin_users: newAdminStatus 
+        })
         .eq('id', userId);
 
       if (error) {
@@ -202,15 +210,15 @@ const AdminSettings = () => {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleToggleRole(user.id, user.role)}
+                        onClick={() => handleToggleRole(user.id, user.role, user.admin_users)}
                         disabled={user.id === currentUser?.id}
                       >
-                        {user.role === 'admin_user' ? (
+                        {user.admin_users ? (
                           <UserX className="w-4 h-4 mr-2" />
                         ) : (
                           <UserCheck className="w-4 h-4 mr-2" />
                         )}
-                        {user.role === 'admin_user' ? 'Remove Admin' : 'Make Admin'}
+                        {user.admin_users ? 'Remove Admin' : 'Make Admin'}
                       </Button>
                     </TableCell>
                   </TableRow>

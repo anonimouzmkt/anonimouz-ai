@@ -102,6 +102,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          admin_users: boolean | null
           created_at: string
           email: string | null
           id: string
@@ -111,6 +112,7 @@ export type Database = {
           webhook_url: string | null
         }
         Insert: {
+          admin_users?: boolean | null
           created_at?: string
           email?: string | null
           id: string
@@ -120,6 +122,7 @@ export type Database = {
           webhook_url?: string | null
         }
         Update: {
+          admin_users?: boolean | null
           created_at?: string
           email?: string | null
           id?: string
