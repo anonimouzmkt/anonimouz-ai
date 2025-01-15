@@ -22,14 +22,13 @@ interface AccountSwitcherSectionProps {
 }
 
 export function AccountSwitcherSection({ currentUserId, onAccountSwitch }: AccountSwitcherSectionProps) {
-  const { data: profiles } = useQuery({
+  const { data: profiles, isLoading } = useQuery({
     queryKey: ["profiles"],
     queryFn: async () => {
-      console.log("Fetching profiles for account switcher");
+      console.log("Fetching all profiles for account switcher");
       const { data: profiles, error } = await supabase
         .from("profiles")
-        .select("*")
-        .eq("role", "user");
+        .select("*");
 
       if (error) {
         console.error("Error fetching profiles:", error);
@@ -72,12 +71,12 @@ export function AccountSwitcherSection({ currentUserId, onAccountSwitch }: Accou
           onAccountSwitch(value);
         }}
       >
-        <SelectTrigger className="w-full">
+        <SelectTrigger className="w-full bg-background">
           <SelectValue placeholder="Select an account">
             {currentProfile?.email || "My Account"}
           </SelectValue>
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent className="bg-background">
           <SelectItem value={currentUserId}>
             {currentProfile?.email || "My Account"}
           </SelectItem>

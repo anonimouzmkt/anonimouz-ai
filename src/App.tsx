@@ -10,6 +10,7 @@ import WhatsApp from "./pages/WhatsApp";
 import Settings from "./pages/Settings";
 import AdminSettings from "./pages/AdminSettings";
 import DispatchDashboard from "./pages/DispatchDashboard";
+import EmailConfirmation from "./pages/EmailConfirmation";
 
 const queryClient = new QueryClient();
 
@@ -21,6 +22,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/email-confirmation" element={<EmailConfirmation />} />
           <Route
             path="/"
             element={
