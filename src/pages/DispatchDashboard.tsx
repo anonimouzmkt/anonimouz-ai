@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { DispatchMetrics } from "@/components/dashboard/DispatchMetrics";
 import { DispatchStatistics } from "@/components/dashboard/DispatchStatistics";
 import { DispatchChart } from "@/components/dashboard/DispatchChart";
+import { useSelectedUser } from "@/components/AppSidebar";
 
 interface DispatchResult {
   id: string;
@@ -45,77 +46,34 @@ const chartConfig = {
   },
 };
 
-const fetchLatestDispatch = async () => {
-  console.log("Fetching latest dispatch...");
-  const { data, error } = await supabase
-    .from('dispatch_results')
-    .select('*')
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .single();
-
-  if (error) {
-    console.error("Error fetching latest dispatch:", error);
-    throw error;
-  }
-
-  console.log("Latest dispatch data:", data);
-  return data as DispatchResult;
-};
-
-const fetchLastFiveDispatches = async () => {
-  console.log("Fetching last 5 dispatches...");
-  const { data, error } = await supabase
-    .from('dispatch_results')
-    .select('*')
-    .order('created_at', { ascending: false })
-    .limit(5);
-
-  if (error) {
-    console.error("Error fetching dispatches:", error);
-    throw error;
-  }
-
-  console.log("Last 5 dispatches data:", data);
-  return data as DispatchResult[];
-};
-
-const fetchLatestContactResults = async () => {
-  console.log("Fetching latest contact results...");
-  const { data: latestDispatch } = await supabase
-    .from('dispatch_results')
-    .select('id')
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .single();
-
-  if (!latestDispatch) return [];
-
-  const { data, error } = await supabase
-    .from('dispatch_contact_results')
-    .select('contact_name, contact_phone, status')
-    .eq('dispatch_id', latestDispatch.id)
-    .order('created_at', { ascending: false });
-
-  if (error) {
-    console.error("Error fetching contact results:", error);
-    throw error;
-  }
-
-  console.log("Latest contact results:", data);
-  return data as ContactResult[];
-};
-
 export default function DispatchDashboard() {
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const { selectedUserId } = useSelectedUser();
 
   const { 
     data: latestDispatch,
     refetch: refetchLatest,
     isLoading: isLoadingLatest
   } = useQuery({
-    queryKey: ['latestDispatch'],
-    queryFn: fetchLatestDispatch,
+    queryKey: ['latestDispatch', selectedUserId],
+    queryFn: async () => {
+      console.log("Fetching latest dispatch...");
+      const { data, error } = await supabase
+        .from('dispatch_results')
+        .select('*')
+        .eq('user_id', selectedUserId || auth.uid())
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (error) {
+        console.error("Error fetching latest dispatch:", error);
+        throw error;
+      }
+
+      console.log("Latest dispatch data:", data);
+      return data as DispatchResult;
+    },
     refetchInterval: autoRefresh ? 3000 : false,
   });
 
@@ -124,8 +82,24 @@ export default function DispatchDashboard() {
     refetch: refetchChart,
     isLoading: isLoadingChart
   } = useQuery({
-    queryKey: ['lastFiveDispatches'],
-    queryFn: fetchLastFiveDispatches,
+    queryKey: ['lastFiveDispatches', selectedUserId],
+    queryFn: async () => {
+      console.log("Fetching last 5 dispatches...");
+      const { data, error } = await supabase
+        .from('dispatch_results')
+        .select('*')
+        .eq('user_id', selectedUserId || auth.uid())
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      if (error) {
+        console.error("Error fetching dispatches:", error);
+        throw error;
+      }
+
+      console.log("Last 5 dispatches data:", data);
+      return data as DispatchResult[];
+    },
     refetchInterval: autoRefresh ? 3000 : false,
   });
 
@@ -133,8 +107,33 @@ export default function DispatchDashboard() {
     data: latestContactResults,
     refetch: refetchContacts,
   } = useQuery({
-    queryKey: ['latestContactResults'],
-    queryFn: fetchLatestContactResults,
+    queryKey: ['latestContactResults', selectedUserId],
+    queryFn: async () => {
+      console.log("Fetching latest contact results...");
+      const { data: latestDispatch } = await supabase
+        .from('dispatch_results')
+        .select('id')
+        .eq('user_id', selectedUserId || auth.uid())
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (!latestDispatch) return [];
+
+      const { data, error } = await supabase
+        .from('dispatch_contact_results')
+        .select('contact_name, contact_phone, status')
+        .eq('dispatch_id', latestDispatch.id)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error("Error fetching contact results:", error);
+        throw error;
+      }
+
+      console.log("Latest contact results:", data);
+      return data as ContactResult[];
+    },
     refetchInterval: autoRefresh ? 3000 : false,
   });
 
