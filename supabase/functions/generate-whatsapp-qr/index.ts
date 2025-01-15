@@ -27,7 +27,8 @@ serve(async (req) => {
       )
     }
 
-    const response = await fetch('https://evo2.anonimouz.com/instance/create', {
+    // Only request QR code without creating instance
+    const response = await fetch('https://evo2.anonimouz.com/instance/qrcode', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

@@ -24,7 +24,7 @@ export const InstanceList = ({ instances, onDelete }: InstanceListProps) => {
     setQrCodeBase64(undefined);
 
     try {
-      console.log('Generating QR code for instance:', instance.name);
+      console.log('Getting QR code for instance:', instance.name);
       
       const { data: response, error } = await supabase.functions.invoke(
         'generate-whatsapp-qr',
@@ -34,7 +34,7 @@ export const InstanceList = ({ instances, onDelete }: InstanceListProps) => {
       );
 
       if (error) {
-        console.error('Error generating QR code:', error);
+        console.error('Error getting QR code:', error);
         throw error;
       }
 
@@ -47,10 +47,10 @@ export const InstanceList = ({ instances, onDelete }: InstanceListProps) => {
       }
 
     } catch (error) {
-      console.error('Failed to generate QR code:', error);
+      console.error('Failed to get QR code:', error);
       toast({
         title: "Error",
-        description: "Failed to generate QR code. Please try again.",
+        description: "Failed to get QR code. Please try again.",
         variant: "destructive",
       });
     } finally {
