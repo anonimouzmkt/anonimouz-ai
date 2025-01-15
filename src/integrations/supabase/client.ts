@@ -15,12 +15,14 @@ export const supabase = createClient<Database>(
       flowType: 'pkce',
       storage: localStorage,
       storageKey: 'supabase.auth.token',
-      debug: true
     },
     global: {
       headers: {
         'X-Client-Info': 'supabase-js-web'
       }
+    },
+    db: {
+      schema: 'public'
     }
   }
 );

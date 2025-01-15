@@ -1,19 +1,25 @@
-import { VariantProps, cva } from "class-variance-authority"
-import { cn } from "@/lib/utils"
+import * as React from "react"
+import { cva, type VariantProps } from "class-variance-authority"
 
 export const sidebarMenuButtonVariants = cva(
-  "group/menu-button relative flex w-full select-none items-center gap-2 rounded-md px-2 py-1.5 outline-none transition-colors data-[active=true]:bg-sidebar-primary data-[active=true]:text-sidebar-primary-foreground focus-visible:bg-sidebar-accent focus-visible:text-sidebar-accent-foreground",
+  "inline-flex items-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
-        default: "",
+        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        destructive:
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
         outline:
-          "bg-background shadow-[0_0_0_1px_hsl(var(--sidebar-border))] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-[0_0_0_1px_hsl(var(--sidebar-accent))]",
+          "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+        secondary:
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        ghost: "hover:bg-accent hover:text-accent-foreground",
+        link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
-        sm: "h-7 text-xs",
-        md: "h-8 text-sm",
-        lg: "h-12 text-sm group-data-[collapsible=icon]:!p-0",
+        sm: "h-9 px-3",
+        md: "h-10 px-4",
+        lg: "h-11 px-8",
       },
     },
     defaultVariants: {
@@ -23,10 +29,10 @@ export const sidebarMenuButtonVariants = cva(
   }
 )
 
-export type SidebarMenuButtonVariants = VariantProps<typeof sidebarMenuButtonVariants>
-
 export interface SidebarProps extends React.ComponentProps<"div"> {
   variant?: "sidebar" | "floating" | "inset"
   collapsible?: "offcanvas" | "icon" | "none"
   side?: "left" | "right"
 }
+
+export type SidebarMenuButtonVariants = VariantProps<typeof sidebarMenuButtonVariants>
