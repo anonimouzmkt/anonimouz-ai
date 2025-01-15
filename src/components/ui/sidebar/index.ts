@@ -1,4 +1,11 @@
 export * from "./SidebarBase"
 export * from "./SidebarContext"
-export * from "./SidebarComponents"
 export * from "./SidebarMenu"
+export {
+  SidebarContent,
+  SidebarHeader,
+  SidebarFooter,
+  SidebarSeparator,
+  SidebarInput,
+  SidebarTrigger
+} from "./SidebarComponents"
