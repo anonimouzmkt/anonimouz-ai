@@ -41,33 +41,6 @@ class ApiService {
     }
   }
 
-  public async handleDispatch(dispatchData: {
-    dispatchId: string;
-    uniqueId: string;
-    message: string;
-    context?: string;
-    contacts: Array<{ name: string; phone: string; }>;
-  }) {
-    await this.refreshTokenIfNeeded();
-    
-    console.log('Handling dispatch with data:', dispatchData);
-    
-    try {
-      const response = await supabase.functions.invoke('handle-dispatch', {
-        body: dispatchData
-      });
-
-      if (response.error) {
-        throw new Error(response.error.message);
-      }
-
-      return response.data;
-    } catch (error) {
-      console.error('Error in handleDispatch:', error);
-      throw error;
-    }
-  }
-
   public async createWhatsAppInstance(name: string) {
     await this.refreshTokenIfNeeded();
     
@@ -106,6 +79,33 @@ class ApiService {
       return response.data;
     } catch (error) {
       console.error('Error generating QR code:', error);
+      throw error;
+    }
+  }
+
+  public async handleDispatch(dispatchData: {
+    dispatchId: string;
+    uniqueId: string;
+    message: string;
+    context?: string;
+    contacts: Array<{ name: string; phone: string; }>;
+  }) {
+    await this.refreshTokenIfNeeded();
+    
+    console.log('Handling dispatch with data:', dispatchData);
+    
+    try {
+      const response = await supabase.functions.invoke('handle-dispatch', {
+        body: dispatchData
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message);
+      }
+
+      return response.data;
+    } catch (error) {
+      console.error('Error in handleDispatch:', error);
       throw error;
     }
   }
