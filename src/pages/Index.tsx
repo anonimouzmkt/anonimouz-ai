@@ -10,31 +10,9 @@ interface Contact {
 
 const Index = () => {
   const [contacts, setContacts] = useState<Contact[]>([]);
-  const [selectedContacts, setSelectedContacts] = useState<Set<string>>(new Set());
 
   const handleContactsLoaded = (loadedContacts: Contact[]) => {
     setContacts(loadedContacts);
-    setSelectedContacts(new Set()); // Reset selection when new contacts are loaded
-  };
-
-  const handleToggleContact = (phone: string) => {
-    setSelectedContacts(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(phone)) {
-        newSet.delete(phone);
-      } else {
-        newSet.add(phone);
-      }
-      return newSet;
-    });
-  };
-
-  const handleSelectAll = () => {
-    setSelectedContacts(new Set(contacts.map(contact => contact.phone)));
-  };
-
-  const handleDeselectAll = () => {
-    setSelectedContacts(new Set());
   };
 
   const handleSendMessage = (message: string) => {
@@ -55,13 +33,7 @@ const Index = () => {
           {contacts.length > 0 && (
             <div className="bg-card p-6 rounded-lg border border-border">
               <h2 className="text-xl font-semibold mb-4">Contact List</h2>
-              <ContactList 
-                contacts={contacts}
-                selectedContacts={selectedContacts}
-                onToggleContact={handleToggleContact}
-                onSelectAll={handleSelectAll}
-                onDeselectAll={handleDeselectAll}
-              />
+              <ContactList contacts={contacts} />
             </div>
           )}
         </div>
