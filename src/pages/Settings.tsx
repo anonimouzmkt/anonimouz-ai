@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Settings as SettingsIcon } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AccountInformation } from "@/components/settings/AccountInformation";
 import { APITokenSection } from "@/components/settings/APITokenSection";
 import { WebhookSection } from "@/components/settings/WebhookSection";
