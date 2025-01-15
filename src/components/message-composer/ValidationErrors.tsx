@@ -1,21 +1,17 @@
-import { Alert, AlertDescription } from "@/components/ui/alert";
-
 interface ValidationErrorsProps {
   errors: string[];
 }
 
 export function ValidationErrors({ errors }: ValidationErrorsProps) {
-  if (errors.length === 0) return null;
-  
+  if (!errors.length) return null;
+
   return (
-    <Alert variant="destructive">
-      <AlertDescription>
-        <ul className="list-disc pl-4">
-          {errors.map((error, index) => (
-            <li key={index}>{error}</li>
-          ))}
-        </ul>
-      </AlertDescription>
-    </Alert>
+    <div className="space-y-2">
+      {errors.map((error, index) => (
+        <p key={index} className="text-destructive text-sm">
+          {error}
+        </p>
+      ))}
+    </div>
   );
 }
