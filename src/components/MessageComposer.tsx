@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Send } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { InstanceSelector } from "./message-composer/InstanceSelector";
 import { AIContextInput } from "./message-composer/AIContextInput";
 import { MessageInput } from "./message-composer/MessageInput";
+import { apiClient } from "@/lib/api-client";
 
 interface MessageComposerProps {
   onSend: (message: string, instanceId: string, isAiDispatch: boolean, aiContext?: string) => Promise<string | undefined>;
@@ -22,6 +23,10 @@ export function MessageComposer({ onSend, disabled, contacts = [] }: MessageComp
   const [useAI, setUseAI] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const { toast } = useToast();
+
+  useEffect(() => {
+    apiClient.initialize();
+  }, []);
 
   const { data: profile } = useQuery({
     queryKey: ["profile"],
@@ -65,13 +70,22 @@ export function MessageComposer({ onSend, disabled, contacts = [] }: MessageComp
   const handleSend = async () => {
     if (validateFields() && profile?.unique_id) {
       try {
-        // Chama onSend e espera o ID do disparo
-        const dispatchId = await onSend(message, selectedInstance, useAI, useAI ? context : undefined);
+        const dispatchData = {
+          message,
+          instanceId: selectedInstance,
+          isAiDispatch: useAI,
+          aiContext: useAI ? context : undefined,
+          contacts: contacts.map(contact => ({
+            name: contact.name,
+            phone: contact.phone
+          }))
+        };
+
+        const { id: dispatchId } = await apiClient.createDispatch(dispatchData);
         
         if (useAI && dispatchId && profile.webhook_url) {
           console.log('Sending dispatch data to webhook:', profile.webhook_url);
           
-          // Prepara o payload para o webhook
           const webhookPayload = {
             dispatchId,
             uniqueId: profile.unique_id,
@@ -83,7 +97,6 @@ export function MessageComposer({ onSend, disabled, contacts = [] }: MessageComp
             }))
           };
 
-          // Envia para o webhook configurado
           const response = await fetch(profile.webhook_url, {
             method: 'POST',
             headers: {
