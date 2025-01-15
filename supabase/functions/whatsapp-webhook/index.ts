@@ -70,7 +70,7 @@ serve(async (req) => {
     const body = await req.json()
     console.log('Received webhook payload:', body)
 
-    const { instanceName, status, event } = body
+    const { instanceName, status } = body
     if (!instanceName) {
       return new Response(
         JSON.stringify({ 
@@ -84,93 +84,87 @@ serve(async (req) => {
       )
     }
 
-    if (event === 'connection' || status) {
-      const newStatus = status || (event === 'connection' ? 'connected' : null);
+    if (status) {
+      console.log(`Attempting to update instance ${instanceName} status to ${status}`);
       
-      if (newStatus) {
-        console.log(`Attempting to update instance ${instanceName} status to ${newStatus}`);
-        
-        // Get the instance by name
-        const { data: instance, error: fetchError } = await supabaseClient
-          .from('whatsapp_instances')
-          .select('id, status')
-          .eq('name', instanceName)
-          .maybeSingle();
+      // Get the instance by name
+      const { data: instance, error: fetchError } = await supabaseClient
+        .from('whatsapp_instances')
+        .select('id, status')
+        .eq('name', instanceName)
+        .maybeSingle();
 
-        if (fetchError) {
-          console.error('Error fetching instance:', fetchError);
-          throw fetchError;
-        }
+      if (fetchError) {
+        console.error('Error fetching instance:', fetchError);
+        throw fetchError;
+      }
 
-        if (!instance) {
-          console.error(`No instance found with name: ${instanceName}`);
-          return new Response(
-            JSON.stringify({ 
-              error: 'Instance not found',
-              details: `No instance found with name ${instanceName}`
-            }),
-            { 
-              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-              status: 404
-            }
-          )
-        }
-
-        console.log(`Found instance with id ${instance.id}, current status: ${instance.status}`);
-
-        // Update the instance status using RPC call for atomic update
-        const { error: updateError } = await supabaseClient.rpc('update_instance_status', {
-          p_instance_id: instance.id,
-          p_status: newStatus
-        });
-
-        if (updateError) {
-          console.error('Error updating instance status:', updateError);
-          throw updateError;
-        }
-
-        // Verify the update
-        const { data: verifyInstance, error: verifyError } = await supabaseClient
-          .from('whatsapp_instances')
-          .select('status')
-          .eq('id', instance.id)
-          .single();
-
-        if (verifyError) {
-          console.error('Error verifying update:', verifyError);
-          throw verifyError;
-        }
-
-        console.log(`Instance status after update: ${verifyInstance.status}`);
-
+      if (!instance) {
+        console.error(`No instance found with name: ${instanceName}`);
         return new Response(
           JSON.stringify({ 
-            success: true,
-            message: `Instance ${instanceName} status updated to ${newStatus}`,
-            data: {
-              instanceName,
-              status: newStatus,
-              timestamp: new Date().toISOString()
-            }
+            error: 'Instance not found',
+            details: `No instance found with name ${instanceName}`
           }),
           { 
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-            status: 200 
+            status: 404
           }
         )
       }
+
+      console.log(`Found instance with id ${instance.id}, current status: ${instance.status}`);
+
+      // Update the instance status using RPC call for atomic update
+      const { error: updateError } = await supabaseClient.rpc('update_instance_status', {
+        p_instance_id: instance.id,
+        p_status: status
+      });
+
+      if (updateError) {
+        console.error('Error updating instance status:', updateError);
+        throw updateError;
+      }
+
+      // Verify the update
+      const { data: verifyInstance, error: verifyError } = await supabaseClient
+        .from('whatsapp_instances')
+        .select('status')
+        .eq('id', instance.id)
+        .single();
+
+      if (verifyError) {
+        console.error('Error verifying update:', verifyError);
+        throw verifyError;
+      }
+
+      console.log(`Instance status after update: ${verifyInstance.status}`);
+
+      return new Response(
+        JSON.stringify({ 
+          success: true,
+          message: `Instance ${instanceName} status updated to ${status}`,
+          data: {
+            instanceName,
+            status,
+            timestamp: new Date().toISOString()
+          }
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200 
+        }
+      )
     }
 
-    // For non-connection events, just acknowledge receipt
-    console.log(`Received ${event} event for instance ${instanceName}`);
+    // For non-status events, just acknowledge receipt
+    console.log(`Received event for instance ${instanceName}`);
     return new Response(
       JSON.stringify({ 
         success: true,
-        message: `Processed ${event} event for instance: ${instanceName}`,
+        message: `Processed event for instance: ${instanceName}`,
         data: {
           instanceName,
-          event,
-          status,
           timestamp: new Date().toISOString()
         }
       }),
