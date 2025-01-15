@@ -40,7 +40,7 @@ export const Sidebar = React.forwardRef<HTMLDivElement, SidebarProps>(
         data-collapsible={collapsible}
         data-side={side}
         className={cn(
-          "group/sidebar relative z-50 flex h-full min-h-screen w-64 flex-col overflow-hidden bg-sidebar text-sidebar-foreground shadow-xl transition-[margin,width] duration-300 ease-in-out",
+          "group/sidebar relative z-50 flex h-full min-h-screen w-64 flex-col overflow-hidden bg-sidebar text-sidebar-foreground transition-[margin,width] duration-300 ease-in-out",
           "data-[variant=floating]:absolute data-[variant=floating]:inset-y-0",
           "data-[variant=inset]:relative data-[variant=inset]:min-h-0 data-[variant=inset]:rounded-lg data-[variant=inset]:shadow-none",
           "data-[side=left]:left-0 data-[side=left]:border-r data-[side=left]:data-[collapsible=offcanvas]:-ml-64 data-[side=left]:data-[collapsible=icon]:w-16 data-[side=left]:group-[.sidebar-expanded]/sidebar:ml-0",

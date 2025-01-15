@@ -138,20 +138,20 @@ export function AppSidebar() {
     <Sidebar 
       variant="floating" 
       collapsible="icon" 
-      className="border-none bg-sidebar shadow-xl dark:shadow-none"
+      className="border-none shadow-xl dark:shadow-none"
     >
-      <SidebarHeader>
+      <SidebarHeader className="px-0">
         <CustomSidebarHeader />
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="px-2">
         <SidebarNavigation 
           handleNavigation={handleNavigation}
-          isAdmin={isAdmin}
+          isAdmin={profile?.admin_users === true}
         />
       </SidebarContent>
-      <SidebarFooter className="p-4">
+      <SidebarFooter className="mt-auto p-4">
         <SidebarFooterActions
-          isAdmin={isAdmin}
+          isAdmin={profile?.admin_users === true}
           currentUserId={currentUser?.id || ''}
           impersonatedUserId={selectedUserId}
           profiles={profiles}
