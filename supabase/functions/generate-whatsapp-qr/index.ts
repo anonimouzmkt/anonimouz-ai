@@ -29,10 +29,22 @@ serve(async (req) => {
       )
     }
 
-    // Generate a unique instance name by appending a timestamp
-    const uniqueInstanceName = `${instanceName}_${Date.now()}`
+    // Generate a truly unique instance name using timestamp and random string
+    const randomString = Math.random().toString(36).substring(7)
+    const uniqueInstanceName = `${instanceName}_${Date.now()}_${randomString}`
     console.log('Using unique instance name:', uniqueInstanceName)
 
+    // First, try to get instance status
+    const statusResponse = await fetch(`https://evo2.anonimouz.com/instance/status/${uniqueInstanceName}`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': apiKey,
+      }
+    })
+
+    console.log('Status check response:', await statusResponse.text())
+
+    // Create new instance
     const response = await fetch('https://evo2.anonimouz.com/instance/create', {
       method: 'POST',
       headers: {
