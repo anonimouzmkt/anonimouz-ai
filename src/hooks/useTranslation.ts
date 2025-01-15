@@ -1,8 +1,10 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { translations, Language, TranslationKey } from "@/utils/translations";
 
 export const useTranslation = () => {
+  const queryClient = useQueryClient();
+
   const { data: currentUser } = useQuery({
     queryKey: ["currentUser"],
     queryFn: async () => {
@@ -16,6 +18,7 @@ export const useTranslation = () => {
     queryKey: ["profile", currentUser?.id],
     queryFn: async () => {
       if (!currentUser) return null;
+      console.log("Fetching profile for translations, user:", currentUser.id);
       const { data: profile } = await supabase
         .from("profiles")
         .select("*")
@@ -32,14 +35,25 @@ export const useTranslation = () => {
   };
 
   const setLanguage = async (language: Language) => {
-    if (!currentUser) return;
+    if (!currentUser) {
+      console.error("No user found when trying to set language");
+      return;
+    }
     
+    console.log("Setting language to:", language, "for user:", currentUser.id);
     const { error } = await supabase
       .from("profiles")
       .update({ language })
       .eq("id", currentUser.id);
 
-    if (error) throw error;
+    if (error) {
+      console.error("Error updating language:", error);
+      throw error;
+    }
+
+    // Invalidate profile query to trigger UI update
+    await queryClient.invalidateQueries({ queryKey: ["profile", currentUser.id] });
+    console.log("Language updated successfully");
   };
 
   return {

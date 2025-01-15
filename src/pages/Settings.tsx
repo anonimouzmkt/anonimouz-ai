@@ -1,16 +1,16 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Settings as SettingsIcon } from "lucide-react";
 import { useState, useEffect } from "react";
 import { AccountInformation } from "@/components/settings/AccountInformation";
 import { APITokenSection } from "@/components/settings/APITokenSection";
 import { WebhookSection } from "@/components/settings/WebhookSection";
 import { SecuritySection } from "@/components/settings/SecuritySection";
-import { ThemeToggle } from "@/components/settings/ThemeToggle";
 import { LanguageSelector } from "@/components/settings/LanguageSelector";
 import { useSelectedUser } from "@/components/sidebar/SidebarContext";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/hooks/useTranslation";
+import { SettingsHeader } from "@/components/settings/SettingsHeader";
+import { SettingsContainer } from "@/components/settings/SettingsContainer";
 
 const Settings = () => {
   const [webhookUrl, setWebhookUrl] = useState<string>("");
@@ -113,14 +113,6 @@ const Settings = () => {
         setWebhookUrl(profile.webhook_url || "");
       }
 
-      // Set theme based on profile
-      if (profile?.theme_color) {
-        const isDark = profile.theme_color === "dark";
-        setIsDarkMode(isDark);
-        document.documentElement.classList.toggle("dark", isDark);
-        localStorage.setItem("theme", profile.theme_color);
-      }
-
       return profile;
     },
     enabled: !!(selectedUserId || currentUser?.id),
@@ -154,13 +146,11 @@ const Settings = () => {
     retry: 1,
   });
 
-  // Effect to refetch data when selectedUserId changes
   useEffect(() => {
     console.log("Selected user changed in Settings, refetching data...");
     refetch();
   }, [selectedUserId, refetch]);
 
-  // Effect to update webhook URL when profile changes
   useEffect(() => {
     if (profile?.webhook_url !== undefined) {
       console.log("Profile updated, setting webhook URL:", profile.webhook_url);
@@ -185,39 +175,31 @@ const Settings = () => {
   const userId = selectedUserId || currentUser.id;
 
   return (
-    <div className="flex-1 p-8">
-      <div className="max-w-2xl mx-auto space-y-8">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <SettingsIcon className="w-6 h-6" />
-            <h1 className="text-2xl font-bold">{t("settings")}</h1>
-          </div>
-          <ThemeToggle isDarkMode={isDarkMode} toggleTheme={toggleTheme} />
-        </div>
+    <SettingsContainer>
+      <SettingsHeader isDarkMode={isDarkMode} toggleTheme={toggleTheme} />
+      
+      <div className="space-y-6">
+        <AccountInformation 
+          email={profile.email || ''} 
+          uniqueId={profile.unique_id || ''} 
+        />
 
-        <div className="space-y-6">
-          <AccountInformation 
-            email={profile.email || ''} 
-            uniqueId={profile.unique_id || ''} 
+        <LanguageSelector />
+
+        <APITokenSection />
+
+        {isAdmin && (
+          <WebhookSection
+            webhookUrl={webhookUrl}
+            setWebhookUrl={setWebhookUrl}
+            userId={userId}
+            refetch={refetch}
           />
+        )}
 
-          <LanguageSelector />
-
-          <APITokenSection />
-
-          {isAdmin && (
-            <WebhookSection
-              webhookUrl={webhookUrl}
-              setWebhookUrl={setWebhookUrl}
-              userId={userId}
-              refetch={refetch}
-            />
-          )}
-
-          <SecuritySection email={profile.email || ''} />
-        </div>
+        <SecuritySection email={profile.email || ''} />
       </div>
-    </div>
+    </SettingsContainer>
   );
 };
 

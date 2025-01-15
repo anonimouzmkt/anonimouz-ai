@@ -15,6 +15,7 @@ export const LanguageSelector = () => {
 
   const handleLanguageChange = async (language: string) => {
     try {
+      console.log("Language change requested:", language);
       await setLanguage(language as Language);
       toast({
         title: t("success"),
