@@ -7,16 +7,16 @@ interface WhatsAppHeaderProps {
 
 export const WhatsAppHeader = ({ onNewInstance }: WhatsAppHeaderProps) => {
   return (
-    <div className="flex items-center justify-between bg-[#222222] rounded-lg p-4">
+    <div className="flex items-center justify-between bg-card rounded-lg p-4">
       <div>
-        <h1 className="text-2xl font-bold text-white">WhatsApp</h1>
-        <p className="text-gray-400">
+        <h1 className="text-2xl font-bold text-card-foreground">WhatsApp</h1>
+        <p className="text-muted-foreground">
           Gerencie suas instâncias do WhatsApp
         </p>
       </div>
       <Button
         onClick={onNewInstance}
-        className="bg-[#0099ff] hover:bg-[#0088ee]"
+        className="bg-primary hover:bg-primary/90"
       >
         <Plus className="w-4 h-4 mr-2" />
         Nova Instância

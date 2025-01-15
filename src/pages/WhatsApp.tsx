@@ -123,7 +123,7 @@ const WhatsApp = () => {
   };
 
   return (
-    <main className="flex-1 p-6 bg-[#1a1a1a]">
+    <main className="flex-1 p-6 bg-background">
       <div className="max-w-6xl mx-auto space-y-8">
         <WhatsAppHeader onNewInstance={() => setShowDialog(true)} />
         <InstanceList 

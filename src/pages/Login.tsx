@@ -20,14 +20,14 @@ export default function Login() {
   }, [navigate]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#1a1a1a] p-4">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
-          <h2 className="text-3xl font-bold text-white">Disparador A.I</h2>
-          <p className="mt-2 text-gray-400">Faça login para continuar</p>
+          <h2 className="text-3xl font-bold text-foreground">Disparador A.I</h2>
+          <p className="mt-2 text-muted-foreground">Faça login para continuar</p>
         </div>
         
-        <div className="bg-[#222222] p-8 rounded-lg shadow-xl">
+        <div className="bg-card p-8 rounded-lg shadow-xl">
           <Auth
             supabaseClient={supabase}
             appearance={{
@@ -35,22 +35,22 @@ export default function Login() {
               variables: {
                 default: {
                   colors: {
-                    brand: '#0099ff',
-                    brandAccent: '#0088ee',
-                    inputBackground: '#333333',
-                    inputText: 'white',
-                    inputPlaceholder: '#666666',
+                    brand: 'hsl(var(--primary))',
+                    brandAccent: 'hsl(var(--primary))',
+                    inputBackground: 'hsl(var(--secondary))',
+                    inputText: 'hsl(var(--foreground))',
+                    inputPlaceholder: 'hsl(var(--muted-foreground))',
                   },
                 },
               },
               className: {
                 container: 'w-full',
-                button: 'w-full bg-[#0099ff] hover:bg-[#0088ee] text-white',
-                input: 'bg-[#333333] text-white border-[#444444]',
-                label: 'text-gray-300',
+                button: 'w-full bg-primary hover:bg-primary/90 text-primary-foreground',
+                input: 'bg-secondary text-foreground border-border',
+                label: 'text-foreground',
               },
             }}
-            theme="dark"
+            theme="default"
             providers={[]}
           />
         </div>

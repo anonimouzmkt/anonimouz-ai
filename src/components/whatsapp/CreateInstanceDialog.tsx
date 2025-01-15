@@ -28,7 +28,7 @@ export const CreateInstanceDialog = ({
 }: CreateInstanceDialogProps) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="bg-card text-card-foreground">
         <DialogHeader>
           <DialogTitle>Nova Instância do WhatsApp</DialogTitle>
         </DialogHeader>
@@ -56,7 +56,7 @@ export const CreateInstanceDialog = ({
           <Button
             onClick={onSubmit}
             disabled={isCreating}
-            className="bg-[#0099ff] hover:bg-[#0088ee]"
+            className="bg-primary hover:bg-primary/90"
           >
             {isCreating ? "Criando..." : "Criar"}
           </Button>

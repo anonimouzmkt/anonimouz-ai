@@ -34,7 +34,7 @@ export function QRCodeDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-[#222222] text-white border-[#333333]">
+      <DialogContent className="bg-card text-card-foreground border-border">
         <DialogHeader>
           <DialogTitle>QR Code para {instanceName}</DialogTitle>
         </DialogHeader>
@@ -42,7 +42,7 @@ export function QRCodeDialog({
         <div className="flex flex-col items-center justify-center p-4 space-y-4">
           {isLoading ? (
             <div className="flex flex-col items-center gap-2">
-              <Loader2 className="h-8 w-8 animate-spin text-[#0099ff]" />
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
               <p>Gerando QR Code...</p>
             </div>
           ) : qrCodeBase64 ? (
@@ -52,10 +52,10 @@ export function QRCodeDialog({
                 alt="WhatsApp QR Code" 
                 className="w-64 h-64"
               />
-              <p className="text-sm text-gray-400">Escaneie este QR code com WhatsApp para conectar</p>
+              <p className="text-sm text-muted-foreground">Escaneie este QR code com WhatsApp para conectar</p>
             </div>
           ) : (
-            <p className="text-red-400">Falha ao gerar QR code</p>
+            <p className="text-destructive">Falha ao gerar QR code</p>
           )}
         </div>
       </DialogContent>

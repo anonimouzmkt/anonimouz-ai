@@ -82,14 +82,14 @@ const Index = () => {
   };
 
   return (
-    <main className="flex-1 p-6 bg-[#1a1a1a]">
+    <main className="flex-1 p-6 bg-background">
       <div className="max-w-6xl mx-auto space-y-8">
-        <div className="flex items-center justify-between bg-[#222222] rounded-lg p-4">
+        <div className="flex items-center justify-between bg-card rounded-lg p-4">
           <div>
-            <h1 className="text-2xl font-bold text-white">Disparador A.I</h1>
-            <p className="text-gray-400">
+            <h1 className="text-2xl font-bold text-card-foreground">Disparador A.I</h1>
+            <p className="text-muted-foreground">
               Dispare mensagens com I.A{" "}
-              <span className="text-[#0099ff]">Imobiliária Gabriel</span>
+              <span className="text-primary">Imobiliária Gabriel</span>
             </p>
           </div>
           <div className="flex items-center gap-4">
@@ -104,15 +104,15 @@ const Index = () => {
           <CSVUploader onContactsLoaded={handleContactsLoaded} />
         ) : (
           <div className="grid gap-6 md:grid-cols-2">
-            <div className="bg-[#222222] p-6 rounded-lg">
+            <div className="bg-card p-6 rounded-lg">
               <div className="space-y-4">
                 <div>
-                  <p className="text-white">
+                  <p className="text-card-foreground">
                     Selecione seus contatos para{" "}
                     <span className="font-bold">disparo</span> a partir das{" "}
                     <span className="text-[#22c55e]">TAGS</span>
                   </p>
-                  <p className="text-white mt-2">
+                  <p className="text-card-foreground mt-2">
                     <span className="font-bold">{selectedContacts.size}</span>{" "}
                     contato(s) selecionado(s)
                   </p>
