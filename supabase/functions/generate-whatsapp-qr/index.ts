@@ -29,6 +29,10 @@ serve(async (req) => {
       )
     }
 
+    // Generate a unique instance name by appending a timestamp
+    const uniqueInstanceName = `${instanceName}_${Date.now()}`
+    console.log('Using unique instance name:', uniqueInstanceName)
+
     const response = await fetch('https://evo2.anonimouz.com/instance/create', {
       method: 'POST',
       headers: {
@@ -36,7 +40,7 @@ serve(async (req) => {
         'apikey': apiKey,
       },
       body: JSON.stringify({
-        instanceName,
+        instanceName: uniqueInstanceName,
         qrcode: true,
         integration: "WHATSAPP-BAILEYS"
       })
@@ -48,9 +52,18 @@ serve(async (req) => {
     // Check if the response was successful
     if (!response.ok) {
       console.error('API Error:', data)
+      let errorMessage = 'Unknown error occurred'
+      
+      // Handle specific error cases
+      if (data.response?.message) {
+        errorMessage = Array.isArray(data.response.message) 
+          ? data.response.message.join(', ')
+          : data.response.message
+      }
+      
       return new Response(
         JSON.stringify({ 
-          error: `API Error: ${response.status} - ${data.message || 'Unknown error'}`,
+          error: `API Error: ${response.status} - ${errorMessage}`,
           details: data 
         }),
         { 
