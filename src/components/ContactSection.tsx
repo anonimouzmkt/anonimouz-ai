@@ -22,6 +22,8 @@ export function ContactSection({
   onSelectAll,
   onDeselectAll 
 }: ContactSectionProps) {
+  console.log('ContactSection - Selected contacts count:', selectedContacts.size);
+  
   return (
     <div className="bg-card p-6 rounded-lg">
       <div className="space-y-4">
@@ -32,7 +34,7 @@ export function ContactSection({
           </p>
           <p className="text-card-foreground mt-2">
             <span className="font-bold">{selectedContacts.size}</span>{" "}
-            contato(s) selecionado(s)
+            contato(s) selecionado(s) de {contacts.length} total
           </p>
         </div>
         <ContactList
