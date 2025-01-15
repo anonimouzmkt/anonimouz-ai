@@ -5,11 +5,11 @@ import { Key, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export const APITokenSection = () => {
   const [token, setToken] = useState<string>("");
 
-  // Check if current user is admin
   const { data: profile } = useQuery({
     queryKey: ["profile"],
     queryFn: async () => {
@@ -58,31 +58,35 @@ export const APITokenSection = () => {
     toast.success("Token copied to clipboard!");
   };
 
-  // If not admin, don't show the section at all
   if (!isAdmin) {
     return null;
   }
 
   return (
-    <div className="space-y-2">
-      <h2 className="text-lg font-semibold">API Token</h2>
-      <div className="flex gap-2">
-        <Input 
-          value={token} 
-          readOnly 
-          type="password"
-          placeholder="Generate a token..." 
-        />
-        <Button onClick={handleGenerateToken}>
-          <Key className="w-4 h-4 mr-2" />
-          Generate
-        </Button>
-        {token && (
-          <Button variant="outline" onClick={handleCopyToken}>
-            <Copy className="w-4 h-4" />
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-xl font-semibold">API Token</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="flex gap-2">
+          <Input 
+            value={token} 
+            readOnly 
+            type="password"
+            placeholder="Generate a token..." 
+            className="font-mono text-sm"
+          />
+          <Button onClick={handleGenerateToken}>
+            <Key className="w-4 h-4 mr-2" />
+            Generate
           </Button>
-        )}
-      </div>
-    </div>
+          {token && (
+            <Button variant="outline" onClick={handleCopyToken}>
+              <Copy className="w-4 h-4" />
+            </Button>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
 };

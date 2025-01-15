@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Webhook } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface WebhookSectionProps {
   webhookUrl: string;
@@ -30,19 +31,24 @@ export const WebhookSection = ({ webhookUrl, setWebhookUrl, userId, refetch }: W
   };
 
   return (
-    <div className="space-y-2">
-      <h2 className="text-lg font-semibold">Webhook URL</h2>
-      <div className="flex gap-2">
-        <Input
-          value={webhookUrl}
-          onChange={(e) => setWebhookUrl(e.target.value)}
-          placeholder="Enter webhook URL..."
-        />
-        <Button onClick={handleSaveWebhookUrl}>
-          <Webhook className="w-4 h-4 mr-2" />
-          Save
-        </Button>
-      </div>
-    </div>
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-xl font-semibold">Webhook URL</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="flex gap-2">
+          <Input
+            value={webhookUrl}
+            onChange={(e) => setWebhookUrl(e.target.value)}
+            placeholder="Enter webhook URL..."
+            className="font-mono text-sm"
+          />
+          <Button onClick={handleSaveWebhookUrl}>
+            <Webhook className="w-4 h-4 mr-2" />
+            Save
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 };

@@ -1,6 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { KeyRound } from "lucide-react";
 
 interface SecuritySectionProps {
   email: string;
@@ -23,11 +25,16 @@ export const SecuritySection = ({ email }: SecuritySectionProps) => {
   };
 
   return (
-    <div className="space-y-2">
-      <h2 className="text-lg font-semibold">Security</h2>
-      <Button variant="outline" onClick={handleResetPassword}>
-        Reset Password
-      </Button>
-    </div>
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-xl font-semibold">Security</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Button variant="outline" onClick={handleResetPassword}>
+          <KeyRound className="w-4 h-4 mr-2" />
+          Reset Password
+        </Button>
+      </CardContent>
+    </Card>
   );
 };
