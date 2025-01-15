@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Send } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
 
 interface MessageComposerProps {
   onSend: (message: string) => void;
@@ -27,8 +28,9 @@ export function MessageComposer({ onSend, disabled }: MessageComposerProps) {
   const [message, setMessage] = useState("");
   const [context, setContext] = useState("");
   const [selectedInstance, setSelectedInstance] = useState<string>("");
+  const { toast } = useToast();
 
-  const { data: instances, isLoading: isLoadingInstances } = useQuery({
+  const { data: instances, isLoading: isLoadingInstances, refetch } = useQuery({
     queryKey: ["whatsapp-instances"],
     queryFn: async () => {
       console.log('Fetching WhatsApp instances for current user...');
@@ -47,6 +49,37 @@ export function MessageComposer({ onSend, disabled }: MessageComposerProps) {
       return data as WhatsAppInstance[];
     },
   });
+
+  useEffect(() => {
+    // Subscribe to real-time updates for whatsapp_instances table
+    const channel = supabase
+      .channel('instance-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'whatsapp_instances'
+        },
+        (payload) => {
+          console.log('Instance updated:', payload);
+          // Show toast notification when an instance connects
+          if (payload.new.status === 'connected') {
+            toast({
+              title: "WhatsApp Conectado",
+              description: `A instância ${payload.new.name} foi conectada com sucesso!`,
+            });
+          }
+          // Refresh the instances list
+          refetch();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [refetch, toast]);
 
   const handleSend = () => {
     if (message.trim() && selectedInstance) {
