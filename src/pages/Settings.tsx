@@ -8,11 +8,13 @@ import { WebhookSection } from "@/components/settings/WebhookSection";
 import { SecuritySection } from "@/components/settings/SecuritySection";
 import { ThemeToggle } from "@/components/settings/ThemeToggle";
 import { useSelectedUser } from "@/components/AppSidebar";
+import { useToast } from "@/hooks/use-toast";
 
 const Settings = () => {
   const [webhookUrl, setWebhookUrl] = useState<string>("");
   const [isDarkMode, setIsDarkMode] = useState(true);
   const { selectedUserId } = useSelectedUser();
+  const { toast } = useToast();
 
   useEffect(() => {
     const theme = localStorage.getItem("theme");
@@ -27,27 +29,51 @@ const Settings = () => {
     localStorage.setItem("theme", !isDarkMode ? "dark" : "light");
   };
 
-  const { data: currentUser } = useQuery({
+  const { data: currentUser, isError: isCurrentUserError } = useQuery({
     queryKey: ["currentUser"],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      console.log("Fetching current user...");
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (error) {
+        console.error("Error fetching current user:", error);
+        toast({
+          title: "Error",
+          description: "Failed to fetch user information. Please try logging in again.",
+          variant: "destructive",
+        });
+        throw error;
+      }
       if (!user) throw new Error("User not found");
       return user;
     },
+    retry: 1,
   });
 
-  const { data: profile, refetch } = useQuery({
+  const { data: profile, refetch, isError: isProfileError } = useQuery({
     queryKey: ["profile", selectedUserId || currentUser?.id],
     queryFn: async () => {
       const userId = selectedUserId || currentUser?.id;
-      if (!userId) return null;
+      if (!userId) {
+        console.error("No user ID available");
+        return null;
+      }
       
       console.log("Fetching profile for user:", userId);
-      const { data: profile } = await supabase
+      const { data: profile, error } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", userId)
-        .single();
+        .maybeSingle();
+
+      if (error) {
+        console.error("Error fetching profile:", error);
+        toast({
+          title: "Error",
+          description: "Failed to fetch profile information.",
+          variant: "destructive",
+        });
+        throw error;
+      }
 
       if (profile?.webhook_url) {
         setWebhookUrl(profile.webhook_url);
@@ -56,21 +82,46 @@ const Settings = () => {
       return profile;
     },
     enabled: !!(selectedUserId || currentUser?.id),
+    retry: 1,
   });
 
-  const { data: adminProfile } = useQuery({
+  const { data: adminProfile, isError: isAdminError } = useQuery({
     queryKey: ["adminProfile", currentUser?.id],
     queryFn: async () => {
       if (!currentUser) return null;
-      const { data: profile } = await supabase
+      console.log("Fetching admin profile...");
+      const { data: profile, error } = await supabase
         .from("profiles")
         .select("role")
         .eq("id", currentUser.id)
-        .single();
+        .maybeSingle();
+
+      if (error) {
+        console.error("Error fetching admin profile:", error);
+        toast({
+          title: "Error",
+          description: "Failed to fetch admin information.",
+          variant: "destructive",
+        });
+        throw error;
+      }
+
       return profile;
     },
     enabled: !!currentUser,
+    retry: 1,
   });
+
+  if (isCurrentUserError || isProfileError || isAdminError) {
+    return (
+      <div className="flex-1 p-8">
+        <div className="max-w-2xl mx-auto">
+          <h1 className="text-2xl font-bold text-red-500">Error loading settings</h1>
+          <p className="mt-2">Please try refreshing the page or logging in again.</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!profile || !currentUser) return null;
 
