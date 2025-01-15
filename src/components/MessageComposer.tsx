@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { InstanceSelector } from "./message-composer/InstanceSelector";
 import { AIContextInput } from "./message-composer/AIContextInput";
 import { MessageInput } from "./message-composer/MessageInput";
+import { useSelectedUser } from "./sidebar/SidebarContext";
 
 interface MessageComposerProps {
   onSend: (message: string, instanceId: string, isAiDispatch: boolean, aiContext?: string) => Promise<string | undefined>;
@@ -22,19 +23,23 @@ export function MessageComposer({ onSend, disabled, contacts = [] }: MessageComp
   const [useAI, setUseAI] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const { toast } = useToast();
+  const { selectedUserId } = useSelectedUser();
 
   const { data: profile } = useQuery({
-    queryKey: ["profile"],
+    queryKey: ["profile", selectedUserId],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("User not found");
+      console.log("Fetching profile for dispatch. Selected user:", selectedUserId);
+      const userId = selectedUserId || (await supabase.auth.getUser()).data.user?.id;
+      
+      if (!userId) throw new Error("User not found");
 
       const { data: profile } = await supabase
         .from("profiles")
         .select("*")
-        .eq("id", user.id)
+        .eq("id", userId)
         .single();
 
+      console.log("Using profile for dispatch:", profile);
       return profile;
     }
   });
