@@ -45,7 +45,7 @@ export function SidebarMenuButton({
   asChild = false,
   isActive = false,
   variant = "default",
-  size = "default",
+  size = "md",
   tooltip,
   className,
   ...props
