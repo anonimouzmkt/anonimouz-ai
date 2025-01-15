@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { LogOut, MessageSquare, Settings, MessageCircle, Users, BarChart2 } from "lucide-react";
+import { LogOut, MessageSquare, Settings, MessageCircle, Users, BarChart2, Shield } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -91,13 +91,11 @@ export function AppSidebar() {
   };
 
   const handleNavigation = (path: string) => {
-    // If we're not on the index page or there are no contacts loaded, navigate directly
     if (location.pathname !== "/" || !window.__CONTACTS_LOADED__) {
       navigate(path);
       return;
     }
 
-    // Otherwise, show the warning dialog
     setPendingNavigation(path);
   };
 
@@ -154,6 +152,16 @@ export function AppSidebar() {
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
+            {profile?.role === 'admin_user' && (
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild tooltip="Admin Settings" onClick={() => handleNavigation("/admin-settings")}>
+                  <Link to="#" onClick={(e) => e.preventDefault()}>
+                    <Shield className="w-4 h-4" />
+                    <span>Admin Settings</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )}
           </SidebarMenu>
         </SidebarContent>
         <SidebarFooter className="p-4">

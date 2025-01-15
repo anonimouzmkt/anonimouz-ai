@@ -11,6 +11,7 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import WhatsApp from "./pages/WhatsApp";
 import Settings from "./pages/Settings";
+import AdminSettings from "./pages/AdminSettings";
 import DispatchDashboard from "./pages/DispatchDashboard";
 
 const queryClient = new QueryClient();
@@ -100,6 +101,19 @@ const App = () => (
                   <div className="min-h-screen flex w-full">
                     <AppSidebar />
                     <Settings />
+                  </div>
+                </SidebarProvider>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin-settings"
+            element={
+              <ProtectedRoute>
+                <SidebarProvider>
+                  <div className="min-h-screen flex w-full">
+                    <AppSidebar />
+                    <AdminSettings />
                   </div>
                 </SidebarProvider>
               </ProtectedRoute>
