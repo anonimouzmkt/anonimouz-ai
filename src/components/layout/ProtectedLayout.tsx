@@ -1,52 +1,56 @@
-import { useEffect, useState } from "react";
-import { Navigate } from "react-router-dom";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { SidebarProvider } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/AppSidebar";
+import { AppSidebar, useSelectedUser } from "../AppSidebar";
 
 interface ProtectedLayoutProps {
   children: React.ReactNode;
 }
 
 export const ProtectedLayout = ({ children }: ProtectedLayoutProps) => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const navigate = useNavigate();
+  const { selectedUserId } = useSelectedUser();
 
   useEffect(() => {
-    // Check and apply theme on initial load
-    const theme = localStorage.getItem("theme");
-    if (theme === "dark" || (!theme && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
-      document.documentElement.classList.add("dark");
-    }
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        navigate("/login");
+      }
+    };
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setIsAuthenticated(!!session);
-    });
+    checkAuth();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setIsAuthenticated(!!session);
-    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (event === "SIGNED_OUT") {
+          navigate("/login");
+        }
+      }
+    );
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [navigate]);
 
-  if (isAuthenticated === null) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-foreground">Carregando...</div>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" />;
-  }
+  // Modify the Supabase client's headers to include the impersonated user ID
+  useEffect(() => {
+    if (selectedUserId) {
+      supabase.headers = {
+        ...supabase.headers,
+        'x-impersonated-user': selectedUserId,
+      };
+    } else {
+      // Remove the header if no user is being impersonated
+      delete supabase.headers['x-impersonated-user'];
+    }
+  }, [selectedUserId]);
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full">
-        <AppSidebar />
+    <div className="flex h-screen">
+      <AppSidebar />
+      <main className="flex-1 overflow-y-auto bg-background p-8">
         {children}
-      </div>
-    </SidebarProvider>
+      </main>
+    </div>
   );
 };
