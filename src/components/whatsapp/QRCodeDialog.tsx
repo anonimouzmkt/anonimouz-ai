@@ -1,6 +1,7 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Loader2 } from "lucide-react";
+import { Loader2, CheckCircle2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface QRCodeDialogProps {
   isOpen: boolean;
@@ -9,6 +10,7 @@ interface QRCodeDialogProps {
   isLoading: boolean;
   instanceName: string;
   onRefresh?: () => void;
+  instanceStatus?: string;
 }
 
 export function QRCodeDialog({ 
@@ -17,8 +19,24 @@ export function QRCodeDialog({
   qrCodeBase64, 
   isLoading, 
   instanceName,
-  onRefresh 
+  onRefresh,
+  instanceStatus
 }: QRCodeDialogProps) {
+  const [showSuccess, setShowSuccess] = useState(false);
+
+  // Effect to handle connection success
+  useEffect(() => {
+    if (instanceStatus === 'connected' && isOpen) {
+      setShowSuccess(true);
+      // Show success animation for 2 seconds before closing
+      const timer = setTimeout(() => {
+        onOpenChange(false);
+        setShowSuccess(false);
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [instanceStatus, isOpen, onOpenChange]);
+
   useEffect(() => {
     if (isOpen) {
       const interval = setInterval(() => {
@@ -40,13 +58,21 @@ export function QRCodeDialog({
         </DialogHeader>
         
         <div className="flex flex-col items-center justify-center p-4 space-y-4">
-          {isLoading ? (
+          {showSuccess ? (
+            <div className="flex flex-col items-center gap-2 animate-fade-in">
+              <CheckCircle2 className="h-16 w-16 text-green-500 animate-scale-in" />
+              <p className="text-green-500 font-medium">WhatsApp Conectado!</p>
+            </div>
+          ) : isLoading ? (
             <div className="flex flex-col items-center gap-2">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
               <p>Gerando QR Code...</p>
             </div>
           ) : qrCodeBase64 ? (
-            <div className="flex flex-col items-center gap-4">
+            <div className={cn(
+              "flex flex-col items-center gap-4",
+              showSuccess && "animate-fade-out"
+            )}>
               <img 
                 src={`data:image/png;base64,${qrCodeBase64}`} 
                 alt="WhatsApp QR Code" 

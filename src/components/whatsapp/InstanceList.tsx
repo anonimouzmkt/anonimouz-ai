@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { WhatsAppInstance } from "@/types/whatsapp";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { QRCodeDialog } from "./QRCodeDialog";
 
 interface InstanceListProps {
@@ -18,6 +18,47 @@ export const InstanceList = ({ instances, onDelete }: InstanceListProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [qrCodeBase64, setQrCodeBase64] = useState<string>();
   const [selectedInstance, setSelectedInstance] = useState<WhatsAppInstance | null>(null);
+  const [localInstances, setLocalInstances] = useState(instances);
+
+  // Effect to refresh instances every second
+  useEffect(() => {
+    if (!selectedInstance) return;
+
+    const fetchInstanceStatus = async () => {
+      console.log('Fetching instance status for:', selectedInstance.name);
+      const { data, error } = await supabase
+        .from("whatsapp_instances")
+        .select("*")
+        .eq("id", selectedInstance.id)
+        .single();
+
+      if (error) {
+        console.error('Error fetching instance status:', error);
+        return;
+      }
+
+      if (data) {
+        setLocalInstances(prev => 
+          prev.map(inst => 
+            inst.id === data.id ? data : inst
+          )
+        );
+        
+        // Update selected instance if status changed
+        if (data.status !== selectedInstance.status) {
+          setSelectedInstance(data);
+        }
+      }
+    };
+
+    const intervalId = setInterval(fetchInstanceStatus, 1000);
+    return () => clearInterval(intervalId);
+  }, [selectedInstance]);
+
+  // Update local instances when prop changes
+  useEffect(() => {
+    setLocalInstances(instances);
+  }, [instances]);
 
   const handleGenerateQR = async (instance: WhatsAppInstance) => {
     setSelectedInstance(instance);
@@ -67,7 +108,7 @@ export const InstanceList = ({ instances, onDelete }: InstanceListProps) => {
   return (
     <>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {instances?.map((instance) => (
+        {localInstances?.map((instance) => (
           <Card
             key={instance.id}
             className="bg-[#222222] p-4 space-y-2"
@@ -117,6 +158,7 @@ export const InstanceList = ({ instances, onDelete }: InstanceListProps) => {
         isLoading={isLoading}
         instanceName={selectedInstance?.name || ""}
         onRefresh={() => selectedInstance && refreshQRCode(selectedInstance)}
+        instanceStatus={selectedInstance?.status}
       />
     </>
   );
