@@ -9,9 +9,8 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
     proxy: {
       '/api': {
-        target: 'https://udpmzsvvmdinsuwipvln.supabase.co/functions/v1',
+        target: 'https://app.anonimouz.com',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, '')
       }
     }
   },
