@@ -58,7 +58,7 @@ export const useInstanceStatus = (
             );
 
             // Update current instance if status changed
-            if (updatedInstance.status !== selectedInstance.status) {
+            if (selectedInstance && updatedInstance.status !== selectedInstance.status) {
               console.log('Updating current instance status:', updatedInstance.status);
               setCurrentInstance(updatedInstance);
 
