@@ -54,10 +54,6 @@ export function MessageComposer({ onSend, disabled, contacts = [] }: MessageComp
       errors.push("Digite o contexto do disparo quando usar I.A");
     }
 
-    if (useAI && !profile?.webhook_url) {
-      errors.push("Configure o webhook de IA nas configurações");
-    }
-
     setValidationErrors(errors);
     return errors.length === 0;
   };
@@ -95,29 +91,23 @@ export function MessageComposer({ onSend, disabled, contacts = [] }: MessageComp
 
         if (contactsError) throw contactsError;
         
-        if (useAI && dispatch.id && profile.webhook_url) {
-          console.log('Sending dispatch data to webhook:', profile.webhook_url);
+        if (useAI && dispatch.id) {
+          console.log('Sending dispatch data to intermediary endpoint');
           
-          const webhookPayload = {
-            dispatchId: dispatch.id,
-            uniqueId: profile.unique_id,
-            message,
-            context,
-            contacts: contacts.map(contact => ({
-              name: contact.name,
-              phone: contact.phone
-            }))
-          };
-
-          const response = await fetch(profile.webhook_url, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(webhookPayload)
+          const response = await supabase.functions.invoke('handle-dispatch', {
+            body: {
+              dispatchId: dispatch.id,
+              uniqueId: profile.unique_id,
+              message,
+              context,
+              contacts: contacts.map(contact => ({
+                name: contact.name,
+                phone: contact.phone
+              }))
+            }
           });
 
-          if (!response.ok) {
+          if (response.error) {
             throw new Error('Failed to send to webhook');
           }
 
