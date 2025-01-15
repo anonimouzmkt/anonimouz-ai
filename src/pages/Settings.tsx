@@ -4,11 +4,9 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { Settings as SettingsIcon, Key } from "lucide-react";
-import { useToast } from "sonner";
+import { toast } from "sonner";
 
 const Settings = () => {
-  const toast = useToast();
-
   const { data: profile } = useQuery({
     queryKey: ["profile"],
     queryFn: async () => {
