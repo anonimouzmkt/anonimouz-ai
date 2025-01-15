@@ -15,14 +15,18 @@ export default function Login() {
   const [error, setError] = useState<string | null>(null);
 
   const getErrorMessage = (error: AuthError) => {
-    const errorMessage = JSON.parse(error.message);
-    switch (errorMessage.code) {
-      case "invalid_credentials":
-        return t("invalidCredentials");
-      case "email_not_confirmed":
-        return t("emailNotConfirmed");
-      default:
-        return errorMessage.message;
+    try {
+      const errorMessage = JSON.parse(error.message);
+      switch (errorMessage.code) {
+        case "invalid_credentials":
+          return t("invalidCredentials");
+        case "email_not_confirmed":
+          return t("emailNotConfirmed");
+        default:
+          return errorMessage.message;
+      }
+    } catch {
+      return error.message;
     }
   };
 
@@ -58,17 +62,16 @@ export default function Login() {
 
     return () => {
       subscription.unsubscribe();
-      // Restore theme preference when leaving login page
-      const theme = localStorage.getItem("theme");
-      document.documentElement.classList.toggle("dark", theme === "dark");
     };
   }, [navigate]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
-          <h2 className="text-3xl font-bold text-foreground">Disparador A.I</h2>
+          <h1 className="text-2xl font-bold tracking-tight">
+            {t("welcomeBack")}
+          </h1>
           <p className="mt-2 text-muted-foreground">{t("signIn")}</p>
         </div>
         
@@ -86,19 +89,10 @@ export default function Login() {
               variables: {
                 default: {
                   colors: {
-                    brand: 'hsl(var(--primary))',
-                    brandAccent: 'hsl(var(--primary))',
-                    inputBackground: 'hsl(var(--secondary))',
-                    inputText: 'hsl(var(--foreground))',
-                    inputPlaceholder: 'hsl(var(--muted-foreground))',
+                    brand: 'rgb(var(--color-primary))',
+                    brandAccent: 'rgb(var(--color-primary))',
                   },
                 },
-              },
-              className: {
-                container: 'w-full',
-                button: 'w-full bg-primary hover:bg-primary/90 text-primary-foreground',
-                input: 'bg-secondary text-foreground border-border',
-                label: 'text-foreground',
               },
             }}
             theme="dark"

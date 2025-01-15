@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Table,
@@ -8,9 +8,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Loader2 } from "lucide-react";
+import { Loader2, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { toast } from "sonner";
 
 export function UserList() {
+  const queryClient = useQueryClient();
+
   const { data: users, isLoading } = useQuery({
     queryKey: ["users"],
     queryFn: async () => {
@@ -30,6 +41,51 @@ export function UserList() {
     },
   });
 
+  const deleteUserMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      console.log("Deleting user:", userId);
+      const { error } = await supabase.auth.admin.deleteUser(userId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      toast.success("User deleted successfully");
+    },
+    onError: (error) => {
+      console.error("Error deleting user:", error);
+      toast.error("Failed to delete user");
+    },
+  });
+
+  const updateRoleMutation = useMutation({
+    mutationFn: async ({ userId, newRole }: { userId: string; newRole: string }) => {
+      console.log("Updating user role:", userId, newRole);
+      const { error } = await supabase
+        .from("profiles")
+        .update({ role: newRole })
+        .eq("id", userId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      toast.success("User role updated successfully");
+    },
+    onError: (error) => {
+      console.error("Error updating user role:", error);
+      toast.error("Failed to update user role");
+    },
+  });
+
+  const handleDeleteUser = async (userId: string) => {
+    if (window.confirm("Are you sure you want to delete this user?")) {
+      await deleteUserMutation.mutate(userId);
+    }
+  };
+
+  const handleRoleChange = async (userId: string, newRole: string) => {
+    await updateRoleMutation.mutate({ userId, newRole });
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-24">
@@ -48,15 +104,38 @@ export function UserList() {
               <TableHead>Email</TableHead>
               <TableHead>Role</TableHead>
               <TableHead>Created At</TableHead>
+              <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {users?.map((user) => (
               <TableRow key={user.id}>
                 <TableCell>{user.email}</TableCell>
-                <TableCell>{user.role}</TableCell>
+                <TableCell>
+                  <Select
+                    value={user.role}
+                    onValueChange={(value) => handleRoleChange(user.id, value)}
+                  >
+                    <SelectTrigger className="w-32">
+                      <SelectValue placeholder="Select role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="user">User</SelectItem>
+                      <SelectItem value="admin_user">Admin</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </TableCell>
                 <TableCell>
                   {new Date(user.created_at).toLocaleDateString()}
+                </TableCell>
+                <TableCell>
+                  <Button
+                    variant="destructive"
+                    size="icon"
+                    onClick={() => handleDeleteUser(user.id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}
