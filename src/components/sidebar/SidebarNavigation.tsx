@@ -16,7 +16,7 @@ export const SidebarNavigation = ({ handleNavigation }: SidebarNavigationProps) 
             asChild 
             tooltip="Disparador" 
             onClick={() => handleNavigation("/")}
-            className="text-base py-3 transition-all duration-200 hover:translate-x-1 hover:bg-sidebar-accent/70 w-full"
+            className="text-base py-3 transition-all duration-200 hover:translate-x-1 hover:bg-sidebar-accent/70 w-full group-data-[collapsible=icon]:justify-center"
           >
             <Link to="#" onClick={(e) => e.preventDefault()}>
               <MessageSquare className="w-5 h-5" />
@@ -29,7 +29,7 @@ export const SidebarNavigation = ({ handleNavigation }: SidebarNavigationProps) 
             asChild 
             tooltip="Dashboard" 
             onClick={() => handleNavigation("/dispatch-dashboard")}
-            className="text-base py-3 transition-all duration-200 hover:translate-x-1 hover:bg-sidebar-accent/70 w-full"
+            className="text-base py-3 transition-all duration-200 hover:translate-x-1 hover:bg-sidebar-accent/70 w-full group-data-[collapsible=icon]:justify-center"
           >
             <Link to="#" onClick={(e) => e.preventDefault()}>
               <BarChart2 className="w-5 h-5" />
@@ -42,7 +42,7 @@ export const SidebarNavigation = ({ handleNavigation }: SidebarNavigationProps) 
             asChild 
             tooltip="WhatsApp" 
             onClick={() => handleNavigation("/whatsapp")}
-            className="text-base py-3 transition-all duration-200 hover:translate-x-1 hover:bg-sidebar-accent/70 w-full"
+            className="text-base py-3 transition-all duration-200 hover:translate-x-1 hover:bg-sidebar-accent/70 w-full group-data-[collapsible=icon]:justify-center"
           >
             <Link to="#" onClick={(e) => e.preventDefault()}>
               <MessageCircle className="w-5 h-5" />
