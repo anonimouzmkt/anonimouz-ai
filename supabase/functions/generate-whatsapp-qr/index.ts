@@ -30,7 +30,7 @@ serve(async (req) => {
     const response = await fetch(`https://evo2.anonimouz.com/instance/connect/${instanceName}`, {
       method: 'GET',
       headers: {
-        'apikey': 'i4Q8lXOheRb7qgVxiJlmePAYsJSBDc'
+        'apikey': apiKey
       }
     })
 

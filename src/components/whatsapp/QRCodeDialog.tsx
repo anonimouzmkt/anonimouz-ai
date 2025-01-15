@@ -14,7 +14,7 @@ export function QRCodeDialog({ isOpen, onOpenChange, qrCodeBase64, isLoading, in
     method: "GET",
     url: `https://evo2.anonimouz.com/instance/connect/${instanceName}`,
     headers: {
-      apikey: "i4Q8lXOheRb7qgVxiJlmePAYsJSBDc"
+      apikey: "WHATSAPP_API_KEY" // Mostramos apenas o nome da variável, não o valor
     },
     sendBody: false
   };
