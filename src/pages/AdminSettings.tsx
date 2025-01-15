@@ -103,6 +103,7 @@ export default function AdminSettings() {
       setImpersonating(userId);
       console.log("Logging in as user:", userId);
       
+      // Set the selected user ID in context
       setSelectedUserId(userId);
       
       toast.success("Successfully switched to selected user account");
