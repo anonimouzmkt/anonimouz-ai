@@ -46,7 +46,6 @@ const Index = () => {
 
   useEffect(() => {
     if (currentDispatch) {
-      // Update contacts with status from dispatch
       setContacts(prevContacts => 
         prevContacts.map(contact => {
           const result = currentDispatch.find(r => r.contact_phone === contact.phone);
@@ -72,10 +71,15 @@ const Index = () => {
 
   const handleSendMessage = async (message: string, instanceId: string, isAiDispatch: boolean, aiContext?: string) => {
     try {
+      // Get the current user's ID
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("User not authenticated");
+
       // Create dispatch record
       const { data: dispatch, error: dispatchError } = await supabase
         .from("dispatch_results")
         .insert({
+          user_id: user.id,
           instance_id: instanceId,
           total_contacts: contacts.length,
           is_ai_dispatch: isAiDispatch,

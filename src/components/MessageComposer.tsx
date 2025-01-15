@@ -22,7 +22,7 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface MessageComposerProps {
-  onSend: (message: string) => void;
+  onSend: (message: string, instanceId: string, isAiDispatch: boolean, aiContext?: string) => void;
   disabled?: boolean;
 }
 
@@ -130,11 +130,7 @@ export function MessageComposer({ onSend, disabled }: MessageComposerProps) {
 
   const handleSend = () => {
     if (validateFields() && profile?.unique_id) {
-      const headers = {
-        'x-unique-id': profile.unique_id
-      };
-      console.log('Sending request with unique_id in headers:', headers);
-      onSend(message);
+      onSend(message, selectedInstance, useAI, useAI ? context : undefined);
       setMessage("");
     } else if (!profile?.unique_id) {
       toast({
