@@ -4,5 +4,5 @@ export type { Tables, TablesInsert, TablesUpdate } from './tables.types'
 export type { Enums } from './enums.types'
 export type { CompositeTypes } from './composite.types'
 
-// Export the Profile type using the Tables utility type
-export type Profile = Tables<'profiles'>
+// Export the Profile type using the Database type directly
+export type Profile = Database['public']['Tables']['profiles']['Row']
