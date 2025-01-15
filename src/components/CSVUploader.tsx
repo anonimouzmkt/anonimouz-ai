@@ -8,11 +8,19 @@ interface Contact {
   phone: string;
 }
 
+const NAME_VARIATIONS = ['name', 'Name', 'NAME'];
+const PHONE_VARIATIONS = ['phone', 'Phone', 'PHONE', 'telefone', 'Telefone', 'TELEFONE'];
+
 export function CSVUploader({ onContactsLoaded }: { onContactsLoaded: (contacts: Contact[]) => void }) {
   const { toast } = useToast();
   const [mapping, setMapping] = useState<{ name: string; phone: string }>({ name: "", phone: "" });
   const [headers, setHeaders] = useState<string[]>([]);
   const [showMapping, setShowMapping] = useState(false);
+
+  const findMatchingColumn = (headers: string[], variations: string[]): string => {
+    const normalizedHeaders = headers.map(h => h.trim().toLowerCase());
+    return headers[normalizedHeaders.findIndex(h => variations.includes(h))] || "";
+  };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -25,33 +33,43 @@ export function CSVUploader({ onContactsLoaded }: { onContactsLoaded: (contacts:
       if (lines.length > 0) {
         const headers = lines[0].split(",").map(header => header.trim());
         setHeaders(headers);
-        setShowMapping(true);
+
+        // Try to automatically detect name and phone columns
+        const detectedName = findMatchingColumn(headers, NAME_VARIATIONS);
+        const detectedPhone = findMatchingColumn(headers, PHONE_VARIATIONS);
+
+        if (detectedName && detectedPhone) {
+          // If both columns are detected, proceed automatically
+          setMapping({ name: detectedName, phone: detectedPhone });
+          processFile(file, detectedName, detectedPhone);
+        } else {
+          // If automatic detection fails, show manual mapping
+          setShowMapping(true);
+          setMapping({ name: detectedName || "", phone: detectedPhone || "" });
+        }
       }
     };
     reader.readAsText(file);
   };
 
-  const handleMapping = () => {
-    if (!mapping.name || !mapping.phone) {
-      toast({
-        title: "Error",
-        description: "Please select both name and phone columns",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const fileInput = document.querySelector<HTMLInputElement>('input[type="file"]');
-    if (!fileInput?.files?.[0]) return;
-
+  const processFile = (file: File, nameColumn: string, phoneColumn: string) => {
     const reader = new FileReader();
     reader.onload = (e) => {
       const text = e.target?.result as string;
       const lines = text.split("\n");
       const headers = lines[0].split(",").map(header => header.trim());
       
-      const nameIndex = headers.indexOf(mapping.name);
-      const phoneIndex = headers.indexOf(mapping.phone);
+      const nameIndex = headers.indexOf(nameColumn);
+      const phoneIndex = headers.indexOf(phoneColumn);
+
+      if (nameIndex === -1 || phoneIndex === -1) {
+        toast({
+          title: "Error",
+          description: "Could not find required columns",
+          variant: "destructive",
+        });
+        return;
+      }
 
       const contacts: Contact[] = [];
       for (let i = 1; i < lines.length; i++) {
@@ -71,7 +89,22 @@ export function CSVUploader({ onContactsLoaded }: { onContactsLoaded: (contacts:
         description: `Loaded ${contacts.length} contacts`,
       });
     };
-    reader.readAsText(fileInput.files[0]);
+    reader.readAsText(file);
+  };
+
+  const handleMapping = () => {
+    if (!mapping.name || !mapping.phone) {
+      toast({
+        title: "Error",
+        description: "Please select both name and phone columns",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const fileInput = document.querySelector<HTMLInputElement>('input[type="file"]');
+    if (!fileInput?.files?.[0]) return;
+    processFile(fileInput.files[0], mapping.name, mapping.phone);
   };
 
   return (
