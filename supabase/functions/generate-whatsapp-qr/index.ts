@@ -27,11 +27,27 @@ serve(async (req) => {
       )
     }
 
+    const response = await fetch('https://evo2.anonimouz.com/instance/create', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': apiKey
+      },
+      body: JSON.stringify({
+        instanceName,
+        qrcode: true,
+        integration: "WHATSAPP-BAILEYS"
+      })
+    })
+
+    const data = await response.json()
+    console.log('API Response:', data)
+
     return new Response(
-      JSON.stringify({ message: 'Function ready for implementation' }),
+      JSON.stringify(data),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200
+        status: 200 
       }
     )
   } catch (error) {

@@ -2,6 +2,8 @@ import { Trash, QrCode } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { WhatsAppInstance } from "@/types/whatsapp";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface InstanceListProps {
   instances: WhatsAppInstance[];
@@ -9,6 +11,41 @@ interface InstanceListProps {
 }
 
 export const InstanceList = ({ instances, onDelete }: InstanceListProps) => {
+  const { toast } = useToast();
+
+  const handleGenerateQR = async (instance: WhatsAppInstance) => {
+    try {
+      console.log('Generating QR code for instance:', instance.name);
+      
+      const { data: response, error } = await supabase.functions.invoke(
+        'generate-whatsapp-qr',
+        {
+          body: { instanceName: instance.name }
+        }
+      );
+
+      if (error) {
+        console.error('Error generating QR code:', error);
+        throw error;
+      }
+
+      console.log('QR code response:', response);
+
+      toast({
+        title: "QR Code Generated",
+        description: "Check your WhatsApp to scan the QR code",
+      });
+
+    } catch (error) {
+      console.error('Failed to generate QR code:', error);
+      toast({
+        title: "Error",
+        description: "Failed to generate QR code. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       {instances?.map((instance) => (
@@ -35,6 +72,7 @@ export const InstanceList = ({ instances, onDelete }: InstanceListProps) => {
               <Button
                 variant="ghost"
                 size="icon"
+                onClick={() => handleGenerateQR(instance)}
                 className="hover:bg-white/10"
               >
                 <QrCode className="w-4 h-4" />
