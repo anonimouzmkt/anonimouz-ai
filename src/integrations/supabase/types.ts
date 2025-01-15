@@ -14,22 +14,28 @@ export type Database = {
           created_at: string
           email: string | null
           id: string
+          role: Database["public"]["Enums"]["user_role"]
           unique_id: string
           updated_at: string
+          webhook_url: string | null
         }
         Insert: {
           created_at?: string
           email?: string | null
           id: string
+          role?: Database["public"]["Enums"]["user_role"]
           unique_id?: string
           updated_at?: string
+          webhook_url?: string | null
         }
         Update: {
           created_at?: string
           email?: string | null
           id?: string
+          role?: Database["public"]["Enums"]["user_role"]
           unique_id?: string
           updated_at?: string
+          webhook_url?: string | null
         }
         Relationships: []
       }
@@ -71,7 +77,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      user_role: "admin_user" | "user"
     }
     CompositeTypes: {
       [_ in never]: never

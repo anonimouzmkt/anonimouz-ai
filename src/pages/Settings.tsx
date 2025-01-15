@@ -3,14 +3,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
-import { Settings as SettingsIcon, Key, Copy } from "lucide-react";
+import { Settings as SettingsIcon, Key, Copy, Webhook } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
 
 const Settings = () => {
   const [token, setToken] = useState<string>("");
+  const [webhookUrl, setWebhookUrl] = useState<string>("");
 
-  const { data: profile } = useQuery({
+  const { data: profile, refetch } = useQuery({
     queryKey: ["profile"],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -21,6 +22,10 @@ const Settings = () => {
         .select("*")
         .eq("id", user.id)
         .single();
+
+      if (profile?.webhook_url) {
+        setWebhookUrl(profile.webhook_url);
+      }
 
       return profile;
     }
@@ -55,6 +60,21 @@ const Settings = () => {
       navigator.clipboard.writeText(token);
       toast.success("Token copiado para a área de transferência!");
     }
+  };
+
+  const handleSaveWebhook = async () => {
+    const { error } = await supabase
+      .from("profiles")
+      .update({ webhook_url: webhookUrl })
+      .eq("id", profile?.id);
+
+    if (error) {
+      toast.error("Error saving webhook URL");
+      return;
+    }
+
+    toast.success("Webhook URL saved successfully!");
+    refetch();
   };
 
   return (
@@ -122,6 +142,29 @@ const Settings = () => {
               Este é seu token de autorização para fazer requisições à API
             </p>
           </div>
+
+          {profile?.role === 'admin_user' && (
+            <div className="space-y-2">
+              <Label>Webhook URL</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  value={webhookUrl}
+                  onChange={(e) => setWebhookUrl(e.target.value)}
+                  placeholder="Enter webhook URL"
+                />
+                <Button
+                  variant="outline"
+                  onClick={handleSaveWebhook}
+                >
+                  <Webhook className="w-4 h-4 mr-2" />
+                  Save Webhook
+                </Button>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Configure the webhook URL for receiving notifications
+              </p>
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label>Password</Label>
