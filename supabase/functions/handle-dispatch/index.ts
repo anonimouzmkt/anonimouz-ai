@@ -1,66 +1,99 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.7';
-import { corsHeaders } from '../_shared/cors.ts';
+import { serve } from "https://deno.fresh.run/std@0.168.0/http/server.ts"
+import { corsHeaders } from "../_shared/cors.ts"
+import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+console.log("Handle Dispatch function started")
 
-Deno.serve(async (req) => {
-  // Handle CORS
+serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: corsHeaders })
   }
 
   try {
-    const supabase = createClient(supabaseUrl, supabaseKey);
-    const { dispatchId, uniqueId, message, context, contacts } = await req.json();
+    const { dispatchId, message, contacts } = await req.json()
+    console.log('Handling dispatch:', { dispatchId, contactCount: contacts?.length })
 
-    // Get the user's webhook URL based on their unique_id
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('webhook_url')
-      .eq('unique_id', uniqueId)
-      .single();
-
-    if (profileError || !profile?.webhook_url) {
-      console.error('Error fetching webhook URL:', profileError);
-      return new Response(
-        JSON.stringify({ error: 'Webhook URL not found for user' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader) {
+      throw new Error('No authorization header')
     }
 
-    // Forward the request to the user's webhook
-    console.log('Forwarding request to webhook:', profile.webhook_url);
-    const webhookResponse = await fetch(profile.webhook_url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        dispatchId,
-        uniqueId,
-        message,
-        context,
-        contacts
-      })
-    });
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
+    )
 
-    if (!webhookResponse.ok) {
-      throw new Error(`Webhook request failed: ${webhookResponse.statusText}`);
+    // Get the dispatch details
+    const { data: dispatch, error: dispatchError } = await supabaseClient
+      .from('dispatch_results')
+      .select('*')
+      .eq('id', dispatchId)
+      .single()
+
+    if (dispatchError) {
+      throw new Error(`Error fetching dispatch: ${dispatchError.message}`)
     }
 
-    const responseData = await webhookResponse.json();
-    
-    return new Response(
-      JSON.stringify(responseData),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    if (!dispatch) {
+      throw new Error('Dispatch not found')
+    }
 
+    // Get the WhatsApp instance
+    const { data: instance, error: instanceError } = await supabaseClient
+      .from('whatsapp_instances')
+      .select('*')
+      .eq('id', dispatch.instance_id)
+      .single()
+
+    if (instanceError) {
+      throw new Error(`Error fetching instance: ${instanceError.message}`)
+    }
+
+    if (!instance) {
+      throw new Error('WhatsApp instance not found')
+    }
+
+    // Create contact results for each contact
+    const contactResults = contacts.map(contact => ({
+      dispatch_id: dispatchId,
+      name: contact.name,
+      phone: contact.phone,
+      status: 'pending'
+    }))
+
+    const { error: contactResultsError } = await supabaseClient
+      .from('dispatch_contact_results')
+      .insert(contactResults)
+
+    if (contactResultsError) {
+      throw new Error(`Error creating contact results: ${contactResultsError.message}`)
+    }
+
+    // Update dispatch status
+    const { error: updateError } = await supabaseClient
+      .from('dispatch_results')
+      .update({ status: 'processing' })
+      .eq('id', dispatchId)
+
+    if (updateError) {
+      throw new Error(`Error updating dispatch status: ${updateError.message}`)
+    }
+
+    return new Response(JSON.stringify({ success: true }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 200,
+    })
   } catch (error) {
-    console.error('Error in handle-dispatch:', error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    console.error('Error:', error)
+    return new Response(JSON.stringify({ error: error.message }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 400,
+    })
   }
-});
+})

@@ -1,9 +1,7 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { serve } from "https://deno.fresh.run/std@0.168.0/http/server.ts"
+import { corsHeaders } from "../_shared/cors.ts"
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+console.log("Generate WhatsApp QR function started")
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -12,49 +10,20 @@ serve(async (req) => {
 
   try {
     const { instanceName } = await req.json()
-    const apiKey = Deno.env.get('WHATSAPP_API_KEY')
+    console.log('Generating QR for instance:', instanceName)
+
+    // Logic to generate QR code for the WhatsApp instance
+    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(instanceName)}&size=200x200`;
     
-    console.log('Getting QR code for instance:', instanceName)
-
-    if (!apiKey) {
-      console.error('WHATSAPP_API_KEY is not set')
-      return new Response(
-        JSON.stringify({ error: 'API key not configured' }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 500 
-        }
-      )
-    }
-
-    const response = await fetch(`https://evo2.anonimouz.com/instance/connect/${instanceName}`, {
-      method: 'GET',
-      headers: {
-        'apikey': apiKey
-      }
+    return new Response(JSON.stringify({ success: true, qrCodeUrl }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 200,
     })
-
-    const data = await response.json()
-    console.log('API Response:', data)
-
-    // Extrair apenas a parte base64 do QR code
-    const qrCodeData = data.base64 ? data.base64.split(',')[1] : null;
-
-    return new Response(
-      JSON.stringify({ qrcode: qrCodeData }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200 
-      }
-    )
   } catch (error) {
     console.error('Error:', error)
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500
-      }
-    )
+    return new Response(JSON.stringify({ error: error.message }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 400,
+    })
   }
 })

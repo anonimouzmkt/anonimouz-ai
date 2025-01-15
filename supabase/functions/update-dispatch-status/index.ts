@@ -1,10 +1,7 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { serve } from "https://deno.fresh.run/std@0.168.0/http/server.ts"
+import { corsHeaders } from "../_shared/cors.ts"
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-unique-id',
-}
+console.log("Update Dispatch Status function started")
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -12,77 +9,29 @@ serve(async (req) => {
   }
 
   try {
-    const uniqueId = req.headers.get('x-unique-id');
-    if (!uniqueId) {
-      throw new Error('Missing x-unique-id header');
-    }
+    const { dispatchId, phone, status } = await req.json()
+    console.log('Updating dispatch status:', { dispatchId, phone, status })
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabaseClient = createClient(supabaseUrl, supabaseServiceKey);
-
-    // Validate if unique_id exists in profiles
-    const { data: profile, error: profileError } = await supabaseClient
-      .from('profiles')
-      .select('id')
-      .eq('unique_id', uniqueId)
+    // Update the dispatch status in the database
+    const { data, error } = await supabase
+      .from('dispatch_results')
+      .update({ status })
+      .eq('id', dispatchId)
       .single();
 
-    if (profileError || !profile) {
-      throw new Error('Invalid unique_id');
+    if (error) {
+      throw error;
     }
 
-    const { dispatchId, phone, status, error } = await req.json();
-
-    // Update the contact result
-    const { error: updateError } = await supabaseClient
-      .from('dispatch_contact_results')
-      .update({
-        status: status,
-        error_message: error,
-        updated_at: new Date().toISOString()
-      })
-      .eq('dispatch_id', dispatchId)
-      .eq('contact_phone', phone);
-
-    if (updateError) {
-      throw updateError;
-    }
-
-    // Update the dispatch result counts
-    const { data: results, error: countError } = await supabaseClient
-      .from('dispatch_contact_results')
-      .select('status', { count: 'exact' })
-      .eq('dispatch_id', dispatchId);
-
-    if (countError) {
-      throw countError;
-    }
-
-    const successCount = results?.filter(r => r.status === 'success').length || 0;
-    const errorCount = results?.filter(r => r.status === 'error').length || 0;
-
-    await supabaseClient
-      .from('dispatch_results')
-      .update({
-        success_count: successCount,
-        error_count: errorCount,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', dispatchId);
-
-    return new Response(
-      JSON.stringify({ success: true }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    return new Response(JSON.stringify({ success: true }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 200,
+    })
   } catch (error) {
-    console.error('Error:', error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { 
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      }
-    );
+    console.error('Error:', error)
+    return new Response(JSON.stringify({ error: error.message }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 400,
+    })
   }
-});
+})

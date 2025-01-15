@@ -1,9 +1,7 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { serve } from "https://deno.fresh.run/std@0.168.0/http/server.ts"
+import { corsHeaders } from "../_shared/cors.ts"
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+console.log("Create WhatsApp Instance function started")
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -13,53 +11,26 @@ serve(async (req) => {
 
   try {
     const { name } = await req.json()
-    const apiKey = Deno.env.get('WHATSAPP_API_KEY')
-    
-    console.log('Creating WhatsApp instance:', name)
+    console.log('Creating instance:', name)
 
-    const response = await fetch('https://evo2.anonimouz.com/instance/create', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': apiKey || '',
-      },
-      body: JSON.stringify({
-        instanceName: name,
-        qrcode: true,
-        integration: "WHATSAPP-BAILEYS"
-      })
-    })
+    const { data, error } = await supabase
+      .from('whatsapp_instances')
+      .insert([{ name }])
+      .single();
 
-    const data = await response.json()
-    console.log('API Response:', data)
-
-    // Check if the response was successful
-    if (!response.ok) {
-      console.error('API Error:', data)
-      return new Response(
-        JSON.stringify({ error: `API Error: ${response.status} - ${data.message || 'Unknown error'}` }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: response.status 
-        }
-      )
+    if (error) {
+      throw error;
     }
 
-    return new Response(
-      JSON.stringify(data),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200
-      }
-    )
+    return new Response(JSON.stringify({ success: true, instance: data }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 200,
+    })
   } catch (error) {
     console.error('Error:', error)
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500
-      }
-    )
+    return new Response(JSON.stringify({ error: error.message }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 400,
+    })
   }
 })
