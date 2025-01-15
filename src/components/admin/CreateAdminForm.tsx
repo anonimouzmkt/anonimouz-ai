@@ -1,73 +1,115 @@
 import { useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { useTranslation } from "@/hooks/useTranslation";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Loader2 } from "lucide-react";
 
-export const CreateAdminForm = () => {
-  const { t } = useTranslation();
-  const [adminEmail, setAdminEmail] = useState("");
-  const [loading, setLoading] = useState(false);
-  const queryClient = useQueryClient();
+const formSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(6),
+});
 
-  const handleCreateAdmin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+export function CreateAdminForm() {
+  const [isLoading, setIsLoading] = useState(false);
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
 
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      const { data, error } = await supabase
+      setIsLoading(true);
+      console.log("Creating new admin user:", values.email);
+
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        email: values.email,
+        password: values.password,
+      });
+
+      if (signUpError) {
+        console.error("Error creating user:", signUpError);
+        throw signUpError;
+      }
+
+      if (!signUpData.user) {
+        throw new Error("No user returned from sign up");
+      }
+
+      const { error: updateError } = await supabase
         .from("profiles")
-        .update({ role: "admin_user" })
-        .eq("email", adminEmail)
-        .select();
+        .update({ 
+          role: "admin_user",
+          admin_users: true 
+        })
+        .eq("id", signUpData.user.id);
 
-      if (error) throw error;
-
-      if (data.length === 0) {
-        toast.error("User not found");
-        return;
+      if (updateError) {
+        console.error("Error updating profile:", updateError);
+        throw updateError;
       }
 
       toast.success("Admin user created successfully");
-      queryClient.invalidateQueries({ queryKey: ["users"] });
-      setAdminEmail("");
+      form.reset();
     } catch (error) {
-      console.error("Error creating admin:", error);
+      console.error("Error in form submission:", error);
       toast.error("Failed to create admin user");
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
-  };
+  }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{t("adminMaster")}</CardTitle>
-        <CardDescription>{t("createNewAdmin")}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleCreateAdmin} className="flex gap-4">
-          <Input
-            type="email"
-            placeholder={t("adminEmail")}
-            value={adminEmail}
-            onChange={(e) => setAdminEmail(e.target.value)}
-            required
+    <div className="space-y-4">
+      <h2 className="text-lg font-semibold">Create Admin User</h2>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <Input placeholder="admin@example.com" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-          <Button type="submit" disabled={loading}>
-            {t("createAdminUser")}
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Password</FormLabel>
+                <FormControl>
+                  <Input type="password" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <Button type="submit" disabled={isLoading}>
+            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Create Admin User
           </Button>
         </form>
-      </CardContent>
-    </Card>
+      </Form>
+    </div>
   );
-};
+}
