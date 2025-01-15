@@ -104,7 +104,7 @@ export const useWhatsAppInstances = () => {
     try {
       console.log('Starting deletion process for instance:', instanceId);
 
-      // First, get all dispatch_results IDs for this instance
+      // First, get all dispatch_results for this instance
       const { data: dispatchResults, error: dispatchQueryError } = await supabase
         .from('dispatch_results')
         .select('id')
@@ -115,10 +115,12 @@ export const useWhatsAppInstances = () => {
         throw dispatchQueryError;
       }
 
+      // Get array of dispatch result IDs
       const dispatchIds = dispatchResults?.map(dr => dr.id) || [];
+      console.log('Found dispatch results:', dispatchIds);
 
-      // If there are dispatch results, delete their contact results first
       if (dispatchIds.length > 0) {
+        // Delete related contact results first
         const { error: contactResultsError } = await supabase
           .from('dispatch_contact_results')
           .delete()
@@ -128,26 +130,33 @@ export const useWhatsAppInstances = () => {
           console.error('Error deleting contact results:', contactResultsError);
           throw contactResultsError;
         }
+        console.log('Successfully deleted contact results');
+
+        // Then delete dispatch results
+        const { error: dispatchDeleteError } = await supabase
+          .from('dispatch_results')
+          .delete()
+          .eq('instance_id', instanceId);
+
+        if (dispatchDeleteError) {
+          console.error('Error deleting dispatch results:', dispatchDeleteError);
+          throw dispatchDeleteError;
+        }
+        console.log('Successfully deleted dispatch results');
       }
 
-      // Then, delete the dispatch_results
-      const { error: dispatchError } = await supabase
-        .from('dispatch_results')
+      // Finally delete the WhatsApp instance
+      const { error: instanceDeleteError } = await supabase
+        .from('whatsapp_instances')
         .delete()
-        .eq('instance_id', instanceId);
+        .eq('id', instanceId);
 
-      if (dispatchError) {
-        console.error('Error deleting dispatch results:', dispatchError);
-        throw dispatchError;
+      if (instanceDeleteError) {
+        console.error('Error deleting WhatsApp instance:', instanceDeleteError);
+        throw instanceDeleteError;
       }
 
-      // Finally, delete the WhatsApp instance
-      const { error } = await supabase
-        .from("whatsapp_instances")
-        .delete()
-        .eq("id", instanceId);
-
-      if (error) throw error;
+      console.log('Successfully deleted WhatsApp instance');
 
       toast({
         title: "Sucesso",
@@ -157,7 +166,7 @@ export const useWhatsAppInstances = () => {
       refetch();
       return true;
     } catch (error) {
-      console.error("Error deleting instance:", error);
+      console.error("Error in deletion process:", error);
       toast({
         title: "Erro",
         description: "Falha ao remover instância do WhatsApp",
