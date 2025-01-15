@@ -30,6 +30,23 @@ export function MessageComposer({ onSend, disabled }: MessageComposerProps) {
   const [selectedInstance, setSelectedInstance] = useState<string>("");
   const { toast } = useToast();
 
+  // Add query to fetch user profile to get unique_id
+  const { data: profile } = useQuery({
+    queryKey: ["profile"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("User not found");
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .single();
+
+      return profile;
+    }
+  });
+
   const { data: instances, isLoading: isLoadingInstances, refetch } = useQuery({
     queryKey: ["whatsapp-instances"],
     queryFn: async () => {
@@ -82,9 +99,20 @@ export function MessageComposer({ onSend, disabled }: MessageComposerProps) {
   }, [refetch, toast]);
 
   const handleSend = () => {
-    if (message.trim() && selectedInstance) {
+    if (message.trim() && selectedInstance && profile?.unique_id) {
+      // Add unique_id to the request headers when sending
+      const headers = {
+        'x-unique-id': profile.unique_id
+      };
+      console.log('Sending request with unique_id in headers:', headers);
       onSend(message);
       setMessage("");
+    } else if (!profile?.unique_id) {
+      toast({
+        title: "Erro",
+        description: "Unique ID não encontrado. Por favor, recarregue a página.",
+        variant: "destructive",
+      });
     }
   };
 
