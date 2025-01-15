@@ -2,16 +2,20 @@ import React, { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery } from '@tanstack/react-query';
+import { Profile } from '@/integrations/supabase/types';
 
 export default function AdminSettings() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [impersonating, setImpersonating] = useState<string | null>(null);
 
-  const { data: users } = useQuery(['users'], async () => {
-    const { data, error } = await supabase.from('profiles').select('*');
-    if (error) throw error;
-    return data;
+  const { data: users } = useQuery({
+    queryKey: ['users'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('profiles').select('*');
+      if (error) throw error;
+      return data as Profile[];
+    }
   });
 
   const handleLoginAs = async (userId: string) => {
@@ -51,10 +55,18 @@ export default function AdminSettings() {
       // Redirect to the dashboard
       window.location.href = '/';
       
-      toast.success("Successfully logged in as user");
+      toast({
+        title: "Success",
+        description: "Successfully logged in as user",
+        variant: "default",
+      });
     } catch (error) {
       console.error("Error logging in as user:", error);
-      toast.error("Failed to login as user. Please try again.");
+      toast({
+        title: "Error",
+        description: "Failed to login as user. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
       setImpersonating(null);
@@ -62,18 +74,34 @@ export default function AdminSettings() {
   };
 
   return (
-    <div>
-      <h1>Admin Settings</h1>
-      <ul>
-        {users?.map(user => (
-          <li key={user.id}>
-            {user.email}
-            <button onClick={() => handleLoginAs(user.id)} disabled={loading}>
-              {impersonating === user.id ? 'Impersonating...' : 'Login As'}
-            </button>
-          </li>
-        ))}
-      </ul>
+    <div className="p-4">
+      <h1 className="text-2xl font-bold mb-4">Admin Settings</h1>
+      <div className="rounded-md border">
+        <table className="w-full">
+          <thead>
+            <tr className="border-b">
+              <th className="px-4 py-2 text-left">Email</th>
+              <th className="px-4 py-2 text-left">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {users?.map(user => (
+              <tr key={user.id} className="border-b last:border-b-0">
+                <td className="px-4 py-2">{user.email}</td>
+                <td className="px-4 py-2">
+                  <button
+                    onClick={() => handleLoginAs(user.id)}
+                    disabled={loading || impersonating === user.id}
+                    className="bg-primary text-primary-foreground hover:bg-primary/90 px-3 py-1 rounded-md disabled:opacity-50"
+                  >
+                    {impersonating === user.id ? 'Impersonating...' : 'Login As'}
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
