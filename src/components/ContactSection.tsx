@@ -22,8 +22,6 @@ export function ContactSection({
   onSelectAll,
   onDeselectAll 
 }: ContactSectionProps) {
-  console.log('ContactSection - Selected contacts count:', selectedContacts.size);
-  
   return (
     <div className="bg-card p-6 rounded-lg">
       <div className="space-y-4">
