@@ -1,28 +1,18 @@
 import { useState } from "react";
-import { LogOut, MessageSquare, Settings, MessageCircle, Users, BarChart2, Shield } from "lucide-react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { NavigationWarningDialog } from "./NavigationWarningDialog";
+import { SidebarHeader as CustomSidebarHeader } from "./sidebar/SidebarHeader";
+import { SidebarNavigation } from "./sidebar/SidebarNavigation";
+import { SidebarFooterActions } from "./sidebar/SidebarFooterActions";
 
 export function AppSidebar() {
   const navigate = useNavigate();
@@ -110,102 +100,30 @@ export function AppSidebar() {
     setPendingNavigation(null);
   };
 
+  const isAdmin = profile?.role === 'admin_user';
+
   return (
     <>
       <Sidebar variant="floating" collapsible="icon" className="border-none border-r border-primary/30 shadow-[1px_0_5px_rgba(0,149,255,0.5)]">
         <SidebarHeader>
-          <div className="flex items-center justify-between px-2">
-            <div className="flex items-center gap-2">
-              <img 
-                src="/lovable-uploads/4321434b-2144-462b-b83b-2b1129bccb08.png" 
-                alt="Logo" 
-                className="w-7 h-7"
-              />
-              <span className="text-lg font-semibold group-data-[collapsible=icon]:hidden">Anonimouz A.I</span>
-            </div>
-            <SidebarTrigger />
-          </div>
+          <CustomSidebarHeader />
         </SidebarHeader>
         <SidebarContent>
-          <SidebarMenu className="mt-12">
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Disparador" onClick={() => handleNavigation("/")}>
-                <Link to="#" onClick={(e) => e.preventDefault()}>
-                  <MessageSquare className="w-4 h-4" />
-                  <span>Disparador</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Dashboard" onClick={() => handleNavigation("/dispatch-dashboard")}>
-                <Link to="#" onClick={(e) => e.preventDefault()}>
-                  <BarChart2 className="w-4 h-4" />
-                  <span>Dashboard</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="WhatsApp" onClick={() => handleNavigation("/whatsapp")}>
-                <Link to="#" onClick={(e) => e.preventDefault()}>
-                  <MessageCircle className="w-4 h-4" />
-                  <span>WhatsApp</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            {profile?.role === 'admin_user' && (
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="Admin Settings" onClick={() => handleNavigation("/admin-settings")}>
-                  <Link to="#" onClick={(e) => e.preventDefault()}>
-                    <Shield className="w-4 h-4" />
-                    <span>Admin Settings</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            )}
-          </SidebarMenu>
+          <SidebarNavigation 
+            handleNavigation={handleNavigation}
+            isAdmin={isAdmin}
+          />
         </SidebarContent>
         <SidebarFooter className="p-4">
-          <div className="flex flex-col gap-4">
-            {profile?.role === 'admin_user' && (
-              <div className="flex items-center gap-2 px-2">
-                <Users className="w-4 h-4" />
-                <Select
-                  value={impersonatedUserId || currentUser?.id}
-                  onValueChange={handleAccountSwitch}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select an account" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={currentUser?.id}>My Account</SelectItem>
-                    {profiles?.map((profile) => (
-                      <SelectItem key={profile.id} value={profile.id}>
-                        {profile.email}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="w-full justify-start group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:aspect-square"
-              onClick={() => handleNavigation("/settings")}
-            >
-              <Settings className="mr-2 h-4 w-4 group-data-[collapsible=icon]:mr-0" />
-              <span className="group-data-[collapsible=icon]:hidden">Settings</span>
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full justify-start group-data-[collapsible=icon]:w-8 group-data-[collapsible-icon]:p-0 group-data-[collapsible=icon]:aspect-square"
-              onClick={handleLogout}
-            >
-              <LogOut className="mr-2 h-4 w-4 group-data-[collapsible=icon]:mr-0" />
-              <span className="group-data-[collapsible=icon]:hidden">Logout</span>
-            </Button>
-          </div>
+          <SidebarFooterActions
+            isAdmin={isAdmin}
+            currentUserId={currentUser?.id || ''}
+            impersonatedUserId={impersonatedUserId}
+            profiles={profiles}
+            handleAccountSwitch={handleAccountSwitch}
+            handleNavigation={handleNavigation}
+            handleLogout={handleLogout}
+          />
         </SidebarFooter>
       </Sidebar>
 
