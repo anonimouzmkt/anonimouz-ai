@@ -8,7 +8,7 @@ import { WhatsAppInstance } from "@/types/whatsapp";
 export const useWhatsAppInstances = () => {
   const { generateQRCode } = useWhatsAppInstance();
   const { createInstance, isLoading: isCreating } = useCreateInstance();
-  const { deleteInstance } = useDeleteInstance();
+  const { deleteInstance } = useDeleteInstance(() => refetch());
 
   const { data: instances, refetch } = useQuery({
     queryKey: ["whatsapp-instances"],
@@ -40,7 +40,7 @@ export const useWhatsAppInstances = () => {
     instances,
     createInstance: (name: string) => createInstance(name),
     deleteInstance: (instanceId: string) => deleteInstance(instanceId),
-    generateQRCode,
+    generateQRCode: (instanceName: string) => generateQRCode(instanceName),
     refetch,
     isCreating
   };
