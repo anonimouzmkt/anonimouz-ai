@@ -19,6 +19,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface MessageComposerProps {
   onSend: (message: string) => void;
@@ -36,6 +37,7 @@ export function MessageComposer({ onSend, disabled }: MessageComposerProps) {
   const [context, setContext] = useState("");
   const [selectedInstance, setSelectedInstance] = useState<string>("");
   const [useAI, setUseAI] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const { toast } = useToast();
 
   const { data: profile } = useQuery({
@@ -103,16 +105,31 @@ export function MessageComposer({ onSend, disabled }: MessageComposerProps) {
     };
   }, [refetch, toast]);
 
+  const validateFields = () => {
+    const errors: string[] = [];
+
+    if (!selectedInstance) {
+      errors.push("Selecione uma instância do WhatsApp");
+    }
+
+    if (!message.trim()) {
+      errors.push("Digite uma mensagem inicial");
+    }
+
+    if (useAI && !context.trim()) {
+      errors.push("Digite o contexto do disparo quando usar I.A");
+    }
+
+    if (useAI && !profile?.webhook_url) {
+      errors.push("Configure o webhook de IA nas configurações");
+    }
+
+    setValidationErrors(errors);
+    return errors.length === 0;
+  };
+
   const handleSend = () => {
-    if (message.trim() && selectedInstance && profile?.unique_id) {
-      if (useAI && !profile?.webhook_url) {
-        toast({
-          title: "Webhook não configurado",
-          description: "Entre em contato com o suporte para configurar o webhook de IA.",
-          variant: "destructive",
-        });
-        return;
-      }
+    if (validateFields() && profile?.unique_id) {
       const headers = {
         'x-unique-id': profile.unique_id
       };
@@ -195,27 +212,29 @@ export function MessageComposer({ onSend, disabled }: MessageComposerProps) {
         )}
       </div>
 
-      <div className="bg-card p-6 rounded-lg space-y-4 border border-border">
-        <div>
-          <h2 className="text-card-foreground mb-1">
-            Descreva pro <span className="font-bold">Agent</span> qual o contexto
-            do disparo
-          </h2>
-          <p className="text-muted-foreground">
-            ou caso <span className="font-bold">esteja no prompt</span> avise
-          </p>
-          <p className="text-primary text-sm mt-2">
-            Exemplo: Seu objetivo está dentro do seu prompt principal na área
-            disparo
-          </p>
+      {useAI && (
+        <div className="bg-card p-6 rounded-lg space-y-4 border border-border">
+          <div>
+            <h2 className="text-card-foreground mb-1">
+              Descreva pro <span className="font-bold">Agent</span> qual o contexto
+              do disparo
+            </h2>
+            <p className="text-muted-foreground">
+              ou caso <span className="font-bold">esteja no prompt</span> avise
+            </p>
+            <p className="text-primary text-sm mt-2">
+              Exemplo: Seu objetivo está dentro do seu prompt principal na área
+              disparo
+            </p>
+          </div>
+          <Textarea
+            placeholder="Escreva o contexto do disparo para o seu agente"
+            value={context}
+            onChange={(e) => setContext(e.target.value)}
+            className="min-h-[100px]"
+          />
         </div>
-        <Textarea
-          placeholder="Escreva o contexto do disparo para o seu agente"
-          value={context}
-          onChange={(e) => setContext(e.target.value)}
-          className="min-h-[100px]"
-        />
-      </div>
+      )}
 
       <div className="bg-card p-6 rounded-lg space-y-4 border border-border">
         <div>
@@ -234,11 +253,24 @@ export function MessageComposer({ onSend, disabled }: MessageComposerProps) {
         />
       </div>
 
+      {validationErrors.length > 0 && (
+        <Alert variant="destructive">
+          <AlertDescription>
+            <ul className="list-disc pl-4">
+              {validationErrors.map((error, index) => (
+                <li key={index}>{error}</li>
+              ))}
+            </ul>
+          </AlertDescription>
+        </Alert>
+      )}
+
       <Button
         className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-12"
         onClick={handleSend}
         disabled={
-          disabled || !message.trim() || !selectedInstance || !instances?.length
+          disabled || !message.trim() || !selectedInstance || !instances?.length ||
+          (useAI && !context.trim())
         }
       >
         <Send className="w-5 h-5 mr-2" />
