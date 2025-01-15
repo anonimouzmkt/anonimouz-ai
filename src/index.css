@@ -13,7 +13,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 0%;
 
-    --primary: 0 0% 0%;
+    --primary: 212 96% 44%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 0 0% 96%;
@@ -22,27 +22,27 @@
     --muted: 0 0% 96%;
     --muted-foreground: 0 0% 45%;
 
-    --accent: 0 0% 96%;
-    --accent-foreground: 0 0% 0%;
+    --accent: 212 96% 44%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
 
     --border: 0 0% 90%;
     --input: 0 0% 90%;
-    --ring: 0 0% 0%;
+    --ring: 212 96% 44%;
 
     --radius: 0.75rem;
 
     /* Sidebar Light Theme */
-    --sidebar-bg: #FFFFFF;
-    --sidebar-fg: #000000;
-    --sidebar-primary: #000000;
+    --sidebar-bg: #111111;
+    --sidebar-fg: #FFFFFF;
+    --sidebar-primary: #0095FF;
     --sidebar-primary-fg: #FFFFFF;
-    --sidebar-accent: rgba(0, 0, 0, 0.05);
-    --sidebar-accent-fg: #000000;
-    --sidebar-border: rgba(0, 0, 0, 0.1);
-    --sidebar-ring: #000000;
+    --sidebar-accent: rgba(0, 149, 255, 0.1);
+    --sidebar-accent-fg: #0095FF;
+    --sidebar-border: rgba(255, 255, 255, 0.2);
+    --sidebar-ring: #0095FF;
   }
 
   .dark {
@@ -55,8 +55,8 @@
     --popover: 0 0% 7%;
     --popover-foreground: 0 0% 100%;
 
-    --primary: 0 0% 100%;
-    --primary-foreground: 0 0% 0%;
+    --primary: 212 96% 44%;
+    --primary-foreground: 0 0% 100%;
 
     --secondary: 0 0% 13%;
     --secondary-foreground: 0 0% 100%;
@@ -64,7 +64,7 @@
     --muted: 0 0% 13%;
     --muted-foreground: 0 0% 65%;
 
-    --accent: 0 0% 13%;
+    --accent: 212 96% 44%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
@@ -72,17 +72,17 @@
 
     --border: 0 0% 13%;
     --input: 0 0% 13%;
-    --ring: 0 0% 100%;
+    --ring: 212 96% 44%;
 
     /* Sidebar Dark Theme */
     --sidebar-bg: #111111;
     --sidebar-fg: #FFFFFF;
-    --sidebar-primary: #FFFFFF;
-    --sidebar-primary-fg: #111111;
-    --sidebar-accent: rgba(255, 255, 255, 0.1);
-    --sidebar-accent-fg: #FFFFFF;
+    --sidebar-primary: #0095FF;
+    --sidebar-primary-fg: #FFFFFF;
+    --sidebar-accent: rgba(0, 149, 255, 0.1);
+    --sidebar-accent-fg: #0095FF;
     --sidebar-border: rgba(255, 255, 255, 0.2);
-    --sidebar-ring: #FFFFFF;
+    --sidebar-ring: #0095FF;
   }
 }
 
