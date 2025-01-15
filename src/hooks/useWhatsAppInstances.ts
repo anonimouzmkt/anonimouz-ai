@@ -102,6 +102,31 @@ export const useWhatsAppInstances = () => {
 
   const deleteInstance = async (instanceId: string) => {
     try {
+      console.log('Starting deletion process for instance:', instanceId);
+
+      // First, delete all related dispatch_contact_results
+      const { error: contactResultsError } = await supabase
+        .from('dispatch_contact_results')
+        .delete()
+        .eq('dispatch_id', supabase.from('dispatch_results').select('id').eq('instance_id', instanceId));
+
+      if (contactResultsError) {
+        console.error('Error deleting contact results:', contactResultsError);
+        throw contactResultsError;
+      }
+
+      // Then, delete related dispatch_results
+      const { error: dispatchError } = await supabase
+        .from('dispatch_results')
+        .delete()
+        .eq('instance_id', instanceId);
+
+      if (dispatchError) {
+        console.error('Error deleting dispatch results:', dispatchError);
+        throw dispatchError;
+      }
+
+      // Finally, delete the WhatsApp instance
       const { error } = await supabase
         .from("whatsapp_instances")
         .delete()
