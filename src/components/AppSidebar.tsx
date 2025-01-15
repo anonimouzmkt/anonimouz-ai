@@ -11,6 +11,7 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarTrigger,
+  SidebarSeparator,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -121,6 +122,7 @@ export function AppSidebar() {
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
+        <SidebarSeparator className="my-4 bg-primary/30 shadow-[0_0_5px_rgba(0,149,255,0.5)]" />
       </SidebarContent>
       <SidebarFooter className="p-4">
         <div className="flex flex-col gap-4">
