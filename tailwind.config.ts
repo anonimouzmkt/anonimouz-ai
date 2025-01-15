@@ -53,14 +53,13 @@ export default {
           foreground: 'hsl(var(--card-foreground))'
         },
         sidebar: {
-          DEFAULT: 'var(--sidebar-bg)',
-          foreground: 'var(--sidebar-fg)',
-          primary: 'var(--sidebar-primary)',
-          'primary-foreground': 'var(--sidebar-primary-fg)',
-          accent: 'var(--sidebar-accent)',
-          'accent-foreground': 'var(--sidebar-accent-fg)',
-          border: 'var(--sidebar-border)',
-          ring: 'var(--sidebar-ring)'
+          DEFAULT: 'hsl(var(--background))',
+          foreground: 'hsl(var(--foreground))',
+          muted: 'hsl(var(--muted))',
+          'muted-foreground': 'hsl(var(--muted-foreground))',
+          accent: 'hsl(var(--accent))',
+          'accent-foreground': 'hsl(var(--accent-foreground))',
+          border: 'hsl(var(--border))',
         }
       },
       borderRadius: {
