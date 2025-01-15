@@ -1,5 +1,4 @@
 import { supabase } from "@/integrations/supabase/client";
-import { API_BASE_URL } from "./api-config";
 
 class ApiClient {
   private apiKey: string | null = null;
@@ -31,21 +30,6 @@ class ApiClient {
     }
   }
 
-  private getHeaders() {
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-    };
-
-    // Prefer API Key for external requests if available
-    if (this.apiKey) {
-      headers['apikey'] = this.apiKey;
-    } else if (this.accessToken) {
-      headers['Authorization'] = `Bearer ${this.accessToken}`;
-    }
-
-    return headers;
-  }
-
   async createDispatch(data: {
     message: string;
     instanceId: string;
@@ -56,17 +40,19 @@ class ApiClient {
     try {
       console.log('Creating dispatch with data:', data);
       
-      const response = await fetch(`${API_BASE_URL}/create-whatsapp-dispatch`, {
-        method: 'POST',
-        headers: this.getHeaders(),
-        body: JSON.stringify(data)
-      });
+      const { data: response, error } = await supabase.functions.invoke(
+        'create-whatsapp-dispatch',
+        {
+          body: data
+        }
+      );
 
-      if (!response.ok) {
-        throw new Error(`API Error: ${response.status}`);
+      if (error) {
+        console.error('Error creating dispatch:', error);
+        throw error;
       }
 
-      return await response.json();
+      return response;
     } catch (error) {
       console.error('Error creating dispatch:', error);
       throw error;
@@ -75,17 +61,18 @@ class ApiClient {
 
   async createWhatsAppInstance(name: string) {
     try {
-      const response = await fetch(`${API_BASE_URL}/create-whatsapp-instance`, {
-        method: 'POST',
-        headers: this.getHeaders(),
-        body: JSON.stringify({ name })
-      });
+      const { data: response, error } = await supabase.functions.invoke(
+        'create-whatsapp-instance',
+        {
+          body: { name }
+        }
+      );
 
-      if (!response.ok) {
-        throw new Error(`API Error: ${response.status}`);
+      if (error) {
+        throw error;
       }
 
-      return await response.json();
+      return response;
     } catch (error) {
       console.error('Error creating WhatsApp instance:', error);
       throw error;
@@ -94,17 +81,18 @@ class ApiClient {
 
   async generateQRCode(instanceName: string) {
     try {
-      const response = await fetch(`${API_BASE_URL}/generate-whatsapp-qr`, {
-        method: 'POST',
-        headers: this.getHeaders(),
-        body: JSON.stringify({ instanceName })
-      });
+      const { data: response, error } = await supabase.functions.invoke(
+        'generate-whatsapp-qr',
+        {
+          body: { instanceName }
+        }
+      );
 
-      if (!response.ok) {
-        throw new Error(`API Error: ${response.status}`);
+      if (error) {
+        throw error;
       }
 
-      return await response.json();
+      return response;
     } catch (error) {
       console.error('Error generating QR code:', error);
       throw error;
