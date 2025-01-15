@@ -42,6 +42,7 @@ export default function DispatchDashboard() {
   } = useDispatchData(selectedUserId);
 
   const handleRefresh = () => {
+    console.log("Refreshing dashboard data...");
     refetchLatest();
     refetchChart();
     refetchContacts();
@@ -55,6 +56,18 @@ export default function DispatchDashboard() {
       variant: "destructive",
     });
   }
+
+  // Format the chart data with proper date handling
+  const chartData = lastFiveDispatches?.map(dispatch => {
+    console.log("Processing dispatch data:", dispatch);
+    return {
+      date: dispatch.created_at,
+      success: dispatch.success_count,
+      failed: dispatch.error_count
+    };
+  }) || [];
+
+  console.log("Prepared chart data:", chartData);
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
@@ -77,11 +90,7 @@ export default function DispatchDashboard() {
           latestDispatchResults={latestContactResults}
         />
         <DispatchChart
-          data={lastFiveDispatches?.map(dispatch => ({
-            date: new Date(dispatch.created_at).toLocaleDateString(),
-            success: dispatch.success_count,
-            failed: dispatch.error_count
-          })) || []}
+          data={chartData}
           config={chartConfig}
         />
       </div>
