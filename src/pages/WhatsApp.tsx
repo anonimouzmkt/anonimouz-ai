@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Plus, Trash } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Plus, Trash, QrCode } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,10 @@ const WhatsApp = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [showDialog, setShowDialog] = useState(false);
   const [instanceName, setInstanceName] = useState("");
+  const [showQRDialog, setShowQRDialog] = useState(false);
+  const [selectedInstance, setSelectedInstance] = useState<WhatsAppInstance | null>(null);
+  const [qrCode, setQRCode] = useState<string | null>(null);
+  const [qrError, setQRError] = useState<string | null>(null);
 
   const { data: instances, refetch } = useQuery({
     queryKey: ["whatsapp-instances"],
@@ -106,6 +110,65 @@ const WhatsApp = () => {
     }
   };
 
+  const generateQRCode = async (instance: WhatsAppInstance) => {
+    try {
+      setQRError(null);
+      const { data: apiResponse, error: apiError } = await supabase.functions.invoke(
+        'generate-whatsapp-qr',
+        {
+          body: { instanceName: instance.name }
+        }
+      );
+
+      if (apiError) {
+        console.error('QR Code generation error:', apiError);
+        setQRError(`Erro ao gerar QR Code: ${apiError.message}`);
+        return;
+      }
+
+      if (!apiResponse || apiResponse.error) {
+        setQRError(apiResponse?.error || 'Falha ao gerar QR Code');
+        return;
+      }
+
+      if (apiResponse.qrcode?.base64?.value) {
+        setQRCode(apiResponse.qrcode.base64.value);
+      } else {
+        setQRError('QR Code não disponível');
+      }
+    } catch (error) {
+      console.error('Error generating QR code:', error);
+      setQRError('Erro ao gerar QR Code');
+    }
+  };
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+
+    if (showQRDialog && selectedInstance) {
+      // Initial QR code generation
+      generateQRCode(selectedInstance);
+
+      // Set up interval for refreshing QR code every 12 seconds
+      interval = setInterval(() => {
+        generateQRCode(selectedInstance);
+      }, 12000);
+    }
+
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [showQRDialog, selectedInstance]);
+
+  const handleShowQRCode = (instance: WhatsAppInstance) => {
+    setSelectedInstance(instance);
+    setShowQRDialog(true);
+    setQRCode(null);
+    setQRError(null);
+  };
+
   const handleDeleteInstance = async (instanceId: string) => {
     try {
       const { error } = await supabase
@@ -175,6 +238,14 @@ const WhatsApp = () => {
                   <Button
                     variant="ghost"
                     size="icon"
+                    onClick={() => handleShowQRCode(instance)}
+                    className="text-blue-500 hover:text-blue-600 hover:bg-blue-500/10"
+                  >
+                    <QrCode className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     onClick={() => handleDeleteInstance(instance.id)}
                     className="text-red-500 hover:text-red-600 hover:bg-red-500/10"
                   >
@@ -182,15 +253,6 @@ const WhatsApp = () => {
                   </Button>
                 </div>
               </div>
-              {instance.qr_code && (
-                <div className="bg-white p-4 rounded-lg">
-                  <img
-                    src={instance.qr_code}
-                    alt="QR Code"
-                    className="w-full"
-                  />
-                </div>
-              )}
             </div>
           ))}
         </div>
@@ -228,6 +290,36 @@ const WhatsApp = () => {
               className="bg-[#0099ff] hover:bg-[#0088ee]"
             >
               {isCreating ? "Criando..." : "Criar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showQRDialog} onOpenChange={setShowQRDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>QR Code - {selectedInstance?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col items-center justify-center p-4">
+            {qrError ? (
+              <p className="text-red-500">{qrError}</p>
+            ) : qrCode ? (
+              <img src={qrCode} alt="QR Code" className="w-64 h-64" />
+            ) : (
+              <p className="text-gray-400">Gerando QR Code...</p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowQRDialog(false);
+                setSelectedInstance(null);
+                setQRCode(null);
+                setQRError(null);
+              }}
+            >
+              Fechar
             </Button>
           </DialogFooter>
         </DialogContent>
