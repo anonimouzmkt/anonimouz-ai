@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, CheckCircle2, XCircle, Users, Robot, Send } from "lucide-react";
+import { RefreshCw, CheckCircle2, XCircle, Users, Bot, Send } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 
@@ -217,7 +217,7 @@ export default function DispatchDashboard() {
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">Com I.A.</CardTitle>
-                    <Robot className="h-4 w-4 text-primary" />
+                    <Bot className="h-4 w-4 text-primary" />
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">{aiDispatches}</div>
