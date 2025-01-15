@@ -36,6 +36,7 @@ export const AccountSwitcher = ({ currentUserId, onAccountSwitch }: AccountSwitc
         throw error;
       }
 
+      console.log("Fetched profiles:", profiles);
       return profiles as Profile[];
     },
   });
@@ -43,6 +44,7 @@ export const AccountSwitcher = ({ currentUserId, onAccountSwitch }: AccountSwitc
   const { data: currentProfile } = useQuery({
     queryKey: ["profile", currentUserId],
     queryFn: async () => {
+      console.log("Fetching current profile:", currentUserId);
       const { data: profile, error } = await supabase
         .from("profiles")
         .select("*")
@@ -54,8 +56,10 @@ export const AccountSwitcher = ({ currentUserId, onAccountSwitch }: AccountSwitc
         throw error;
       }
 
+      console.log("Current profile:", profile);
       return profile as Profile;
     },
+    enabled: !!currentUserId,
   });
 
   return (
@@ -63,7 +67,10 @@ export const AccountSwitcher = ({ currentUserId, onAccountSwitch }: AccountSwitc
       <Users className="w-4 h-4" />
       <Select
         value={currentUserId}
-        onValueChange={(value) => onAccountSwitch(value)}
+        onValueChange={(value) => {
+          console.log("Switching to user:", value);
+          onAccountSwitch(value);
+        }}
       >
         <SelectTrigger className="w-[250px]">
           <SelectValue placeholder="Select an account">
@@ -75,9 +82,11 @@ export const AccountSwitcher = ({ currentUserId, onAccountSwitch }: AccountSwitc
             {currentProfile?.email || "My Account"}
           </SelectItem>
           {profiles?.map((profile) => (
-            <SelectItem key={profile.id} value={profile.id}>
-              {profile.email}
-            </SelectItem>
+            profile.id !== currentUserId && (
+              <SelectItem key={profile.id} value={profile.id}>
+                {profile.email}
+              </SelectItem>
+            )
           ))}
         </SelectContent>
       </Select>

@@ -16,13 +16,23 @@ const WhatsApp = () => {
   const [instanceName, setInstanceName] = useState("");
   const { selectedUserId } = useSelectedUser();
 
+  const { data: currentUser } = useQuery({
+    queryKey: ["currentUser"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("User not authenticated");
+      return user;
+    },
+  });
+
   const { data: instances, refetch } = useQuery({
     queryKey: ["whatsapp-instances", selectedUserId],
     queryFn: async () => {
-      console.log("Fetching WhatsApp instances for user:", selectedUserId || "current user");
+      console.log("Fetching WhatsApp instances for user:", selectedUserId || currentUser?.id);
       const { data, error } = await supabase
         .from("whatsapp_instances")
         .select("*")
+        .eq("user_id", selectedUserId || currentUser?.id)
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -31,6 +41,7 @@ const WhatsApp = () => {
       }
       return data as WhatsAppInstance[];
     },
+    enabled: !!currentUser,
   });
 
   const handleCreateInstance = async () => {
@@ -45,11 +56,8 @@ const WhatsApp = () => {
 
     setIsCreating(true);
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
+      const userId = selectedUserId || currentUser?.id;
+      if (!userId) {
         throw new Error("User not authenticated");
       }
 
@@ -75,7 +83,7 @@ const WhatsApp = () => {
       const { error: dbError } = await supabase.from("whatsapp_instances").insert({
         name: instanceName,
         status: "connecting",
-        user_id: user.id,
+        user_id: userId,
       });
 
       if (dbError) {

@@ -60,7 +60,7 @@ export const useDispatchData = (selectedUserId: string) => {
   } = useQuery({
     queryKey: ['latestDispatch', selectedUserId],
     queryFn: async () => {
-      console.log("Fetching latest dispatch...");
+      console.log("Fetching latest dispatch for user:", selectedUserId);
       const { user, isAdmin } = await fetchUserData();
       const userId = selectedUserId || user?.id;
       
@@ -100,7 +100,7 @@ export const useDispatchData = (selectedUserId: string) => {
   } = useQuery({
     queryKey: ['lastFiveDispatches', selectedUserId],
     queryFn: async () => {
-      console.log("Fetching last 5 dispatches...");
+      console.log("Fetching last 5 dispatches for user:", selectedUserId);
       const { user, isAdmin } = await fetchUserData();
       const userId = selectedUserId || user?.id;
       
@@ -138,7 +138,7 @@ export const useDispatchData = (selectedUserId: string) => {
   } = useQuery({
     queryKey: ['latestContactResults', selectedUserId],
     queryFn: async () => {
-      console.log("Fetching latest contact results...");
+      console.log("Fetching latest contact results for user:", selectedUserId);
       const { user, isAdmin } = await fetchUserData();
       const userId = selectedUserId || user?.id;
       
