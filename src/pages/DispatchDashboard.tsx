@@ -48,6 +48,7 @@ export default function DispatchDashboard() {
   };
 
   if (latestError || chartError || contactsError) {
+    console.error("Dashboard errors:", { latestError, chartError, contactsError });
     toast({
       title: "Erro ao carregar dados",
       description: "Houve um erro ao carregar os dados. Por favor, tente novamente.",

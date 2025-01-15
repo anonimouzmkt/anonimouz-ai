@@ -26,11 +26,6 @@ export const useDispatchData = (selectedUserId: string) => {
       const { data: { user }, error: authError } = await supabase.auth.getUser();
       if (authError) {
         console.error("Auth error:", authError);
-        toast({
-          title: "Erro de autenticação",
-          description: "Por favor, faça login novamente.",
-          variant: "destructive",
-        });
         throw authError;
       }
 
@@ -38,7 +33,7 @@ export const useDispatchData = (selectedUserId: string) => {
         .from("profiles")
         .select("role")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
 
       if (profileError) {
         console.error("Profile error:", profileError);
@@ -79,7 +74,7 @@ export const useDispatchData = (selectedUserId: string) => {
         .eq('user_id', userId)
         .order('created_at', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error("Error fetching latest dispatch:", error);
@@ -87,7 +82,7 @@ export const useDispatchData = (selectedUserId: string) => {
       }
 
       console.log("Latest dispatch data:", data);
-      return data as DispatchResult;
+      return data as DispatchResult | null;
     },
     refetchInterval: 3000,
   });
@@ -157,7 +152,7 @@ export const useDispatchData = (selectedUserId: string) => {
         .eq('user_id', userId)
         .order('created_at', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
       if (dispatchError) {
         console.error("Error fetching latest dispatch:", dispatchError);
@@ -185,8 +180,8 @@ export const useDispatchData = (selectedUserId: string) => {
 
   return {
     latestDispatch,
-    lastFiveDispatches,
-    latestContactResults,
+    lastFiveDispatches: lastFiveDispatches || [],
+    latestContactResults: latestContactResults || [],
     refetchLatest,
     refetchChart,
     refetchContacts,
