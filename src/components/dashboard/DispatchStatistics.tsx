@@ -20,17 +20,44 @@ export function DispatchStatistics({ aiDispatches, normalDispatches, latestDispa
 
   const handleClearData = async () => {
     try {
-      const { error } = await supabase
-        .from('dispatch_contact_results')
-        .update({ status: 'pending', error_message: null })
-        .neq('status', 'pending');
+      console.log("Clearing data...");
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        throw new Error("No user found");
+      }
 
-      if (error) throw error;
+      // Get all dispatch results for the current user
+      const { data: dispatchResults, error: fetchError } = await supabase
+        .from('dispatch_results')
+        .select('id')
+        .eq('user_id', user.id);
+
+      if (fetchError) throw fetchError;
+
+      if (dispatchResults && dispatchResults.length > 0) {
+        console.log("Found dispatch results to clear:", dispatchResults.length);
+        
+        // Update contact results status for these dispatches
+        const { error: updateError } = await supabase
+          .from('dispatch_contact_results')
+          .update({ 
+            status: 'pending',
+            error_message: null,
+            updated_at: new Date().toISOString()
+          })
+          .in('dispatch_id', dispatchResults.map(d => d.id));
+
+        if (updateError) throw updateError;
+      }
 
       toast({
         title: "Dados limpos com sucesso",
         description: "Os resultados dos disparos foram resetados.",
       });
+
+      // Force refresh by calling the parent's refetch functions
+      window.location.reload();
     } catch (error) {
       console.error('Error clearing data:', error);
       toast({
@@ -43,35 +70,48 @@ export function DispatchStatistics({ aiDispatches, normalDispatches, latestDispa
 
   const handleDeleteData = async () => {
     try {
-      // First get all dispatch_contact_results
-      const { data: contactResults, error: fetchError } = await supabase
-        .from('dispatch_contact_results')
-        .select('dispatch_id');
+      console.log("Deleting data...");
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        throw new Error("No user found");
+      }
+
+      // Get all dispatch results for the current user
+      const { data: dispatchResults, error: fetchError } = await supabase
+        .from('dispatch_results')
+        .select('id')
+        .eq('user_id', user.id);
 
       if (fetchError) throw fetchError;
 
-      // Delete all contact results
-      if (contactResults && contactResults.length > 0) {
+      if (dispatchResults && dispatchResults.length > 0) {
+        console.log("Found dispatch results to delete:", dispatchResults.length);
+        
+        // First delete all related contact results
         const { error: contactError } = await supabase
           .from('dispatch_contact_results')
           .delete()
-          .in('dispatch_id', contactResults.map(r => r.dispatch_id));
+          .in('dispatch_id', dispatchResults.map(d => d.id));
 
         if (contactError) throw contactError;
+
+        // Then delete the dispatch results
+        const { error: dispatchError } = await supabase
+          .from('dispatch_results')
+          .delete()
+          .eq('user_id', user.id);
+
+        if (dispatchError) throw dispatchError;
       }
-
-      // Then delete all dispatch results
-      const { error: dispatchError } = await supabase
-        .from('dispatch_results')
-        .delete()
-        .not('id', 'is', null); // Delete all non-null IDs
-
-      if (dispatchError) throw dispatchError;
 
       toast({
         title: "Dados excluídos com sucesso",
         description: "Todos os resultados foram removidos.",
       });
+
+      // Force refresh by calling the parent's refetch functions
+      window.location.reload();
     } catch (error) {
       console.error('Error deleting data:', error);
       toast({
