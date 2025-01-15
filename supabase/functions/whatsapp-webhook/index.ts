@@ -84,25 +84,25 @@ serve(async (req) => {
       )
     }
 
-    // If it's a connection event or status is provided, update the instance status
     if (event === 'connection' || status) {
       const newStatus = status || (event === 'connection' ? 'connected' : null);
       
       if (newStatus) {
         console.log(`Attempting to update instance ${instanceName} status to ${newStatus}`);
         
-        // First, get the instance to update
-        const { data: instances, error: fetchError } = await supabaseClient
+        // First, get the instance to update using maybeSingle() instead of single()
+        const { data: instance, error: fetchError } = await supabaseClient
           .from('whatsapp_instances')
           .select('id, status')
-          .eq('name', instanceName);
+          .eq('name', instanceName)
+          .maybeSingle();
 
         if (fetchError) {
           console.error('Error fetching instance:', fetchError);
           throw fetchError;
         }
 
-        if (!instances || instances.length === 0) {
+        if (!instance) {
           console.error(`No instance found with name: ${instanceName}`);
           return new Response(
             JSON.stringify({ 
@@ -116,10 +116,9 @@ serve(async (req) => {
           )
         }
 
-        const instance = instances[0];
         console.log(`Found instance with id ${instance.id}, current status: ${instance.status}`);
 
-        // Perform the update
+        // Perform the update using the service role key
         const { error: updateError } = await supabaseClient
           .from('whatsapp_instances')
           .update({ 
