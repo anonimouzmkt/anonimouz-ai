@@ -1,4 +1,4 @@
-import { LogOut, MessageSquare, Settings, MessageCircle } from "lucide-react";
+import { LogOut, MessageSquare, Settings, MessageCircle, Users } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -13,10 +13,60 @@ import {
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery } from "@tanstack/react-query";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export function AppSidebar() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [impersonatedUserId, setImpersonatedUserId] = useState<string>("");
+
+  const { data: currentUser } = useQuery({
+    queryKey: ["currentUser"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("User not found");
+      return user;
+    },
+  });
+
+  const { data: profile } = useQuery({
+    queryKey: ["profile", currentUser?.id],
+    queryFn: async () => {
+      if (!currentUser) return null;
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", currentUser.id)
+        .single();
+      return profile;
+    },
+    enabled: !!currentUser,
+  });
+
+  const { data: profiles } = useQuery({
+    queryKey: ["profiles"],
+    queryFn: async () => {
+      const { data: profiles, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("role", "user");
+
+      if (error) {
+        console.error("Error fetching profiles:", error);
+        throw error;
+      }
+
+      return profiles;
+    },
+    enabled: profile?.role === 'admin_user',
+  });
 
   const handleLogout = async () => {
     try {
@@ -30,6 +80,10 @@ export function AppSidebar() {
         variant: "destructive",
       });
     }
+  };
+
+  const handleAccountSwitch = (userId: string) => {
+    setImpersonatedUserId(userId === currentUser?.id ? "" : userId);
   };
 
   return (
@@ -69,6 +123,27 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter className="p-4">
         <div className="flex flex-col gap-4">
+          {profile?.role === 'admin_user' && (
+            <div className="flex items-center gap-2 px-2">
+              <Users className="w-4 h-4" />
+              <Select
+                value={impersonatedUserId || currentUser?.id}
+                onValueChange={handleAccountSwitch}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select an account" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={currentUser?.id}>My Account</SelectItem>
+                  {profiles?.map((profile) => (
+                    <SelectItem key={profile.id} value={profile.id}>
+                      {profile.email}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <Button 
             variant="outline" 
             size="sm" 

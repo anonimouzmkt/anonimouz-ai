@@ -1,17 +1,14 @@
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
 import { Settings as SettingsIcon, Key, Copy, Webhook } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
-import { AccountSwitcher } from "@/components/AccountSwitcher";
 
 const Settings = () => {
   const [token, setToken] = useState<string>("");
   const [webhookUrl, setWebhookUrl] = useState<string>("");
-  const [impersonatedUserId, setImpersonatedUserId] = useState<string>("");
 
   const { data: currentUser } = useQuery({
     queryKey: ["currentUser"],
@@ -23,17 +20,13 @@ const Settings = () => {
   });
 
   const { data: profile, refetch } = useQuery({
-    queryKey: ["profile", impersonatedUserId],
+    queryKey: ["profile", currentUser?.id],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("User not found");
-
-      const userId = impersonatedUserId || user.id;
-
+      if (!currentUser) return null;
       const { data: profile } = await supabase
         .from("profiles")
         .select("*")
-        .eq("id", userId)
+        .eq("id", currentUser.id)
         .single();
 
       if (profile?.webhook_url) {
@@ -46,55 +39,45 @@ const Settings = () => {
   });
 
   const handleResetPassword = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user?.email) return;
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(profile?.email || '', {
+        redirectTo: `${window.location.origin}/settings`,
+      });
 
-    const { error } = await supabase.auth.resetPasswordForEmail(user.email);
-    
-    if (error) {
-      toast.error("Error sending reset password email");
-      return;
+      if (error) throw error;
+
+      toast.success("Password reset email sent!");
+    } catch (error) {
+      console.error("Error resetting password:", error);
+      toast.error("Failed to send reset password email");
     }
-
-    toast.success("Reset password email sent!");
   };
 
-  const handleGetToken = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session?.access_token) {
-      setToken(session.access_token);
-      toast.success("Token obtido com sucesso!");
-    } else {
-      toast.error("Não foi possível obter o token");
-    }
+  const handleGenerateToken = () => {
+    const newToken = Math.random().toString(36).substring(2, 15);
+    setToken(newToken);
   };
 
   const handleCopyToken = () => {
-    if (token) {
-      navigator.clipboard.writeText(token);
-      toast.success("Token copiado para a área de transferência!");
-    }
+    navigator.clipboard.writeText(token);
+    toast.success("Token copied to clipboard!");
   };
 
-  const handleSaveWebhook = async () => {
-    const { error } = await supabase
-      .from("profiles")
-      .update({ webhook_url: webhookUrl })
-      .eq("id", profile?.id);
+  const handleSaveWebhookUrl = async () => {
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ webhook_url: webhookUrl })
+        .eq("id", currentUser?.id);
 
-    if (error) {
-      toast.error("Error saving webhook URL");
-      return;
+      if (error) throw error;
+
+      toast.success("Webhook URL saved successfully!");
+      refetch();
+    } catch (error) {
+      console.error("Error saving webhook URL:", error);
+      toast.error("Failed to save webhook URL");
     }
-
-    toast.success("Webhook URL saved successfully!");
-    refetch();
-  };
-
-  const handleAccountSwitch = (userId: string) => {
-    setImpersonatedUserId(userId === currentUser?.id ? "" : userId);
-    setToken("");
-    refetch();
   };
 
   if (!profile || !currentUser) return null;
@@ -107,96 +90,42 @@ const Settings = () => {
           <h1 className="text-2xl font-bold">Settings</h1>
         </div>
 
-        {profile.role === 'admin_user' && (
-          <AccountSwitcher
-            currentUserId={currentUser.id}
-            onAccountSwitch={handleAccountSwitch}
-          />
-        )}
-
         <div className="space-y-6">
           <div className="space-y-2">
-            <Label>Email</Label>
-            <Input value={profile?.email || ""} disabled />
-          </div>
-
-          <div className="space-y-2">
-            <Label>Unique ID</Label>
-            <div className="flex items-center gap-2">
-              <Input value={profile?.unique_id || ""} disabled />
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => {
-                  if (profile?.unique_id) {
-                    navigator.clipboard.writeText(profile.unique_id);
-                    toast.success("Unique ID copied to clipboard!");
-                  }
-                }}
-              >
-                <Key className="w-4 h-4" />
-              </Button>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              This is your unique identifier for external integrations
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Token</Label>
-            <div className="flex items-center gap-2">
-              <Input 
-                value={token} 
-                disabled 
-                type="password"
-                placeholder="Clique no botão para obter o token"
-              />
-              <Button
-                variant="outline"
-                onClick={handleGetToken}
-              >
-                Obter Token
+            <h2 className="text-lg font-semibold">API Token</h2>
+            <div className="flex gap-2">
+              <Input value={token} readOnly placeholder="Generate a token..." />
+              <Button onClick={handleGenerateToken}>
+                <Key className="w-4 h-4 mr-2" />
+                Generate
               </Button>
               {token && (
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={handleCopyToken}
-                >
+                <Button variant="outline" onClick={handleCopyToken}>
                   <Copy className="w-4 h-4" />
                 </Button>
               )}
             </div>
-            <p className="text-sm text-muted-foreground">
-              Este é seu token de autorização para fazer requisições à API
-            </p>
           </div>
 
-          {profile?.role === 'admin_user' && (
+          {profile.role === 'admin_user' && (
             <div className="space-y-2">
-              <Label>Webhook URL</Label>
-              <div className="flex items-center gap-2">
+              <h2 className="text-lg font-semibold">Webhook URL</h2>
+              <div className="flex gap-2">
                 <Input
                   value={webhookUrl}
                   onChange={(e) => setWebhookUrl(e.target.value)}
-                  placeholder="Enter webhook URL"
+                  placeholder="Enter webhook URL..."
                 />
-                <Button
-                  variant="outline"
-                  onClick={handleSaveWebhook}
-                >
+                <Button onClick={handleSaveWebhookUrl}>
                   <Webhook className="w-4 h-4 mr-2" />
-                  Save Webhook
+                  Save
                 </Button>
               </div>
-              <p className="text-sm text-muted-foreground">
-                Configure the webhook URL for receiving notifications
-              </p>
             </div>
           )}
 
           <div className="space-y-2">
-            <Label>Password</Label>
+            <h2 className="text-lg font-semibold">Security</h2>
             <Button variant="outline" onClick={handleResetPassword}>
               Reset Password
             </Button>
