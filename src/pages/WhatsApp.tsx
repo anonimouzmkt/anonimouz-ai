@@ -3,6 +3,7 @@ import { WhatsAppHeader } from "@/components/whatsapp/WhatsAppHeader";
 import { InstanceList } from "@/components/whatsapp/InstanceList";
 import { CreateInstanceDialog } from "@/components/whatsapp/CreateInstanceDialog";
 import { useWhatsAppInstances } from "@/hooks/useWhatsAppInstances";
+import { WhatsAppInstance } from "@/types/whatsapp";
 
 const WhatsApp = () => {
   const [isCreating, setIsCreating] = useState(false);

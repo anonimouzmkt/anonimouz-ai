@@ -3,9 +3,10 @@ import { useCreateInstance } from "./whatsapp/useCreateInstance";
 import { useDeleteInstance } from "./whatsapp/useDeleteInstance";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { WhatsAppInstance } from "@/types/whatsapp";
 
 export const useWhatsAppInstances = () => {
-  const { generateQRCode } = useWhatsAppInstance();
+  const { generateQRCode } = useWhatsAppInstance({});
   const { createInstance } = useCreateInstance();
   const { deleteInstance } = useDeleteInstance();
 
@@ -18,9 +19,22 @@ export const useWhatsAppInstances = () => {
         .eq("status", "connected");
 
       if (error) throw error;
-      return data;
+
+      // Ensure the status is one of the allowed values
+      return (data || []).map(instance => ({
+        ...instance,
+        status: validateStatus(instance.status)
+      })) as WhatsAppInstance[];
     }
   });
+
+  // Helper function to validate status
+  const validateStatus = (status: string | null): WhatsAppInstance['status'] => {
+    if (status === "connected" || status === "disconnected" || status === "connecting") {
+      return status;
+    }
+    return "disconnected"; // Default fallback
+  };
 
   return {
     instances,
