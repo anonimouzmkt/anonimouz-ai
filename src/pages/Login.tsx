@@ -4,19 +4,29 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function Login() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   useEffect(() => {
+    // Force dark mode
+    document.documentElement.classList.add("dark");
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_IN") {
         navigate("/");
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+      // Restore theme preference when leaving login page
+      const theme = localStorage.getItem("theme");
+      document.documentElement.classList.toggle("dark", theme === "dark");
+    };
   }, [navigate]);
 
   return (
@@ -24,7 +34,7 @@ export default function Login() {
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
           <h2 className="text-3xl font-bold text-foreground">Disparador A.I</h2>
-          <p className="mt-2 text-muted-foreground">Faça login para continuar</p>
+          <p className="mt-2 text-muted-foreground">{t("signIn")}</p>
         </div>
         
         <div className="bg-card p-8 rounded-lg shadow-xl">
@@ -50,7 +60,7 @@ export default function Login() {
                 label: 'text-foreground',
               },
             }}
-            theme="default"
+            theme="dark"
             providers={[]}
           />
         </div>

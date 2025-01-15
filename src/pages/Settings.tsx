@@ -7,14 +7,17 @@ import { APITokenSection } from "@/components/settings/APITokenSection";
 import { WebhookSection } from "@/components/settings/WebhookSection";
 import { SecuritySection } from "@/components/settings/SecuritySection";
 import { ThemeToggle } from "@/components/settings/ThemeToggle";
+import { LanguageSelector } from "@/components/settings/LanguageSelector";
 import { useSelectedUser } from "@/components/sidebar/SidebarContext";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "@/hooks/useTranslation";
 
 const Settings = () => {
   const [webhookUrl, setWebhookUrl] = useState<string>("");
   const [isDarkMode, setIsDarkMode] = useState(true);
   const { selectedUserId } = useSelectedUser();
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   useEffect(() => {
     const theme = localStorage.getItem("theme");
@@ -67,7 +70,7 @@ const Settings = () => {
       if (error) {
         console.error("Error fetching current user:", error);
         toast({
-          title: "Error",
+          title: t("error"),
           description: "Failed to fetch user information. Please try logging in again.",
           variant: "destructive",
         });
@@ -169,7 +172,7 @@ const Settings = () => {
     return (
       <div className="flex-1 p-8">
         <div className="max-w-2xl mx-auto">
-          <h1 className="text-2xl font-bold text-red-500">Error loading settings</h1>
+          <h1 className="text-2xl font-bold text-red-500">{t("error")}</h1>
           <p className="mt-2">Please try refreshing the page or logging in again.</p>
         </div>
       </div>
@@ -187,7 +190,7 @@ const Settings = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <SettingsIcon className="w-6 h-6" />
-            <h1 className="text-2xl font-bold">Settings</h1>
+            <h1 className="text-2xl font-bold">{t("settings")}</h1>
           </div>
           <ThemeToggle isDarkMode={isDarkMode} toggleTheme={toggleTheme} />
         </div>
@@ -197,6 +200,8 @@ const Settings = () => {
             email={profile.email || ''} 
             uniqueId={profile.unique_id || ''} 
           />
+
+          <LanguageSelector />
 
           <APITokenSection />
 

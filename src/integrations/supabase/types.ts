@@ -106,6 +106,7 @@ export type Database = {
           created_at: string
           email: string | null
           id: string
+          language: string
           role: Database["public"]["Enums"]["user_role"]
           theme_color: string
           unique_id: string
@@ -117,6 +118,7 @@ export type Database = {
           created_at?: string
           email?: string | null
           id: string
+          language?: string
           role?: Database["public"]["Enums"]["user_role"]
           theme_color?: string
           unique_id?: string
@@ -128,6 +130,7 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
+          language?: string
           role?: Database["public"]["Enums"]["user_role"]
           theme_color?: string
           unique_id?: string
