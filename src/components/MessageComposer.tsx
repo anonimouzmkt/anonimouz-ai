@@ -8,7 +8,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { InstanceSelector } from "./message-composer/InstanceSelector";
 import { AIContextInput } from "./message-composer/AIContextInput";
 import { MessageInput } from "./message-composer/MessageInput";
-import { apiClient } from "@/lib/api-client";
 
 interface MessageComposerProps {
   onSend: (message: string, instanceId: string, isAiDispatch: boolean, aiContext?: string) => Promise<string | undefined>;
@@ -23,10 +22,6 @@ export function MessageComposer({ onSend, disabled, contacts = [] }: MessageComp
   const [useAI, setUseAI] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const { toast } = useToast();
-
-  useEffect(() => {
-    apiClient.initialize();
-  }, []);
 
   const { data: profile } = useQuery({
     queryKey: ["profile"],
@@ -70,24 +65,41 @@ export function MessageComposer({ onSend, disabled, contacts = [] }: MessageComp
   const handleSend = async () => {
     if (validateFields() && profile?.unique_id) {
       try {
-        const dispatchData = {
-          message,
-          instanceId: selectedInstance,
-          isAiDispatch: useAI,
-          aiContext: useAI ? context : undefined,
-          contacts: contacts.map(contact => ({
-            name: contact.name,
-            phone: contact.phone
-          }))
-        };
+        // Create dispatch record first
+        const { data: dispatch, error: dispatchError } = await supabase
+          .from("dispatch_results")
+          .insert({
+            user_id: profile.id,
+            instance_id: selectedInstance,
+            total_contacts: contacts.length,
+            is_ai_dispatch: useAI,
+            initial_message: message,
+            ai_context: useAI ? context : undefined
+          })
+          .select()
+          .single();
 
-        const { id: dispatchId } = await apiClient.createDispatch(dispatchData);
+        if (dispatchError) throw dispatchError;
+
+        // Create contact results
+        const { error: contactsError } = await supabase
+          .from("dispatch_contact_results")
+          .insert(
+            contacts.map(contact => ({
+              dispatch_id: dispatch.id,
+              contact_name: contact.name,
+              contact_phone: contact.phone,
+              status: "pending"
+            }))
+          );
+
+        if (contactsError) throw contactsError;
         
-        if (useAI && dispatchId && profile.webhook_url) {
+        if (useAI && dispatch.id && profile.webhook_url) {
           console.log('Sending dispatch data to webhook:', profile.webhook_url);
           
           const webhookPayload = {
-            dispatchId,
+            dispatchId: dispatch.id,
             uniqueId: profile.unique_id,
             message,
             context,
@@ -116,6 +128,7 @@ export function MessageComposer({ onSend, disabled, contacts = [] }: MessageComp
         }
 
         setMessage("");
+        setContext("");
       } catch (error) {
         console.error('Error sending dispatch:', error);
         toast({

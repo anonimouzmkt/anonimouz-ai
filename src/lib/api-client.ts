@@ -30,35 +30,6 @@ class ApiClient {
     }
   }
 
-  async createDispatch(data: {
-    message: string;
-    instanceId: string;
-    isAiDispatch: boolean;
-    aiContext?: string;
-    contacts: { name: string; phone: string; }[];
-  }) {
-    try {
-      console.log('Creating dispatch with data:', data);
-      
-      const { data: response, error } = await supabase.functions.invoke(
-        'create-whatsapp-dispatch',
-        {
-          body: data
-        }
-      );
-
-      if (error) {
-        console.error('Error creating dispatch:', error);
-        throw error;
-      }
-
-      return response;
-    } catch (error) {
-      console.error('Error creating dispatch:', error);
-      throw error;
-    }
-  }
-
   async createWhatsAppInstance(name: string) {
     try {
       const { data: response, error } = await supabase.functions.invoke(
