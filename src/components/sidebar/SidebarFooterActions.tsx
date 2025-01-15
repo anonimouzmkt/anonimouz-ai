@@ -1,12 +1,5 @@
-import { Settings, LogOut, Users, Shield } from "lucide-react";
+import { Settings, LogOut, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { AccountSwitcherSection } from "./AccountSwitcherSection";
 
 interface SidebarFooterActionsProps {
@@ -28,13 +21,8 @@ export const SidebarFooterActions = ({
   handleNavigation,
   handleLogout,
 }: SidebarFooterActionsProps) => {
-  console.log("SidebarFooterActions - Current profiles:", profiles);
-  console.log("SidebarFooterActions - Current user:", currentUserId);
-  console.log("SidebarFooterActions - Impersonated user:", impersonatedUserId);
-  console.log("SidebarFooterActions - Is admin:", isAdmin);
-
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-3">
       {isAdmin && (
         <AccountSwitcherSection 
           currentUserId={currentUserId}
@@ -42,9 +30,9 @@ export const SidebarFooterActions = ({
         />
       )}
       <Button 
-        variant="outline" 
+        variant="ghost" 
         size="sm" 
-        className="w-full justify-start group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:aspect-square"
+        className="w-full justify-start hover:bg-accent/50 group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:aspect-square"
         onClick={() => handleNavigation("/settings")}
       >
         <Settings className="mr-2 h-4 w-4 group-data-[collapsible=icon]:mr-0" />
@@ -52,9 +40,9 @@ export const SidebarFooterActions = ({
       </Button>
       {isAdmin && (
         <Button 
-          variant="outline" 
+          variant="ghost" 
           size="sm" 
-          className="w-full justify-start group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:aspect-square"
+          className="w-full justify-start hover:bg-accent/50 group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:aspect-square"
           onClick={() => handleNavigation("/admin-settings")}
         >
           <Shield className="mr-2 h-4 w-4 group-data-[collapsible=icon]:mr-0" />
@@ -62,9 +50,9 @@ export const SidebarFooterActions = ({
         </Button>
       )}
       <Button
-        variant="outline"
+        variant="ghost"
         size="sm"
-        className="w-full justify-start group-data-[collapsible=icon]:w-8 group-data-[collapsible-icon]:p-0 group-data-[collapsible=icon]:aspect-square"
+        className="w-full justify-start hover:bg-accent/50 group-data-[collapsible=icon]:w-8 group-data-[collapsible-icon]:p-0 group-data-[collapsible=icon]:aspect-square"
         onClick={handleLogout}
       >
         <LogOut className="mr-2 h-4 w-4 group-data-[collapsible=icon]:mr-0" />

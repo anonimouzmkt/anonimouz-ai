@@ -89,7 +89,7 @@ export const ProtectedLayout = ({ children }: ProtectedLayoutProps) => {
       <SidebarProvider>
         <div className="flex min-h-screen w-full bg-background">
           <AppSidebar />
-          <main className="flex-1 overflow-y-auto p-8">
+          <main className="flex-1 ml-64 p-8 transition-all duration-300 group-data-[collapsible=icon]:ml-16">
             {children}
           </main>
         </div>
