@@ -22,6 +22,10 @@ export const InstanceList = ({ instances, onDelete }: InstanceListProps) => {
   const handleGenerateQR = async (instance: WhatsAppInstance) => {
     setSelectedInstance(instance);
     setIsQRDialogOpen(true);
+    await refreshQRCode(instance);
+  };
+
+  const refreshQRCode = async (instance: WhatsAppInstance) => {
     setIsLoading(true);
     setQrCodeBase64(undefined);
 
@@ -52,7 +56,7 @@ export const InstanceList = ({ instances, onDelete }: InstanceListProps) => {
       console.error('Failed to get QR code:', error);
       toast({
         title: "Error",
-        description: "Failed to get QR code. Please try again.",
+        description: "Falha ao obter QR code. Tente novamente.",
         variant: "destructive",
       });
     } finally {
@@ -112,6 +116,7 @@ export const InstanceList = ({ instances, onDelete }: InstanceListProps) => {
         qrCodeBase64={qrCodeBase64}
         isLoading={isLoading}
         instanceName={selectedInstance?.name || ""}
+        onRefresh={() => selectedInstance && refreshQRCode(selectedInstance)}
       />
     </>
   );
