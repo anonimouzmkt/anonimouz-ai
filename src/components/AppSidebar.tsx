@@ -71,7 +71,7 @@ export function AppSidebar() {
 
       return profiles;
     },
-    enabled: profile?.role === 'admin_user',
+    enabled: profile?.admin_users === true,
   });
 
   const handleLogout = async () => {
@@ -124,7 +124,7 @@ export function AppSidebar() {
     setPendingNavigation(null);
   };
 
-  const isAdmin = profile?.role === 'admin_user';
+  const isAdmin = profile?.admin_users === true;
 
   // Effect to handle query invalidation when selected user changes
   useEffect(() => {

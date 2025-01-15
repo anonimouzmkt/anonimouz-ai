@@ -14,6 +14,7 @@ interface Profile {
   id: string;
   email: string;
   role: string;
+  admin_users: boolean;
 }
 
 interface AccountSwitcherProps {
