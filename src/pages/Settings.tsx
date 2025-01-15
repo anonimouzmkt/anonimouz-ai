@@ -7,10 +7,12 @@ import { APITokenSection } from "@/components/settings/APITokenSection";
 import { WebhookSection } from "@/components/settings/WebhookSection";
 import { SecuritySection } from "@/components/settings/SecuritySection";
 import { ThemeToggle } from "@/components/settings/ThemeToggle";
+import { useSelectedUser } from "@/components/AppSidebar";
 
 const Settings = () => {
   const [webhookUrl, setWebhookUrl] = useState<string>("");
   const [isDarkMode, setIsDarkMode] = useState(true);
+  const { selectedUserId } = useSelectedUser();
 
   useEffect(() => {
     const theme = localStorage.getItem("theme");
@@ -35,13 +37,16 @@ const Settings = () => {
   });
 
   const { data: profile, refetch } = useQuery({
-    queryKey: ["profile", currentUser?.id],
+    queryKey: ["profile", selectedUserId || currentUser?.id],
     queryFn: async () => {
-      if (!currentUser) return null;
+      const userId = selectedUserId || currentUser?.id;
+      if (!userId) return null;
+      
+      console.log("Fetching profile for user:", userId);
       const { data: profile } = await supabase
         .from("profiles")
         .select("*")
-        .eq("id", currentUser.id)
+        .eq("id", userId)
         .single();
 
       if (profile?.webhook_url) {
@@ -50,10 +55,27 @@ const Settings = () => {
 
       return profile;
     },
+    enabled: !!(selectedUserId || currentUser?.id),
+  });
+
+  const { data: adminProfile } = useQuery({
+    queryKey: ["adminProfile", currentUser?.id],
+    queryFn: async () => {
+      if (!currentUser) return null;
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", currentUser.id)
+        .single();
+      return profile;
+    },
     enabled: !!currentUser,
   });
 
   if (!profile || !currentUser) return null;
+
+  const isAdmin = adminProfile?.role === 'admin_user';
+  const userId = selectedUserId || currentUser.id;
 
   return (
     <div className="flex-1 p-8">
@@ -74,11 +96,11 @@ const Settings = () => {
 
           <APITokenSection />
 
-          {profile.role === 'admin_user' && (
+          {isAdmin && (
             <WebhookSection
               webhookUrl={webhookUrl}
               setWebhookUrl={setWebhookUrl}
-              userId={currentUser.id}
+              userId={userId}
               refetch={refetch}
             />
           )}
