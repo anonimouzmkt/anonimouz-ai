@@ -1,15 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Send } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { InstanceSelector } from "./message-composer/InstanceSelector";
 import { AIContextInput } from "./message-composer/AIContextInput";
 import { MessageInput } from "./message-composer/MessageInput";
-import { apiService } from "@/lib/api-service";
 import { useSelectedUser } from "./sidebar/SidebarContext";
+import { useDispatchValidation } from "@/hooks/useDispatchValidation";
+import { useDispatchCreation } from "@/hooks/useDispatchCreation";
 
 interface MessageComposerProps {
   onSend: (message: string, instanceId: string, isAiDispatch: boolean, aiContext?: string) => Promise<string | undefined>;
@@ -22,9 +22,9 @@ export function MessageComposer({ onSend, disabled, contacts = [] }: MessageComp
   const [context, setContext] = useState("");
   const [selectedInstance, setSelectedInstance] = useState<string>("");
   const [useAI, setUseAI] = useState(false);
-  const [validationErrors, setValidationErrors] = useState<string[]>([]);
-  const { toast } = useToast();
   const { selectedUserId } = useSelectedUser();
+  const { validationErrors, validateFields } = useDispatchValidation();
+  const { createDispatch } = useDispatchCreation();
 
   const { data: profile } = useQuery({
     queryKey: ["profile", selectedUserId],
@@ -45,94 +45,28 @@ export function MessageComposer({ onSend, disabled, contacts = [] }: MessageComp
     }
   });
 
-  const validateFields = () => {
-    const errors: string[] = [];
-
-    if (!selectedInstance) {
-      errors.push("Selecione uma instância do WhatsApp");
-    }
-
-    if (!message.trim()) {
-      errors.push("Digite uma mensagem inicial");
-    }
-
-    if (useAI && !context.trim()) {
-      errors.push("Digite o contexto do disparo quando usar I.A");
-    }
-
-    setValidationErrors(errors);
-    return errors.length === 0;
-  };
-
   const handleSend = async () => {
-    if (validateFields() && profile?.unique_id) {
-      try {
-        // Create dispatch record first
-        const { data: dispatch, error: dispatchError } = await supabase
-          .from("dispatch_results")
-          .insert({
-            user_id: profile.id,
-            instance_id: selectedInstance,
-            total_contacts: contacts.length,
-            is_ai_dispatch: useAI,
-            initial_message: message,
-            ai_context: useAI ? context : undefined
-          })
-          .select()
-          .single();
+    const isValid = validateFields({
+      selectedInstance,
+      message,
+      useAI,
+      context
+    });
 
-        if (dispatchError) throw dispatchError;
+    if (isValid && profile) {
+      const dispatchId = await createDispatch(
+        profile,
+        selectedInstance,
+        message,
+        useAI,
+        context,
+        contacts
+      );
 
-        // Create contact results
-        const { error: contactsError } = await supabase
-          .from("dispatch_contact_results")
-          .insert(
-            contacts.map(contact => ({
-              dispatch_id: dispatch.id,
-              contact_name: contact.name,
-              contact_phone: contact.phone,
-              status: "pending"
-            }))
-          );
-
-        if (contactsError) throw contactsError;
-        
-        if (useAI && dispatch.id) {
-          console.log('Sending dispatch data through API service');
-          
-          await apiService.handleDispatch({
-            dispatchId: dispatch.id,
-            uniqueId: profile.unique_id,
-            message,
-            context,
-            contacts: contacts.map(contact => ({
-              name: contact.name,
-              phone: contact.phone
-            }))
-          });
-
-          toast({
-            title: "Disparo iniciado",
-            description: "Os contatos foram enviados para processamento com I.A"
-          });
-        }
-
+      if (dispatchId) {
         setMessage("");
         setContext("");
-      } catch (error) {
-        console.error('Error sending dispatch:', error);
-        toast({
-          title: "Erro no disparo",
-          description: "Ocorreu um erro ao enviar os contatos",
-          variant: "destructive"
-        });
       }
-    } else if (!profile?.unique_id) {
-      toast({
-        title: "Erro",
-        description: "Unique ID não encontrado. Por favor, recarregue a página.",
-        variant: "destructive",
-      });
     }
   };
 
