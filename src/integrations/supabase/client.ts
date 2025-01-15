@@ -10,7 +10,7 @@ export const supabase = createClient<Database>(
   {
     auth: {
       persistSession: true,
-      autoRefreshToken: false, // Desabilitando o auto-refresh do token
+      autoRefreshToken: true,
       detectSessionInUrl: true,
       flowType: 'pkce'
     }
