@@ -8,15 +8,21 @@ import {
 import { useTranslation } from "@/hooks/useTranslation";
 import { Language } from "@/utils/translations";
 import { useToast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 
 export const LanguageSelector = () => {
   const { t, setLanguage, currentLanguage } = useTranslation();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const handleLanguageChange = async (language: string) => {
     try {
       console.log("Language change requested:", language);
       await setLanguage(language as Language);
+      
+      // Invalidate the profile query to refresh the data
+      await queryClient.invalidateQueries({ queryKey: ["profile"] });
+      
       toast({
         title: t("success"),
         description: t("languageUpdated"),
