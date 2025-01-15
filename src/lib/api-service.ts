@@ -7,6 +7,7 @@ class ApiService {
 
   private constructor() {
     this.initializeToken();
+    console.log('API Service initialized with base URL:', this.baseUrl);
   }
 
   public static getInstance(): ApiService {
@@ -184,6 +185,28 @@ class ApiService {
       return await response.json();
     } catch (error) {
       console.error('Error updating AI dispatch status:', error);
+      throw error;
+    }
+  }
+
+  public async handleWebhook(data: any) {
+    console.log('Handling webhook:', data);
+    
+    try {
+      const headers = await this.getAuthHeaders();
+      const response = await fetch(`${this.baseUrl}/whatsapp/webhook`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(data)
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error handling webhook: ${response.statusText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error handling webhook:', error);
       throw error;
     }
   }
