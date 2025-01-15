@@ -13,6 +13,22 @@ serve(async (req) => {
   }
 
   try {
+    // Validate Authorization header
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      console.error('Missing Authorization header');
+      return new Response(
+        JSON.stringify({ 
+          error: 'Authorization failed',
+          details: 'Missing authorization header'
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 401
+        }
+      )
+    }
+
     // Validate x-unique-id header
     const uniqueId = req.headers.get('x-unique-id');
     if (!uniqueId) {
