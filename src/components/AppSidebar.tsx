@@ -1,4 +1,4 @@
-import { useState, createContext, useContext } from "react";
+import { useState, createContext, useContext, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -91,8 +91,17 @@ export function AppSidebar() {
   const handleAccountSwitch = async (userId: string) => {
     console.log("Switching to user:", userId);
     setSelectedUserId(userId === currentUser?.id ? "" : userId);
-    // Invalidate queries to refresh data for the new user context
+    
+    // Invalidate all queries to force a refresh
     await queryClient.invalidateQueries();
+    
+    // Show toast notification
+    toast({
+      title: "Account Switched",
+      description: userId === currentUser?.id 
+        ? "Switched back to your account" 
+        : "Switched to selected user account",
+    });
   };
 
   const handleNavigation = (path: string) => {
@@ -116,6 +125,14 @@ export function AppSidebar() {
   };
 
   const isAdmin = profile?.role === 'admin_user';
+
+  // Effect to handle query invalidation when selected user changes
+  useEffect(() => {
+    if (selectedUserId) {
+      console.log("Selected user changed, invalidating queries...");
+      queryClient.invalidateQueries();
+    }
+  }, [selectedUserId, queryClient]);
 
   return (
     <SelectedUserContext.Provider value={{ selectedUserId, setSelectedUserId }}>

@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { WhatsAppHeader } from "@/components/whatsapp/WhatsAppHeader";
 import { InstanceList } from "@/components/whatsapp/InstanceList";
 import { CreateInstanceDialog } from "@/components/whatsapp/CreateInstanceDialog";
+import { useSelectedUser } from "@/components/AppSidebar";
 import type { WhatsAppInstance } from "@/types/whatsapp";
 
 const WhatsApp = () => {
@@ -13,16 +14,21 @@ const WhatsApp = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [showDialog, setShowDialog] = useState(false);
   const [instanceName, setInstanceName] = useState("");
+  const { selectedUserId } = useSelectedUser();
 
   const { data: instances, refetch } = useQuery({
-    queryKey: ["whatsapp-instances"],
+    queryKey: ["whatsapp-instances", selectedUserId],
     queryFn: async () => {
+      console.log("Fetching WhatsApp instances for user:", selectedUserId || "current user");
       const { data, error } = await supabase
         .from("whatsapp_instances")
         .select("*")
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching WhatsApp instances:", error);
+        throw error;
+      }
       return data as WhatsAppInstance[];
     },
   });
