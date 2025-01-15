@@ -1,11 +1,16 @@
-import { CSVUploader } from "@/components/CSVUploader";
-import { ContactList } from "@/components/ContactList";
-import { MessageComposer } from "@/components/MessageComposer";
 import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { CSVUploader } from "@/components/CSVUploader";
+import { ContactSection } from "@/components/ContactSection";
+import { MessageComposer } from "@/components/MessageComposer";
+import { useToast } from "@/hooks/use-toast";
 
 interface Contact {
   name: string;
   phone: string;
+  status?: "pending" | "success" | "error";
+  error?: string;
 }
 
 declare global {
@@ -16,18 +21,100 @@ declare global {
 
 const Index = () => {
   const [contacts, setContacts] = useState<Contact[]>([]);
+  const [currentDispatchId, setCurrentDispatchId] = useState<string>();
+  const { toast } = useToast();
 
   useEffect(() => {
     window.__CONTACTS_LOADED__ = contacts.length > 0;
   }, [contacts]);
 
+  const { data: currentDispatch } = useQuery({
+    queryKey: ["dispatch", currentDispatchId],
+    queryFn: async () => {
+      if (!currentDispatchId) return null;
+
+      const { data: results, error } = await supabase
+        .from("dispatch_contact_results")
+        .select("*")
+        .eq("dispatch_id", currentDispatchId);
+
+      if (error) throw error;
+      return results;
+    },
+    enabled: !!currentDispatchId,
+  });
+
+  useEffect(() => {
+    if (currentDispatch) {
+      // Update contacts with status from dispatch
+      setContacts(prevContacts => 
+        prevContacts.map(contact => {
+          const result = currentDispatch.find(r => r.contact_phone === contact.phone);
+          if (result) {
+            return {
+              ...contact,
+              status: result.status as "pending" | "success" | "error",
+              error: result.error_message
+            };
+          }
+          return contact;
+        })
+      );
+    }
+  }, [currentDispatch]);
+
   const handleContactsLoaded = (loadedContacts: Contact[]) => {
-    setContacts(loadedContacts);
+    setContacts(loadedContacts.map(contact => ({
+      ...contact,
+      status: "pending"
+    })));
   };
 
-  const handleSendMessage = (message: string) => {
-    console.log("Sending message:", message);
-    console.log("To contacts:", contacts);
+  const handleSendMessage = async (message: string, instanceId: string, isAiDispatch: boolean, aiContext?: string) => {
+    try {
+      // Create dispatch record
+      const { data: dispatch, error: dispatchError } = await supabase
+        .from("dispatch_results")
+        .insert({
+          instance_id: instanceId,
+          total_contacts: contacts.length,
+          is_ai_dispatch: isAiDispatch,
+          initial_message: message,
+          ai_context: aiContext
+        })
+        .select()
+        .single();
+
+      if (dispatchError) throw dispatchError;
+
+      // Create contact results
+      const { error: contactsError } = await supabase
+        .from("dispatch_contact_results")
+        .insert(
+          contacts.map(contact => ({
+            dispatch_id: dispatch.id,
+            contact_name: contact.name,
+            contact_phone: contact.phone,
+            status: "pending"
+          }))
+        );
+
+      if (contactsError) throw contactsError;
+
+      setCurrentDispatchId(dispatch.id);
+      
+      toast({
+        title: "Disparo iniciado",
+        description: "O disparo foi iniciado com sucesso!"
+      });
+    } catch (error) {
+      console.error("Error starting dispatch:", error);
+      toast({
+        title: "Erro ao iniciar disparo",
+        description: "Ocorreu um erro ao iniciar o disparo. Tente novamente.",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -41,16 +128,19 @@ const Index = () => {
           </div>
 
           {contacts.length > 0 && (
-            <div className="bg-card p-6 rounded-lg border border-border">
-              <h2 className="text-xl font-semibold mb-4">Contact List</h2>
-              <ContactList contacts={contacts} />
-            </div>
+            <ContactSection 
+              contacts={contacts} 
+              dispatchId={currentDispatchId}
+            />
           )}
         </div>
 
         {/* Right Column */}
         <div>
-          <MessageComposer onSend={handleSendMessage} />
+          <MessageComposer 
+            onSend={handleSendMessage} 
+            disabled={!contacts.length}
+          />
         </div>
       </div>
     </main>

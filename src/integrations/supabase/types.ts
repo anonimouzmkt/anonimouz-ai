@@ -9,6 +9,97 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      dispatch_contact_results: {
+        Row: {
+          contact_name: string
+          contact_phone: string
+          created_at: string
+          dispatch_id: string
+          error_message: string | null
+          id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          contact_name: string
+          contact_phone: string
+          created_at?: string
+          dispatch_id: string
+          error_message?: string | null
+          id?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          contact_name?: string
+          contact_phone?: string
+          created_at?: string
+          dispatch_id?: string
+          error_message?: string | null
+          id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispatch_contact_results_dispatch_id_fkey"
+            columns: ["dispatch_id"]
+            isOneToOne: false
+            referencedRelation: "dispatch_results"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dispatch_results: {
+        Row: {
+          ai_context: string | null
+          created_at: string
+          error_count: number
+          id: string
+          initial_message: string
+          instance_id: string
+          is_ai_dispatch: boolean
+          success_count: number
+          total_contacts: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ai_context?: string | null
+          created_at?: string
+          error_count?: number
+          id?: string
+          initial_message: string
+          instance_id: string
+          is_ai_dispatch?: boolean
+          success_count?: number
+          total_contacts?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ai_context?: string | null
+          created_at?: string
+          error_count?: number
+          id?: string
+          initial_message?: string
+          instance_id?: string
+          is_ai_dispatch?: boolean
+          success_count?: number
+          total_contacts?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispatch_results_instance_id_fkey"
+            columns: ["instance_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_instances"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
