@@ -1,19 +1,18 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Settings as SettingsIcon, Key, Copy, Webhook, Moon, Sun } from "lucide-react";
-import { toast } from "sonner";
+import { Settings as SettingsIcon } from "lucide-react";
 import { useState, useEffect } from "react";
-import { Switch } from "@/components/ui/switch";
+import { AccountInformation } from "@/components/settings/AccountInformation";
+import { APITokenSection } from "@/components/settings/APITokenSection";
+import { WebhookSection } from "@/components/settings/WebhookSection";
+import { SecuritySection } from "@/components/settings/SecuritySection";
+import { ThemeToggle } from "@/components/settings/ThemeToggle";
 
 const Settings = () => {
-  const [token, setToken] = useState<string>("");
   const [webhookUrl, setWebhookUrl] = useState<string>("");
   const [isDarkMode, setIsDarkMode] = useState(true);
 
   useEffect(() => {
-    // Check if user has a theme preference
     const theme = localStorage.getItem("theme");
     const prefersDark = theme === "dark" || (!theme && window.matchMedia("(prefers-color-scheme: dark)").matches);
     setIsDarkMode(prefersDark);
@@ -54,59 +53,6 @@ const Settings = () => {
     enabled: !!currentUser,
   });
 
-  const handleResetPassword = async () => {
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(profile?.email || '', {
-        redirectTo: `${window.location.origin}/settings`,
-      });
-
-      if (error) throw error;
-
-      toast.success("Password reset email sent!");
-    } catch (error) {
-      console.error("Error resetting password:", error);
-      toast.error("Failed to send reset password email");
-    }
-  };
-
-  const handleGenerateToken = async () => {
-    try {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      
-      if (error) throw error;
-      if (!session) throw new Error("No active session");
-
-      const newToken = session.access_token;
-      setToken(newToken);
-      toast.success("Token generated successfully!");
-    } catch (error) {
-      console.error("Error generating token:", error);
-      toast.error("Failed to generate token");
-    }
-  };
-
-  const handleCopyToken = () => {
-    navigator.clipboard.writeText(token);
-    toast.success("Token copied to clipboard!");
-  };
-
-  const handleSaveWebhookUrl = async () => {
-    try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({ webhook_url: webhookUrl })
-        .eq("id", currentUser?.id);
-
-      if (error) throw error;
-
-      toast.success("Webhook URL saved successfully!");
-      refetch();
-    } catch (error) {
-      console.error("Error saving webhook URL:", error);
-      toast.error("Failed to save webhook URL");
-    }
-  };
-
   if (!profile || !currentUser) return null;
 
   return (
@@ -117,66 +63,27 @@ const Settings = () => {
             <SettingsIcon className="w-6 h-6" />
             <h1 className="text-2xl font-bold">Settings</h1>
           </div>
-          <div className="flex items-center gap-2">
-            {isDarkMode ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
-            <Switch checked={isDarkMode} onCheckedChange={toggleTheme} />
-          </div>
+          <ThemeToggle isDarkMode={isDarkMode} toggleTheme={toggleTheme} />
         </div>
 
         <div className="space-y-6">
-          <div className="space-y-2">
-            <h2 className="text-lg font-semibold">Account Information</h2>
-            <div className="space-y-2">
-              <div>
-                <label className="text-sm font-medium">Email</label>
-                <Input value={profile.email || ''} readOnly />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Unique ID</label>
-                <Input value={profile.unique_id || ''} readOnly />
-              </div>
-            </div>
-          </div>
+          <AccountInformation 
+            email={profile.email || ''} 
+            uniqueId={profile.unique_id || ''} 
+          />
 
-          <div className="space-y-2">
-            <h2 className="text-lg font-semibold">API Token</h2>
-            <div className="flex gap-2">
-              <Input value={token} readOnly placeholder="Generate a token..." />
-              <Button onClick={handleGenerateToken}>
-                <Key className="w-4 h-4 mr-2" />
-                Generate
-              </Button>
-              {token && (
-                <Button variant="outline" onClick={handleCopyToken}>
-                  <Copy className="w-4 h-4" />
-                </Button>
-              )}
-            </div>
-          </div>
+          <APITokenSection />
 
           {profile.role === 'admin_user' && (
-            <div className="space-y-2">
-              <h2 className="text-lg font-semibold">Webhook URL</h2>
-              <div className="flex gap-2">
-                <Input
-                  value={webhookUrl}
-                  onChange={(e) => setWebhookUrl(e.target.value)}
-                  placeholder="Enter webhook URL..."
-                />
-                <Button onClick={handleSaveWebhookUrl}>
-                  <Webhook className="w-4 h-4 mr-2" />
-                  Save
-                </Button>
-              </div>
-            </div>
+            <WebhookSection
+              webhookUrl={webhookUrl}
+              setWebhookUrl={setWebhookUrl}
+              userId={currentUser.id}
+              refetch={refetch}
+            />
           )}
 
-          <div className="space-y-2">
-            <h2 className="text-lg font-semibold">Security</h2>
-            <Button variant="outline" onClick={handleResetPassword}>
-              Reset Password
-            </Button>
-          </div>
+          <SecuritySection email={profile.email || ''} />
         </div>
       </div>
     </div>
