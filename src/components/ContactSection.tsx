@@ -12,9 +12,16 @@ interface ContactSectionProps {
   selectedContacts: Set<string>;
   onToggleContact: (phone: string) => void;
   onSelectAll: () => void;
+  onDeselectAll: () => void;
 }
 
-export function ContactSection({ contacts, selectedContacts, onToggleContact, onSelectAll }: ContactSectionProps) {
+export function ContactSection({ 
+  contacts, 
+  selectedContacts, 
+  onToggleContact, 
+  onSelectAll,
+  onDeselectAll 
+}: ContactSectionProps) {
   return (
     <div className="bg-card p-6 rounded-lg">
       <div className="space-y-4">
@@ -33,6 +40,7 @@ export function ContactSection({ contacts, selectedContacts, onToggleContact, on
           selectedContacts={selectedContacts}
           onToggleContact={onToggleContact}
           onSelectAll={onSelectAll}
+          onDeselectAll={onDeselectAll}
         />
       </div>
     </div>

@@ -59,12 +59,14 @@ const Index = () => {
   };
 
   const toggleContact = (phone: string) => {
+    console.log('Toggling contact:', phone);
     const newSelected = new Set(selectedContacts);
     if (newSelected.has(phone)) {
       newSelected.delete(phone);
     } else {
       newSelected.add(phone);
     }
+    console.log('New selected size:', newSelected.size);
     setSelectedContacts(newSelected);
     setHasUnsavedChanges(true);
   };
@@ -76,6 +78,11 @@ const Index = () => {
       const allPhones = contacts.map(c => c.phone);
       setSelectedContacts(new Set(allPhones));
     }
+    setHasUnsavedChanges(true);
+  };
+
+  const handleDeselectAll = () => {
+    setSelectedContacts(new Set());
     setHasUnsavedChanges(true);
   };
 
@@ -135,6 +142,7 @@ const Index = () => {
               selectedContacts={selectedContacts}
               onToggleContact={toggleContact}
               onSelectAll={handleSelectAll}
+              onDeselectAll={handleDeselectAll}
             />
             <MessageComposer
               onSend={sendMessages}
