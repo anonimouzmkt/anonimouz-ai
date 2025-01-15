@@ -23,10 +23,40 @@ const Settings = () => {
     document.documentElement.classList.toggle("dark", prefersDark);
   }, []);
 
-  const toggleTheme = () => {
+  const toggleTheme = async () => {
+    const newTheme = !isDarkMode ? "dark" : "light";
     setIsDarkMode(!isDarkMode);
     document.documentElement.classList.toggle("dark");
-    localStorage.setItem("theme", !isDarkMode ? "dark" : "light");
+    localStorage.setItem("theme", newTheme);
+
+    try {
+      const userId = selectedUserId || currentUser?.id;
+      if (!userId) return;
+
+      console.log("Updating theme color for user:", userId, "to:", newTheme);
+      const { error } = await supabase
+        .from("profiles")
+        .update({ theme_color: newTheme })
+        .eq("id", userId);
+
+      if (error) {
+        console.error("Error updating theme:", error);
+        toast({
+          title: "Error",
+          description: "Failed to save theme preference.",
+          variant: "destructive",
+        });
+        throw error;
+      }
+
+      console.log("Theme color updated successfully");
+      toast({
+        title: "Success",
+        description: "Theme preference saved.",
+      });
+    } catch (error) {
+      console.error("Error in theme toggle:", error);
+    }
   };
 
   const { data: currentUser, isError: isCurrentUserError } = useQuery({
@@ -75,10 +105,17 @@ const Settings = () => {
         throw error;
       }
 
-      // Update webhook URL state when profile is fetched
       if (profile?.webhook_url !== undefined) {
         console.log("Setting webhook URL from profile:", profile.webhook_url);
         setWebhookUrl(profile.webhook_url || "");
+      }
+
+      // Set theme based on profile
+      if (profile?.theme_color) {
+        const isDark = profile.theme_color === "dark";
+        setIsDarkMode(isDark);
+        document.documentElement.classList.toggle("dark", isDark);
+        localStorage.setItem("theme", profile.theme_color);
       }
 
       return profile;
