@@ -13,25 +13,48 @@ serve(async (req) => {
   }
 
   try {
-    const uniqueId = req.headers.get('x-unique-id');
-    if (!uniqueId) {
-      throw new Error('Missing x-unique-id header');
-    }
-
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabaseClient = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Validate if unique_id exists in profiles
-    const { data: profile, error: profileError } = await supabaseClient
-      .from('profiles')
-      .select('id')
-      .eq('unique_id', uniqueId)
-      .single();
+    // Verificar autenticação
+    let profileId: string | null = null;
 
-    if (profileError || !profile) {
-      throw new Error('Invalid unique_id');
+    // Tentar autenticação via x-unique-id
+    const uniqueId = req.headers.get('x-unique-id');
+    if (uniqueId) {
+      const { data: profile, error: profileError } = await supabaseClient
+        .from('profiles')
+        .select('id')
+        .eq('unique_id', uniqueId)
+        .single();
+
+      if (!profileError && profile) {
+        profileId = profile.id;
+      }
+    }
+
+    // Se não encontrou via x-unique-id, tenta via token JWT
+    if (!profileId) {
+      const authHeader = req.headers.get('authorization');
+      if (!authHeader) {
+        throw new Error('Missing authentication');
+      }
+
+      // Verificar o token JWT
+      const token = authHeader.replace('Bearer ', '');
+      const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
+      
+      if (authError || !user) {
+        throw new Error('Invalid authentication token');
+      }
+
+      profileId = user.id;
+    }
+
+    if (!profileId) {
+      throw new Error('Authentication failed');
     }
 
     // Get request body
@@ -42,6 +65,18 @@ serve(async (req) => {
     }
 
     console.log(`Updating status for dispatch ${dispatchId}, phone ${phone} to ${status}`);
+
+    // Verificar se o dispatch pertence ao usuário
+    const { data: dispatch, error: dispatchError } = await supabaseClient
+      .from('dispatch_results')
+      .select('id')
+      .eq('id', dispatchId)
+      .eq('user_id', profileId)
+      .single();
+
+    if (dispatchError || !dispatch) {
+      throw new Error('Dispatch not found or unauthorized');
+    }
 
     // Update the contact result
     const { error: updateError } = await supabaseClient
