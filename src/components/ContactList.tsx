@@ -21,17 +21,12 @@ export function ContactList({ contacts, selectedContacts, onToggleContact, onSel
 
   return (
     <div className="w-full space-y-4">
-      <div className="flex gap-4">
-        <select className="flex-1 bg-[#333333] text-white rounded-md border border-[#444444] p-2">
-          <option>Escolha uma tag</option>
-        </select>
-        <Button
-          onClick={onSelectAll}
-          className="bg-[#0099ff] hover:bg-[#0088ee] text-white"
-        >
-          {allSelected ? "Unselect All" : "Select All"}
-        </Button>
-      </div>
+      <Button
+        onClick={onSelectAll}
+        className="bg-[#0099ff] hover:bg-[#0088ee] text-white w-full"
+      >
+        {allSelected ? "Unselect All" : "Select All"}
+      </Button>
 
       <ScrollArea className="h-[400px] rounded-md border border-[#444444]">
         <div className="p-4">
