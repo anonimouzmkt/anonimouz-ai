@@ -43,17 +43,28 @@ export function DispatchStatistics({ aiDispatches, normalDispatches, latestDispa
 
   const handleDeleteData = async () => {
     try {
-      const { error: contactError } = await supabase
+      // First get all dispatch_contact_results
+      const { data: contactResults, error: fetchError } = await supabase
         .from('dispatch_contact_results')
-        .delete()
-        .gt('id', 0);
+        .select('dispatch_id');
 
-      if (contactError) throw contactError;
+      if (fetchError) throw fetchError;
 
+      // Delete all contact results
+      if (contactResults && contactResults.length > 0) {
+        const { error: contactError } = await supabase
+          .from('dispatch_contact_results')
+          .delete()
+          .in('dispatch_id', contactResults.map(r => r.dispatch_id));
+
+        if (contactError) throw contactError;
+      }
+
+      // Then delete all dispatch results
       const { error: dispatchError } = await supabase
         .from('dispatch_results')
         .delete()
-        .gt('id', 0);
+        .not('id', 'is', null); // Delete all non-null IDs
 
       if (dispatchError) throw dispatchError;
 
