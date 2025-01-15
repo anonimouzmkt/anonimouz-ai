@@ -24,13 +24,15 @@ export function AppSidebar() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
-  const [selectedUserId, setSelectedUserId] = useState<string>("");
+  const { selectedUserId, setSelectedUserId } = useSelectedUser();
 
   const { data: currentUser } = useQuery({
     queryKey: ["currentUser"],
     queryFn: async () => {
+      console.log("Fetching current user...");
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not found");
+      console.log("Current user:", user);
       return user;
     },
   });
@@ -38,12 +40,14 @@ export function AppSidebar() {
   const { data: profile } = useQuery({
     queryKey: ["profile", currentUser?.id],
     queryFn: async () => {
+      console.log("Fetching profile for user:", currentUser?.id);
       if (!currentUser) return null;
       const { data: profile } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", currentUser.id)
         .single();
+      console.log("User profile:", profile);
       return profile;
     },
     enabled: !!currentUser,
@@ -52,6 +56,7 @@ export function AppSidebar() {
   const { data: profiles } = useQuery({
     queryKey: ["profiles"],
     queryFn: async () => {
+      console.log("Fetching all user profiles...");
       const { data: profiles, error } = await supabase
         .from("profiles")
         .select("*")
@@ -62,6 +67,7 @@ export function AppSidebar() {
         throw error;
       }
 
+      console.log("All profiles:", profiles);
       return profiles;
     },
     enabled: profile?.admin_users === true,
@@ -83,7 +89,13 @@ export function AppSidebar() {
 
   const handleAccountSwitch = async (userId: string) => {
     console.log("Switching to user:", userId);
-    setSelectedUserId(userId === currentUser?.id ? "" : userId);
+    
+    // If switching back to current user, clear selection
+    if (userId === currentUser?.id) {
+      setSelectedUserId("");
+    } else {
+      setSelectedUserId(userId);
+    }
     
     // Invalidate all queries to force a refresh
     await queryClient.invalidateQueries();
@@ -128,35 +140,33 @@ export function AppSidebar() {
   }, [selectedUserId, queryClient]);
 
   return (
-    <SelectedUserContext.Provider value={{ selectedUserId, setSelectedUserId }}>
-      <Sidebar variant="floating" collapsible="icon" className="border-none border-r border-primary/30 shadow-[1px_0_5px_rgba(0,149,255,0.5)]">
-        <SidebarHeader>
-          <CustomSidebarHeader />
-        </SidebarHeader>
-        <SidebarContent>
-          <SidebarNavigation 
-            handleNavigation={handleNavigation}
-            isAdmin={isAdmin}
-          />
-        </SidebarContent>
-        <SidebarFooter className="p-4">
-          <SidebarFooterActions
-            isAdmin={isAdmin}
-            currentUserId={currentUser?.id || ''}
-            impersonatedUserId={selectedUserId}
-            profiles={profiles}
-            handleAccountSwitch={handleAccountSwitch}
-            handleNavigation={handleNavigation}
-            handleLogout={handleLogout}
-          />
-        </SidebarFooter>
-      </Sidebar>
+    <Sidebar variant="floating" collapsible="icon" className="border-none border-r border-primary/30 shadow-[1px_0_5px_rgba(0,149,255,0.5)]">
+      <SidebarHeader>
+        <CustomSidebarHeader />
+      </SidebarHeader>
+      <SidebarContent>
+        <SidebarNavigation 
+          handleNavigation={handleNavigation}
+          isAdmin={isAdmin}
+        />
+      </SidebarContent>
+      <SidebarFooter className="p-4">
+        <SidebarFooterActions
+          isAdmin={isAdmin}
+          currentUserId={currentUser?.id || ''}
+          impersonatedUserId={selectedUserId}
+          profiles={profiles}
+          handleAccountSwitch={handleAccountSwitch}
+          handleNavigation={handleNavigation}
+          handleLogout={handleLogout}
+        />
+      </SidebarFooter>
 
       <NavigationWarningDialog
         isOpen={!!pendingNavigation}
         onConfirm={handleNavigationConfirm}
         onCancel={handleNavigationCancel}
       />
-    </SelectedUserContext.Provider>
+    </Sidebar>
   );
 }

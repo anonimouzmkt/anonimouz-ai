@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { AppSidebar } from "../AppSidebar";
-import { useSelectedUser } from "@/components/sidebar/SidebarContext";
+import { useSelectedUser, SelectedUserProvider } from "@/components/sidebar/SidebarContext";
 import { SidebarProvider } from "@/components/ui/sidebar";
 
 interface ProtectedLayoutProps {
@@ -60,13 +60,15 @@ export const ProtectedLayout = ({ children }: ProtectedLayoutProps) => {
   }, [selectedUserId]);
 
   return (
-    <SidebarProvider>
-      <div className="flex h-screen w-full">
-        <AppSidebar />
-        <main className="flex-1 overflow-y-auto bg-background p-8">
-          {children}
-        </main>
-      </div>
-    </SidebarProvider>
+    <SelectedUserProvider>
+      <SidebarProvider>
+        <div className="flex h-screen w-full">
+          <AppSidebar />
+          <main className="flex-1 overflow-y-auto bg-background p-8">
+            {children}
+          </main>
+        </div>
+      </SidebarProvider>
+    </SelectedUserProvider>
   );
 };
