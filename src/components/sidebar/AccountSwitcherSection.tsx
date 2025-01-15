@@ -28,7 +28,8 @@ export function AccountSwitcherSection({ currentUserId, onAccountSwitch }: Accou
       console.log("Fetching all profiles for account switcher");
       const { data: profiles, error } = await supabase
         .from("profiles")
-        .select("*");
+        .select("*")
+        .order('email');  // Order by email for better readability
 
       if (error) {
         console.error("Error fetching profiles:", error);
@@ -74,16 +75,19 @@ export function AccountSwitcherSection({ currentUserId, onAccountSwitch }: Accou
         <SelectTrigger className="w-full bg-background">
           <SelectValue placeholder="Select an account">
             {currentProfile?.email || "My Account"}
+            {currentProfile?.admin_users && " (Admin)"}
           </SelectValue>
         </SelectTrigger>
         <SelectContent className="bg-background">
           <SelectItem value={currentUserId}>
             {currentProfile?.email || "My Account"}
+            {currentProfile?.admin_users && " (Admin)"}
           </SelectItem>
           {profiles?.map((profile) => (
             profile.id !== currentUserId && (
               <SelectItem key={profile.id} value={profile.id}>
                 {profile.email}
+                {profile.admin_users && " (Admin)"}
               </SelectItem>
             )
           ))}
