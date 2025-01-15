@@ -7,7 +7,7 @@ import { WhatsAppInstance } from "@/types/whatsapp";
 
 export const useWhatsAppInstances = () => {
   const { generateQRCode } = useWhatsAppInstance();
-  const { createInstance } = useCreateInstance();
+  const { createInstance, isLoading: isCreating } = useCreateInstance();
   const { deleteInstance } = useDeleteInstance();
 
   const { data: instances, refetch } = useQuery({
@@ -42,5 +42,6 @@ export const useWhatsAppInstances = () => {
     deleteInstance,
     generateQRCode,
     refetch,
+    isCreating
   };
 };
