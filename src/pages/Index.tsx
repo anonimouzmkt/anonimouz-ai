@@ -1,9 +1,19 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CSVUploader } from "@/components/CSVUploader";
 import { ContactList } from "@/components/ContactList";
 import { MessageComposer } from "@/components/MessageComposer";
 import { useToast } from "@/hooks/use-toast";
 import { Switch } from "@/components/ui/switch";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface Contact {
   name: string;
@@ -15,11 +25,38 @@ interface Contact {
 const Index = () => {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [selectedContacts, setSelectedContacts] = useState<Set<string>>(new Set());
+  const [showExitWarning, setShowExitWarning] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    // Add warning before user leaves page with unsaved changes
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    const handleLocationChange = () => {
+      if (hasUnsavedChanges) {
+        setShowExitWarning(true);
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('popstate', handleLocationChange);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('popstate', handleLocationChange);
+    };
+  }, [hasUnsavedChanges]);
 
   const handleContactsLoaded = (newContacts: Contact[]) => {
     setContacts(newContacts);
     setSelectedContacts(new Set());
+    setHasUnsavedChanges(true);
   };
 
   const toggleContact = (phone: string) => {
@@ -30,14 +67,17 @@ const Index = () => {
       newSelected.add(phone);
     }
     setSelectedContacts(newSelected);
+    setHasUnsavedChanges(true);
   };
 
   const handleSelectAll = () => {
     if (selectedContacts.size === contacts.length) {
       setSelectedContacts(new Set());
     } else {
-      setSelectedContacts(new Set(contacts.map(c => c.phone)));
+      const allPhones = contacts.map(c => c.phone);
+      setSelectedContacts(new Set(allPhones));
     }
+    setHasUnsavedChanges(true);
   };
 
   const sendMessages = async (message: string) => {
@@ -79,6 +119,7 @@ const Index = () => {
       title: "Complete",
       description: "All messages have been processed",
     });
+    setHasUnsavedChanges(false);
   };
 
   return (
@@ -132,6 +173,30 @@ const Index = () => {
           </div>
         )}
       </div>
+
+      <AlertDialog open={showExitWarning} onOpenChange={setShowExitWarning}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Deseja sair da página?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Você tem alterações não salvas. Se continuar, perderá todos os dados inseridos e terá que preenchê-los novamente.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowExitWarning(false)}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={() => {
+              setHasUnsavedChanges(false);
+              setShowExitWarning(false);
+              // Navigate away
+              window.history.back();
+            }}>
+              Sair mesmo assim
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </main>
   );
 };

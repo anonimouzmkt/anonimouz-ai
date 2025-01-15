@@ -17,6 +17,8 @@ interface ContactListProps {
 }
 
 export function ContactList({ contacts, selectedContacts, onToggleContact, onSelectAll }: ContactListProps) {
+  const allSelected = contacts.length > 0 && selectedContacts.size === contacts.length;
+
   return (
     <div className="w-full space-y-4">
       <div className="flex gap-4">
@@ -27,7 +29,7 @@ export function ContactList({ contacts, selectedContacts, onToggleContact, onSel
           onClick={onSelectAll}
           className="bg-[#0099ff] hover:bg-[#0088ee] text-white"
         >
-          Select All
+          {allSelected ? "Unselect All" : "Select All"}
         </Button>
       </div>
 
