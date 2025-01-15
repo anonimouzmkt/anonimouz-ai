@@ -1,4 +1,4 @@
-import { MessageSquare, MessageCircle, BarChart2, Shield, Settings } from "lucide-react";
+import { MessageSquare, MessageCircle, BarChart2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
 
@@ -7,7 +7,7 @@ interface SidebarNavigationProps {
   isAdmin: boolean;
 }
 
-export const SidebarNavigation = ({ handleNavigation, isAdmin }: SidebarNavigationProps) => {
+export const SidebarNavigation = ({ handleNavigation }: SidebarNavigationProps) => {
   return (
     <SidebarMenu className="mt-12 flex flex-col h-full">
       <div>
@@ -35,27 +35,6 @@ export const SidebarNavigation = ({ handleNavigation, isAdmin }: SidebarNavigati
             </Link>
           </SidebarMenuButton>
         </SidebarMenuItem>
-      </div>
-      
-      <div className="mt-auto">
-        <SidebarMenuItem>
-          <SidebarMenuButton asChild tooltip="Settings" onClick={() => handleNavigation("/settings")}>
-            <Link to="#" onClick={(e) => e.preventDefault()}>
-              <Settings className="w-4 h-4" />
-              <span>Settings</span>
-            </Link>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-        {isAdmin && (
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip="Admin Settings" onClick={() => handleNavigation("/admin-settings")}>
-              <Link to="#" onClick={(e) => e.preventDefault()}>
-                <Shield className="w-4 h-4" />
-                <span>Admin Settings</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        )}
       </div>
     </SidebarMenu>
   );

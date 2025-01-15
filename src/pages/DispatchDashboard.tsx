@@ -16,6 +16,12 @@ interface DispatchResult {
   is_ai_dispatch: boolean;
 }
 
+interface ContactResult {
+  contact_name: string;
+  contact_phone: string;
+  status: string;
+}
+
 interface ChartData {
   date: string;
   success: number;
@@ -74,6 +80,32 @@ const fetchLastFiveDispatches = async () => {
   return data as DispatchResult[];
 };
 
+const fetchLatestContactResults = async () => {
+  console.log("Fetching latest contact results...");
+  const { data: latestDispatch } = await supabase
+    .from('dispatch_results')
+    .select('id')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .single();
+
+  if (!latestDispatch) return [];
+
+  const { data, error } = await supabase
+    .from('dispatch_contact_results')
+    .select('contact_name, contact_phone, status')
+    .eq('dispatch_id', latestDispatch.id)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error("Error fetching contact results:", error);
+    throw error;
+  }
+
+  console.log("Latest contact results:", data);
+  return data as ContactResult[];
+};
+
 export default function DispatchDashboard() {
   const [autoRefresh, setAutoRefresh] = useState(true);
 
@@ -97,6 +129,15 @@ export default function DispatchDashboard() {
     refetchInterval: autoRefresh ? 3000 : false,
   });
 
+  const {
+    data: latestContactResults,
+    refetch: refetchContacts,
+  } = useQuery({
+    queryKey: ['latestContactResults'],
+    queryFn: fetchLatestContactResults,
+    refetchInterval: autoRefresh ? 3000 : false,
+  });
+
   const chartData: ChartData[] = lastFiveDispatches?.map(dispatch => ({
     date: new Date(dispatch.created_at).toLocaleDateString(),
     success: dispatch.success_count,
@@ -111,6 +152,7 @@ export default function DispatchDashboard() {
   const handleRefresh = () => {
     refetchLatest();
     refetchChart();
+    refetchContacts();
   };
 
   return (
@@ -146,6 +188,7 @@ export default function DispatchDashboard() {
         <DispatchStatistics
           aiDispatches={aiDispatches}
           normalDispatches={normalDispatches}
+          latestDispatchResults={latestContactResults}
         />
         <DispatchChart
           data={chartData}
