@@ -119,7 +119,7 @@ const WhatsApp = () => {
   const generateQRCode = async (instance: WhatsAppInstance) => {
     try {
       setQRError(null);
-      console.log('Generating QR code for instance:', instance.name);
+      console.log('Getting QR code for instance:', instance.name);
       
       const { data: apiResponse, error: apiError } = await supabase.functions.invoke(
         'generate-whatsapp-qr',

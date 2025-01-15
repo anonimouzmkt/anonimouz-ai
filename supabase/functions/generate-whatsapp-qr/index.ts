@@ -15,7 +15,7 @@ serve(async (req) => {
     const apiKey = Deno.env.get('WHATSAPP_API_KEY')
     
     console.log('Getting QR code for instance:', instanceName)
-    
+
     if (!apiKey) {
       console.error('WHATSAPP_API_KEY is not set')
       return new Response(
@@ -27,7 +27,6 @@ serve(async (req) => {
       )
     }
 
-    // Get QR code for existing instance
     const response = await fetch(`https://evo2.anonimouz.com/instance/connect/${instanceName}`, {
       headers: {
         'apikey': apiKey,
@@ -61,10 +60,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error:', error)
     return new Response(
-      JSON.stringify({ 
-        error: error.message,
-        details: error 
-      }),
+      JSON.stringify({ error: error.message }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 500
