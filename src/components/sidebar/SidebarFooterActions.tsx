@@ -7,6 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { AccountSwitcherSection } from "./AccountSwitcherSection";
 
 interface SidebarFooterActionsProps {
   isAdmin: boolean;
@@ -27,28 +28,18 @@ export const SidebarFooterActions = ({
   handleNavigation,
   handleLogout,
 }: SidebarFooterActionsProps) => {
+  console.log("SidebarFooterActions - Current profiles:", profiles);
+  console.log("SidebarFooterActions - Current user:", currentUserId);
+  console.log("SidebarFooterActions - Impersonated user:", impersonatedUserId);
+  console.log("SidebarFooterActions - Is admin:", isAdmin);
+
   return (
     <div className="flex flex-col gap-4">
       {isAdmin && (
-        <div className="flex items-center gap-2 px-2">
-          <Users className="w-4 h-4" />
-          <Select
-            value={impersonatedUserId || currentUserId}
-            onValueChange={handleAccountSwitch}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select an account" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={currentUserId}>My Account</SelectItem>
-              {profiles?.map((profile) => (
-                <SelectItem key={profile.id} value={profile.id}>
-                  {profile.email}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <AccountSwitcherSection 
+          currentUserId={currentUserId}
+          onAccountSwitch={handleAccountSwitch}
+        />
       )}
       <Button 
         variant="outline" 

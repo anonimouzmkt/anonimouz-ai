@@ -15,7 +15,6 @@ import { SidebarNavigation } from "./sidebar/SidebarNavigation";
 import { SidebarFooterActions } from "./sidebar/SidebarFooterActions";
 import { SelectedUserContext, useSelectedUser } from "./sidebar/SidebarContext";
 
-// Re-export the hook so other components can keep importing it from AppSidebar
 export { useSelectedUser };
 
 export function AppSidebar() {
@@ -60,7 +59,7 @@ export function AppSidebar() {
       const { data: profiles, error } = await supabase
         .from("profiles")
         .select("*")
-        .eq("role", "user");
+        .order('email');
 
       if (error) {
         console.error("Error fetching profiles:", error);
@@ -90,17 +89,14 @@ export function AppSidebar() {
   const handleAccountSwitch = async (userId: string) => {
     console.log("Switching to user:", userId);
     
-    // If switching back to current user, clear selection
     if (userId === currentUser?.id) {
       setSelectedUserId("");
     } else {
       setSelectedUserId(userId);
     }
     
-    // Invalidate all queries to force a refresh
     await queryClient.invalidateQueries();
     
-    // Show toast notification
     toast({
       title: "Account Switched",
       description: userId === currentUser?.id 
@@ -131,7 +127,6 @@ export function AppSidebar() {
 
   const isAdmin = profile?.admin_users === true;
 
-  // Effect to handle query invalidation when selected user changes
   useEffect(() => {
     if (selectedUserId) {
       console.log("Selected user changed, invalidating queries...");
