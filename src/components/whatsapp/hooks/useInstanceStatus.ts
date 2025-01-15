@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { WhatsAppInstance } from "@/types/whatsapp";
+import { useToast } from "@/hooks/use-toast";
 
 // Helper function to validate status
 const validateStatus = (status: string): "connected" | "disconnected" | "connecting" => {
@@ -15,48 +16,70 @@ export const useInstanceStatus = (
   setLocalInstances: React.Dispatch<React.SetStateAction<WhatsAppInstance[]>>
 ) => {
   const [currentInstance, setCurrentInstance] = useState<WhatsAppInstance | null>(selectedInstance);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (!selectedInstance) return;
 
-    const fetchInstanceStatus = async () => {
-      console.log('Checking connection status for instance:', selectedInstance.name);
-      const { data, error } = await supabase
-        .from("whatsapp_instances")
-        .select("*")
-        .eq("id", selectedInstance.id)
-        .single();
+    console.log('Setting up real-time subscription for instance:', selectedInstance.name);
 
-      if (error) {
-        console.error('Error fetching instance status:', error);
-        return;
-      }
+    // Subscribe to real-time updates for instance status
+    const channel = supabase
+      .channel(`instance-status-${selectedInstance.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'whatsapp_instances',
+          filter: `id=eq.${selectedInstance.id}`,
+        },
+        (payload) => {
+          console.log('Instance status changed:', payload);
+          
+          if (payload.new) {
+            const updatedInstance = {
+              ...payload.new,
+              status: validateStatus(payload.new.status)
+            } as WhatsAppInstance;
 
-      if (data) {
-        // Transform the data to match WhatsAppInstance type
-        const validatedInstance: WhatsAppInstance = {
-          ...data,
-          status: validateStatus(data.status)
-        };
+            setLocalInstances(prev => 
+              prev.map(inst => 
+                inst.id === updatedInstance.id ? updatedInstance : inst
+              )
+            );
 
-        setLocalInstances(prev => 
-          prev.map(inst => 
-            inst.id === validatedInstance.id ? validatedInstance : inst
-          )
-        );
-        
-        // Update selected instance if status changed
-        if (validatedInstance.status !== selectedInstance.status) {
-          console.log('Instance status changed:', validatedInstance.status);
-          setCurrentInstance(validatedInstance);
+            // Update current instance if status changed
+            if (updatedInstance.status !== selectedInstance.status) {
+              console.log('Updating current instance status:', updatedInstance.status);
+              setCurrentInstance(updatedInstance);
+
+              // Show toast for connection status change
+              if (updatedInstance.status === 'connected') {
+                toast({
+                  title: "WhatsApp Connected",
+                  description: `Instance ${updatedInstance.name} is now connected`,
+                });
+              } else if (updatedInstance.status === 'disconnected') {
+                toast({
+                  title: "WhatsApp Disconnected",
+                  description: `Instance ${updatedInstance.name} is now disconnected`,
+                  variant: "destructive",
+                });
+              }
+            }
+          }
         }
-      }
-    };
+      )
+      .subscribe((status) => {
+        console.log('Real-time subscription status:', status);
+      });
 
-    // Check connection status every second
-    const statusInterval = setInterval(fetchInstanceStatus, 1000);
-    return () => clearInterval(statusInterval);
-  }, [selectedInstance]);
+    return () => {
+      console.log('Cleaning up instance status subscription');
+      supabase.removeChannel(channel);
+    };
+  }, [selectedInstance, setLocalInstances, toast]);
 
   return { currentInstance };
 };

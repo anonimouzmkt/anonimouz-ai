@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useSelectedUser } from "../sidebar/SidebarContext";
 
 interface Profile {
   id: string;
@@ -22,6 +23,8 @@ interface AccountSwitcherSectionProps {
 }
 
 export function AccountSwitcherSection({ currentUserId, onAccountSwitch }: AccountSwitcherSectionProps) {
+  const { selectedUserId } = useSelectedUser();
+  
   const { data: profiles, isLoading } = useQuery({
     queryKey: ["profiles"],
     queryFn: async () => {
@@ -29,7 +32,7 @@ export function AccountSwitcherSection({ currentUserId, onAccountSwitch }: Accou
       const { data: profiles, error } = await supabase
         .from("profiles")
         .select("*")
-        .order('email');  // Order by email for better readability
+        .order('email');
 
       if (error) {
         console.error("Error fetching profiles:", error);
@@ -62,11 +65,17 @@ export function AccountSwitcherSection({ currentUserId, onAccountSwitch }: Accou
     enabled: !!currentUserId,
   });
 
+  // Use selectedUserId if it exists, otherwise use currentUserId
+  const effectiveUserId = selectedUserId || currentUserId;
+
+  // Get the profile for the currently selected/impersonated user
+  const selectedProfile = profiles?.find(p => p.id === effectiveUserId);
+
   return (
     <div className="flex items-center gap-2 px-2">
       <Users className="w-4 h-4" />
       <Select
-        value={currentUserId}
+        value={effectiveUserId}
         onValueChange={(value) => {
           console.log("Switching to user:", value);
           onAccountSwitch(value);
@@ -74,8 +83,8 @@ export function AccountSwitcherSection({ currentUserId, onAccountSwitch }: Accou
       >
         <SelectTrigger className="w-full bg-background">
           <SelectValue placeholder="Select an account">
-            {currentProfile?.email || "My Account"}
-            {currentProfile?.admin_users && " (Admin)"}
+            {selectedProfile?.email || currentProfile?.email || "My Account"}
+            {selectedProfile?.admin_users && " (Admin)"}
           </SelectValue>
         </SelectTrigger>
         <SelectContent className="bg-background">
