@@ -9,11 +9,11 @@ export const SidebarHeader = () => {
           alt="Logo"
           className="w-10 h-10 object-contain"
         />
-        <span className="text-base font-medium text-sidebar-foreground group-data-[collapsible=icon]:hidden">
+        <span className="text-base font-medium text-white group-data-[collapsible=icon]:hidden">
           Anonimouz A.I
         </span>
       </div>
-      <SidebarTrigger />
+      <SidebarTrigger className="text-white hover:text-[#0095FF] transition-colors" />
     </div>
   );
 };

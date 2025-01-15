@@ -135,7 +135,11 @@ export function AppSidebar() {
   }, [selectedUserId, queryClient]);
 
   return (
-    <Sidebar variant="floating" collapsible="icon" className="border-none border-r border-primary/30 shadow-[1px_0_5px_rgba(0,149,255,0.5)]">
+    <Sidebar 
+      variant="floating" 
+      collapsible="icon" 
+      className="border-none bg-[#111111] shadow-[1px_0_5px_rgba(0,149,255,0.5)]"
+    >
       <SidebarHeader>
         <CustomSidebarHeader />
       </SidebarHeader>
