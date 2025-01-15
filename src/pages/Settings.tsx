@@ -69,9 +69,20 @@ const Settings = () => {
     }
   };
 
-  const handleGenerateToken = () => {
-    const newToken = Math.random().toString(36).substring(2, 15);
-    setToken(newToken);
+  const handleGenerateToken = async () => {
+    try {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error) throw error;
+      if (!session) throw new Error("No active session");
+
+      const newToken = session.access_token;
+      setToken(newToken);
+      toast.success("Token generated successfully!");
+    } catch (error) {
+      console.error("Error generating token:", error);
+      toast.error("Failed to generate token");
+    }
   };
 
   const handleCopyToken = () => {
