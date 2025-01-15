@@ -42,21 +42,21 @@ export const SidebarNavigation = ({ handleNavigation }: SidebarNavigationProps) 
               asChild 
               tooltip={item.text} 
               onClick={() => handleNavigation(item.path)}
-              className={`text-base py-3 transition-all duration-200 hover:translate-x-1 w-full group
+              className={`text-base py-3 w-full transition-all duration-200 hover:translate-x-1 group
                 ${location.pathname === item.path 
-                  ? 'bg-[#0095FF] hover:bg-[#0095FF]' 
-                  : 'hover:bg-[#0095FF]/10'}`}
+                  ? 'bg-sidebar-primary text-sidebar-primary-foreground' 
+                  : 'hover:bg-sidebar-accent'}`}
             >
               <Link to="#" onClick={(e) => e.preventDefault()}>
                 <item.icon className={`w-5 h-5 ${
                   location.pathname === item.path 
-                    ? 'text-white' 
-                    : 'text-[#0095FF] group-hover:text-[#0095FF]'
+                    ? 'text-sidebar-primary-foreground' 
+                    : 'text-sidebar-foreground group-hover:text-sidebar-accent-foreground'
                 }`} />
                 <span className={
                   location.pathname === item.path 
-                    ? 'text-white' 
-                    : 'text-white group-hover:text-[#0095FF]'
+                    ? 'text-sidebar-primary-foreground' 
+                    : 'text-sidebar-foreground group-hover:text-sidebar-accent-foreground'
                 }>{item.text}</span>
               </Link>
             </SidebarMenuButton>

@@ -53,14 +53,14 @@ export default {
           foreground: 'hsl(var(--card-foreground))'
         },
         sidebar: {
-          DEFAULT: '#1A1F2C',
+          DEFAULT: '#111111',
           foreground: '#FFFFFF',
-          primary: '#0095FF',
-          'primary-foreground': '#FFFFFF',
-          accent: 'rgba(0, 149, 255, 0.1)',
-          'accent-foreground': '#0095FF',
-          border: 'rgba(0, 149, 255, 0.2)',
-          ring: '#0095FF'
+          primary: '#FFFFFF',
+          'primary-foreground': '#111111',
+          accent: 'rgba(255, 255, 255, 0.1)',
+          'accent-foreground': '#FFFFFF',
+          border: 'rgba(255, 255, 255, 0.2)',
+          ring: '#FFFFFF'
         }
       },
       borderRadius: {

@@ -138,7 +138,7 @@ export function AppSidebar() {
     <Sidebar 
       variant="floating" 
       collapsible="icon" 
-      className="border-none bg-[#111111] shadow-[1px_0_5px_rgba(0,149,255,0.5)]"
+      className="border-none bg-sidebar shadow-xl dark:shadow-none"
     >
       <SidebarHeader>
         <CustomSidebarHeader />
