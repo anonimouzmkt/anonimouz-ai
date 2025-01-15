@@ -19,30 +19,42 @@ serve(async (req) => {
     )
 
     const body = await req.json()
-    console.log('Received webhook:', body)
+    console.log('Received webhook payload:', body)
 
-    // Extract instance name and status from webhook
-    const { instanceName, status } = body
+    // Extract instance data from webhook
+    const { instanceName, status, event } = body
 
     if (!instanceName) {
-      throw new Error('Instance name is required')
+      throw new Error('Instance name is required in webhook payload')
     }
 
-    // Update instance status in database
-    const { error } = await supabaseClient
-      .from('whatsapp_instances')
-      .update({ status: status || 'connected' })
-      .eq('name', instanceName)
+    // If it's a connection event, update the instance status
+    if (event === 'connection' || status === 'connected') {
+      console.log(`Updating instance ${instanceName} status to connected`)
+      
+      const { error: updateError } = await supabaseClient
+        .from('whatsapp_instances')
+        .update({ 
+          status: 'connected',
+          updated_at: new Date().toISOString()
+        })
+        .eq('name', instanceName)
 
-    if (error) {
-      console.error('Error updating instance:', error)
-      throw error
+      if (updateError) {
+        console.error('Error updating instance status:', updateError)
+        throw updateError
+      }
+
+      console.log(`Successfully updated status for instance ${instanceName}`)
+    } else {
+      console.log(`Ignoring webhook event: ${event} for instance ${instanceName}`)
     }
-
-    console.log(`Updated status for instance ${instanceName} to ${status || 'connected'}`)
 
     return new Response(
-      JSON.stringify({ success: true }),
+      JSON.stringify({ 
+        success: true,
+        message: `Processed webhook for instance: ${instanceName}`
+      }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200 
@@ -51,7 +63,10 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error processing webhook:', error)
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message,
+        details: 'Failed to process webhook request'
+      }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 500
