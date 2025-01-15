@@ -27,18 +27,11 @@ serve(async (req) => {
       )
     }
 
-    // Only request QR code without creating instance
-    const response = await fetch('https://evo2.anonimouz.com/instance/qrcode', {
-      method: 'POST',
+    const response = await fetch(`https://evo2.anonimouz.com/instance/connect/${instanceName}`, {
+      method: 'GET',
       headers: {
-        'Content-Type': 'application/json',
-        'apikey': apiKey
-      },
-      body: JSON.stringify({
-        instanceName,
-        qrcode: true,
-        integration: "WHATSAPP-BAILEYS"
-      })
+        'apikey': 'i4Q8lXOheRb7qgVxiJlmePAYsJSBDc'
+      }
     })
 
     const data = await response.json()
