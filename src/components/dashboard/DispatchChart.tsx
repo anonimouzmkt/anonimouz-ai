@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 
 interface ChartData {
@@ -21,7 +21,7 @@ export function DispatchChart({ data, config }: DispatchChartProps) {
       </CardHeader>
       <CardContent>
         <div className="h-[300px] w-full">
-          <ResponsiveContainer width="100%" height="100%">
+          <ChartContainer config={config}>
             <BarChart 
               data={data} 
               margin={{ top: 10, right: 30, left: 0, bottom: 20 }}
@@ -72,7 +72,7 @@ export function DispatchChart({ data, config }: DispatchChartProps) {
                 maxBarSize={35}
               />
             </BarChart>
-          </ResponsiveContainer>
+          </ChartContainer>
         </div>
       </CardContent>
     </Card>
