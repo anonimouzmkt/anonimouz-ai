@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Bot, Send, Trash2, X } from "lucide-react";
+import { Bot, Send, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MetricCard } from "./MetricCard";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,59 +18,9 @@ interface DispatchStatisticsProps {
 export function DispatchStatistics({ aiDispatches, normalDispatches, latestDispatchResults }: DispatchStatisticsProps) {
   const { toast } = useToast();
 
-  const handleClearData = async () => {
-    try {
-      console.log("Clearing data...");
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        throw new Error("No user found");
-      }
-
-      // Get all dispatch results for the current user
-      const { data: dispatchResults, error: fetchError } = await supabase
-        .from('dispatch_results')
-        .select('id')
-        .eq('user_id', user.id);
-
-      if (fetchError) throw fetchError;
-
-      if (dispatchResults && dispatchResults.length > 0) {
-        console.log("Found dispatch results to clear:", dispatchResults.length);
-        
-        // Update contact results status for these dispatches
-        const { error: updateError } = await supabase
-          .from('dispatch_contact_results')
-          .update({ 
-            status: 'pending',
-            error_message: null,
-            updated_at: new Date().toISOString()
-          })
-          .in('dispatch_id', dispatchResults.map(d => d.id));
-
-        if (updateError) throw updateError;
-      }
-
-      toast({
-        title: "Dados limpos com sucesso",
-        description: "Os resultados dos disparos foram resetados.",
-      });
-
-      // Force refresh by calling the parent's refetch functions
-      window.location.reload();
-    } catch (error) {
-      console.error('Error clearing data:', error);
-      toast({
-        title: "Erro ao limpar dados",
-        description: "Não foi possível limpar os dados. Tente novamente.",
-        variant: "destructive",
-      });
-    }
-  };
-
   const handleDeleteData = async () => {
     try {
-      console.log("Deleting data...");
+      console.log("Deleting dispatch data...");
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
@@ -111,7 +61,7 @@ export function DispatchStatistics({ aiDispatches, normalDispatches, latestDispa
       });
 
       // Force refresh by calling the parent's refetch functions
-      window.location.reload();
+      window.dispatchEvent(new CustomEvent('refetchDispatchData'));
     } catch (error) {
       console.error('Error deleting data:', error);
       toast({
@@ -173,15 +123,6 @@ export function DispatchStatistics({ aiDispatches, normalDispatches, latestDispa
           )}
 
           <div className="flex gap-2 mt-4">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleClearData}
-              className="flex items-center gap-2"
-            >
-              <X className="h-4 w-4" />
-              Limpar Dados
-            </Button>
             <Button
               variant="outline"
               size="sm"

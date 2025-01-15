@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSelectedUser } from "@/components/sidebar/SidebarContext";
 import { useToast } from "@/hooks/use-toast";
 import { DispatchMetrics } from "@/components/dashboard/DispatchMetrics";
@@ -41,6 +41,18 @@ export default function DispatchDashboard() {
     contactsError
   } = useDispatchData(selectedUserId);
 
+  useEffect(() => {
+    const handleRefreshData = () => {
+      console.log("Refreshing data after deletion...");
+      refetchLatest();
+      refetchChart();
+      refetchContacts();
+    };
+
+    window.addEventListener('refetchDispatchData', handleRefreshData);
+    return () => window.removeEventListener('refetchDispatchData', handleRefreshData);
+  }, [refetchLatest, refetchChart, refetchContacts]);
+
   const handleRefresh = () => {
     console.log("Refreshing dashboard data...");
     refetchLatest();
@@ -57,7 +69,6 @@ export default function DispatchDashboard() {
     });
   }
 
-  // Format the chart data with proper date handling
   const chartData = lastFiveDispatches?.map(dispatch => {
     console.log("Processing dispatch data:", dispatch);
     return {
