@@ -6,6 +6,7 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
@@ -15,12 +16,24 @@ serve(async (req) => {
     const apiKey = Deno.env.get('WHATSAPP_API_KEY')
     
     console.log('Generating QR code for instance:', instanceName)
+    console.log('API Key present:', !!apiKey)
+
+    if (!apiKey) {
+      console.error('WHATSAPP_API_KEY is not set')
+      return new Response(
+        JSON.stringify({ error: 'API key not configured' }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 500 
+        }
+      )
+    }
 
     const response = await fetch('https://evo2.anonimouz.com/instance/create', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'apikey': apiKey || '',
+        'apikey': apiKey,
       },
       body: JSON.stringify({
         instanceName,
@@ -35,7 +48,10 @@ serve(async (req) => {
     if (!response.ok) {
       console.error('API Error:', data)
       return new Response(
-        JSON.stringify({ error: `API Error: ${response.status} - ${data.message || 'Unknown error'}` }),
+        JSON.stringify({ 
+          error: `API Error: ${response.status} - ${data.message || 'Unknown error'}`,
+          details: data 
+        }),
         { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: response.status 
@@ -53,7 +69,10 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error:', error)
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message,
+        details: error 
+      }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 500
