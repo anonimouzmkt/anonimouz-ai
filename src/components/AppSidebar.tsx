@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { LogOut, MessageSquare, Settings, MessageCircle, Users, BarChart2 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Sidebar,
@@ -22,11 +22,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { NavigationWarningDialog } from "./NavigationWarningDialog";
 
 export function AppSidebar() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   const [impersonatedUserId, setImpersonatedUserId] = useState<string>("");
+  const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
 
   const { data: currentUser } = useQuery({
     queryKey: ["currentUser"],
@@ -87,94 +90,122 @@ export function AppSidebar() {
     setImpersonatedUserId(userId === currentUser?.id ? "" : userId);
   };
 
+  const handleNavigation = (path: string) => {
+    // If we're not on the index page or there are no contacts loaded, navigate directly
+    if (location.pathname !== "/" || !window.__CONTACTS_LOADED__) {
+      navigate(path);
+      return;
+    }
+
+    // Otherwise, show the warning dialog
+    setPendingNavigation(path);
+  };
+
+  const handleNavigationConfirm = () => {
+    if (pendingNavigation) {
+      navigate(pendingNavigation);
+      setPendingNavigation(null);
+    }
+  };
+
+  const handleNavigationCancel = () => {
+    setPendingNavigation(null);
+  };
+
   return (
-    <Sidebar variant="floating" collapsible="icon" className="border-none border-r border-primary/30 shadow-[1px_0_5px_rgba(0,149,255,0.5)]">
-      <SidebarHeader>
-        <div className="flex items-center justify-between px-2">
-          <div className="flex items-center gap-2">
-            <img 
-              src="/lovable-uploads/4321434b-2144-462b-b83b-2b1129bccb08.png" 
-              alt="Logo" 
-              className="w-7 h-7"
-            />
-            <span className="text-lg font-semibold group-data-[collapsible=icon]:hidden">Anonimouz A.I</span>
-          </div>
-          <SidebarTrigger />
-        </div>
-      </SidebarHeader>
-      <SidebarContent>
-        <SidebarMenu className="mt-12">
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip="Disparador">
-              <Link to="/">
-                <MessageSquare className="w-4 h-4" />
-                <span>Disparador</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip="Dashboard">
-              <Link to="/dispatch-dashboard">
-                <BarChart2 className="w-4 h-4" />
-                <span>Dashboard</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip="WhatsApp">
-              <Link to="/whatsapp">
-                <MessageCircle className="w-4 h-4" />
-                <span>WhatsApp</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarContent>
-      <SidebarFooter className="p-4">
-        <div className="flex flex-col gap-4">
-          {profile?.role === 'admin_user' && (
-            <div className="flex items-center gap-2 px-2">
-              <Users className="w-4 h-4" />
-              <Select
-                value={impersonatedUserId || currentUser?.id}
-                onValueChange={handleAccountSwitch}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select an account" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={currentUser?.id}>My Account</SelectItem>
-                  {profiles?.map((profile) => (
-                    <SelectItem key={profile.id} value={profile.id}>
-                      {profile.email}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+    <>
+      <Sidebar variant="floating" collapsible="icon" className="border-none border-r border-primary/30 shadow-[1px_0_5px_rgba(0,149,255,0.5)]">
+        <SidebarHeader>
+          <div className="flex items-center justify-between px-2">
+            <div className="flex items-center gap-2">
+              <img 
+                src="/lovable-uploads/4321434b-2144-462b-b83b-2b1129bccb08.png" 
+                alt="Logo" 
+                className="w-7 h-7"
+              />
+              <span className="text-lg font-semibold group-data-[collapsible=icon]:hidden">Anonimouz A.I</span>
             </div>
-          )}
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="w-full justify-start group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:aspect-square"
-            asChild
-          >
-            <Link to="/settings">
+            <SidebarTrigger />
+          </div>
+        </SidebarHeader>
+        <SidebarContent>
+          <SidebarMenu className="mt-12">
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip="Disparador" onClick={() => handleNavigation("/")}>
+                <Link to="#" onClick={(e) => e.preventDefault()}>
+                  <MessageSquare className="w-4 h-4" />
+                  <span>Disparador</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip="Dashboard" onClick={() => handleNavigation("/dispatch-dashboard")}>
+                <Link to="#" onClick={(e) => e.preventDefault()}>
+                  <BarChart2 className="w-4 h-4" />
+                  <span>Dashboard</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip="WhatsApp" onClick={() => handleNavigation("/whatsapp")}>
+                <Link to="#" onClick={(e) => e.preventDefault()}>
+                  <MessageCircle className="w-4 h-4" />
+                  <span>WhatsApp</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarContent>
+        <SidebarFooter className="p-4">
+          <div className="flex flex-col gap-4">
+            {profile?.role === 'admin_user' && (
+              <div className="flex items-center gap-2 px-2">
+                <Users className="w-4 h-4" />
+                <Select
+                  value={impersonatedUserId || currentUser?.id}
+                  onValueChange={handleAccountSwitch}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select an account" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={currentUser?.id}>My Account</SelectItem>
+                    {profiles?.map((profile) => (
+                      <SelectItem key={profile.id} value={profile.id}>
+                        {profile.email}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="w-full justify-start group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:aspect-square"
+              onClick={() => handleNavigation("/settings")}
+            >
               <Settings className="mr-2 h-4 w-4 group-data-[collapsible=icon]:mr-0" />
               <span className="group-data-[collapsible=icon]:hidden">Settings</span>
-            </Link>
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full justify-start group-data-[collapsible=icon]:w-8 group-data-[collapsible-icon]:p-0 group-data-[collapsible=icon]:aspect-square"
-            onClick={handleLogout}
-          >
-            <LogOut className="mr-2 h-4 w-4 group-data-[collapsible=icon]:mr-0" />
-            <span className="group-data-[collapsible=icon]:hidden">Logout</span>
-          </Button>
-        </div>
-      </SidebarFooter>
-    </Sidebar>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full justify-start group-data-[collapsible=icon]:w-8 group-data-[collapsible-icon]:p-0 group-data-[collapsible=icon]:aspect-square"
+              onClick={handleLogout}
+            >
+              <LogOut className="mr-2 h-4 w-4 group-data-[collapsible=icon]:mr-0" />
+              <span className="group-data-[collapsible=icon]:hidden">Logout</span>
+            </Button>
+          </div>
+        </SidebarFooter>
+      </Sidebar>
+
+      <NavigationWarningDialog
+        isOpen={!!pendingNavigation}
+        onConfirm={handleNavigationConfirm}
+        onCancel={handleNavigationCancel}
+      />
+    </>
   );
 }

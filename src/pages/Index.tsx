@@ -1,15 +1,25 @@
 import { CSVUploader } from "@/components/CSVUploader";
 import { ContactList } from "@/components/ContactList";
 import { MessageComposer } from "@/components/MessageComposer";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface Contact {
   name: string;
   phone: string;
 }
 
+declare global {
+  interface Window {
+    __CONTACTS_LOADED__: boolean;
+  }
+}
+
 const Index = () => {
   const [contacts, setContacts] = useState<Contact[]>([]);
+
+  useEffect(() => {
+    window.__CONTACTS_LOADED__ = contacts.length > 0;
+  }, [contacts]);
 
   const handleContactsLoaded = (loadedContacts: Contact[]) => {
     setContacts(loadedContacts);
