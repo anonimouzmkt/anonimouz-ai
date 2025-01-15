@@ -8,7 +8,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { InstanceSelector } from "./message-composer/InstanceSelector";
 import { AIContextInput } from "./message-composer/AIContextInput";
 import { MessageInput } from "./message-composer/MessageInput";
-import { apiService } from "@/lib/api-service";
 
 interface MessageComposerProps {
   onSend: (message: string, instanceId: string, isAiDispatch: boolean, aiContext?: string) => Promise<string | undefined>;
@@ -55,6 +54,10 @@ export function MessageComposer({ onSend, disabled, contacts = [] }: MessageComp
       errors.push("Digite o contexto do disparo quando usar I.A");
     }
 
+    if (useAI && !profile?.webhook_url) {
+      errors.push("Configure o webhook de IA nas configurações");
+    }
+
     setValidationErrors(errors);
     return errors.length === 0;
   };
@@ -92,10 +95,10 @@ export function MessageComposer({ onSend, disabled, contacts = [] }: MessageComp
 
         if (contactsError) throw contactsError;
         
-        if (useAI && dispatch.id) {
-          console.log('Sending dispatch data through API service');
+        if (useAI && dispatch.id && profile.webhook_url) {
+          console.log('Sending dispatch data to webhook:', profile.webhook_url);
           
-          await apiService.handleDispatch({
+          const webhookPayload = {
             dispatchId: dispatch.id,
             uniqueId: profile.unique_id,
             message,
@@ -104,7 +107,19 @@ export function MessageComposer({ onSend, disabled, contacts = [] }: MessageComp
               name: contact.name,
               phone: contact.phone
             }))
+          };
+
+          const response = await fetch(profile.webhook_url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(webhookPayload)
           });
+
+          if (!response.ok) {
+            throw new Error('Failed to send to webhook');
+          }
 
           toast({
             title: "Disparo iniciado",
@@ -118,7 +133,7 @@ export function MessageComposer({ onSend, disabled, contacts = [] }: MessageComp
         console.error('Error sending dispatch:', error);
         toast({
           title: "Erro no disparo",
-          description: "Ocorreu um erro ao enviar os contatos",
+          description: "Ocorreu um erro ao enviar os contatos para o webhook",
           variant: "destructive"
         });
       }

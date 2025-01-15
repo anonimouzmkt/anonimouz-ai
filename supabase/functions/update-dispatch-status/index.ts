@@ -1,34 +1,41 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { corsHeaders } from '../_shared/cors.ts'
-import { validateAuth } from '../_shared/auth.ts'
 
-console.log("Hello from update-dispatch-status!")
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-unique-id',
+}
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return new Response(null, { headers: corsHeaders })
   }
 
   try {
-    // Validate authentication
-    const { user_id, error: authError } = await validateAuth(req)
-    if (authError) {
-      throw new Error(authError)
+    const uniqueId = req.headers.get('x-unique-id');
+    if (!uniqueId) {
+      throw new Error('Missing x-unique-id header');
     }
 
-    // Get request body
-    const { dispatchId, phone, status, error } = await req.json()
-    console.log(`Updating status for dispatch ${dispatchId}, phone ${phone} to ${status}`)
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabaseClient = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Create Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    const supabase = createClient(supabaseUrl, supabaseKey)
+    // Validate if unique_id exists in profiles
+    const { data: profile, error: profileError } = await supabaseClient
+      .from('profiles')
+      .select('id')
+      .eq('unique_id', uniqueId)
+      .single();
 
-    // Update dispatch contact result
-    const { data, error: updateError } = await supabase
+    if (profileError || !profile) {
+      throw new Error('Invalid unique_id');
+    }
+
+    const { dispatchId, phone, status, error } = await req.json();
+
+    // Update the contact result
+    const { error: updateError } = await supabaseClient
       .from('dispatch_contact_results')
       .update({
         status: status,
@@ -36,62 +43,46 @@ serve(async (req) => {
         updated_at: new Date().toISOString()
       })
       .eq('dispatch_id', dispatchId)
-      .eq('contact_phone', phone)
+      .eq('contact_phone', phone);
 
     if (updateError) {
-      throw updateError
+      throw updateError;
     }
 
-    // Update dispatch result counts
-    const { data: dispatchData, error: countError } = await supabase
+    // Update the dispatch result counts
+    const { data: results, error: countError } = await supabaseClient
       .from('dispatch_contact_results')
       .select('status', { count: 'exact' })
-      .eq('dispatch_id', dispatchId)
-      .in('status', ['success', 'error'])
-      .or('status.eq.success,status.eq.error')
+      .eq('dispatch_id', dispatchId);
 
     if (countError) {
-      throw countError
+      throw countError;
     }
 
-    const successCount = dispatchData?.filter(r => r.status === 'success').length || 0
-    const errorCount = dispatchData?.filter(r => r.status === 'error').length || 0
+    const successCount = results?.filter(r => r.status === 'success').length || 0;
+    const errorCount = results?.filter(r => r.status === 'error').length || 0;
 
-    const { error: updateDispatchError } = await supabase
+    await supabaseClient
       .from('dispatch_results')
       .update({
         success_count: successCount,
         error_count: errorCount,
         updated_at: new Date().toISOString()
       })
-      .eq('id', dispatchId)
-
-    if (updateDispatchError) {
-      throw updateDispatchError
-    }
+      .eq('id', dispatchId);
 
     return new Response(
-      JSON.stringify({ success: true, data }),
-      { 
-        headers: { 
-          ...corsHeaders,
-          'Content-Type': 'application/json'
-        },
-        status: 200 
-      }
-    )
-
+      JSON.stringify({ success: true }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
   } catch (error) {
-    console.error('Error:', error.message)
+    console.error('Error:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
       { 
-        headers: { 
-          ...corsHeaders,
-          'Content-Type': 'application/json'
-        },
-        status: 400 
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
-    )
+    );
   }
-})
+});

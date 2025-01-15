@@ -1,8 +1,10 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { corsHeaders } from "../_shared/cors.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-console.log("WhatsApp Webhook function started")
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-unique-id',
+}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -10,79 +12,184 @@ serve(async (req) => {
   }
 
   try {
-    const data = await req.json()
-    console.log('Webhook received:', data)
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      console.error('Missing Authorization header');
+      return new Response(
+        JSON.stringify({ 
+          error: 'Authorization failed',
+          details: 'Missing authorization header'
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 401
+        }
+      )
+    }
+
+    const uniqueId = req.headers.get('x-unique-id');
+    if (!uniqueId) {
+      console.error('Missing x-unique-id header');
+      return new Response(
+        JSON.stringify({ 
+          error: 'Missing required header',
+          details: 'x-unique-id header is required'
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400
+        }
+      )
+    }
 
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    if (data.event === 'message') {
-      const { instanceId, message } = data
+    const { data: profile, error: profileError } = await supabaseClient
+      .from('profiles')
+      .select('id')
+      .eq('unique_id', uniqueId)
+      .single();
+
+    if (profileError || !profile) {
+      console.error('Invalid unique_id:', uniqueId);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invalid unique_id',
+          details: 'The provided unique_id does not match any user profile'
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 401
+        }
+      )
+    }
+
+    const body = await req.json()
+    console.log('Received webhook payload:', body)
+
+    const { instanceName, status, event } = body
+    if (!instanceName) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invalid payload',
+          details: 'instanceName is required in webhook payload'
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400
+        }
+      )
+    }
+
+    if (event === 'connection' || status) {
+      const newStatus = status || (event === 'connection' ? 'connected' : null);
       
-      // Get the instance details
-      const { data: instance, error: instanceError } = await supabaseClient
-        .from('whatsapp_instances')
-        .select('*')
-        .eq('id', instanceId)
-        .single()
-
-      if (instanceError) {
-        throw new Error(`Error fetching instance: ${instanceError.message}`)
-      }
-
-      // Update instance status if needed
-      if (instance.status !== 'connected') {
-        const { error: updateError } = await supabaseClient
+      if (newStatus) {
+        console.log(`Attempting to update instance ${instanceName} status to ${newStatus}`);
+        
+        // Get the instance by name
+        const { data: instance, error: fetchError } = await supabaseClient
           .from('whatsapp_instances')
-          .update({ status: 'connected' })
-          .eq('id', instanceId)
+          .select('id, status')
+          .eq('name', instanceName)
+          .maybeSingle();
+
+        if (fetchError) {
+          console.error('Error fetching instance:', fetchError);
+          throw fetchError;
+        }
+
+        if (!instance) {
+          console.error(`No instance found with name: ${instanceName}`);
+          return new Response(
+            JSON.stringify({ 
+              error: 'Instance not found',
+              details: `No instance found with name ${instanceName}`
+            }),
+            { 
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+              status: 404
+            }
+          )
+        }
+
+        console.log(`Found instance with id ${instance.id}, current status: ${instance.status}`);
+
+        // Update the instance status using RPC call for atomic update
+        const { error: updateError } = await supabaseClient.rpc('update_instance_status', {
+          p_instance_id: instance.id,
+          p_status: newStatus
+        });
 
         if (updateError) {
-          throw new Error(`Error updating instance status: ${updateError.message}`)
+          console.error('Error updating instance status:', updateError);
+          throw updateError;
         }
-      }
 
-      // Store the message
-      const { error: messageError } = await supabaseClient
-        .from('whatsapp_messages')
-        .insert([
-          {
-            instance_id: instanceId,
-            message: message.body,
-            from: message.from,
-            to: message.to,
-            message_type: message.type,
-            timestamp: new Date().toISOString()
+        // Verify the update
+        const { data: verifyInstance, error: verifyError } = await supabaseClient
+          .from('whatsapp_instances')
+          .select('status')
+          .eq('id', instance.id)
+          .single();
+
+        if (verifyError) {
+          console.error('Error verifying update:', verifyError);
+          throw verifyError;
+        }
+
+        console.log(`Instance status after update: ${verifyInstance.status}`);
+
+        return new Response(
+          JSON.stringify({ 
+            success: true,
+            message: `Instance ${instanceName} status updated to ${newStatus}`,
+            data: {
+              instanceName,
+              status: newStatus,
+              timestamp: new Date().toISOString()
+            }
+          }),
+          { 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 200 
           }
-        ])
-
-      if (messageError) {
-        throw new Error(`Error storing message: ${messageError.message}`)
+        )
       }
     }
 
+    // For non-connection events, just acknowledge receipt
+    console.log(`Received ${event} event for instance ${instanceName}`);
     return new Response(
-      JSON.stringify({ success: true }), 
-      {
-        headers: { 
-          ...corsHeaders, 
-          'Content-Type': 'application/json'
-        },
-        status: 200,
+      JSON.stringify({ 
+        success: true,
+        message: `Processed ${event} event for instance: ${instanceName}`,
+        data: {
+          instanceName,
+          event,
+          status,
+          timestamp: new Date().toISOString()
+        }
+      }),
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200 
       }
     )
+
   } catch (error) {
-    console.error('Error:', error)
+    console.error('Error processing webhook:', error);
     return new Response(
-      JSON.stringify({ error: error.message }), 
-      {
-        headers: { 
-          ...corsHeaders, 
-          'Content-Type': 'application/json'
-        },
-        status: 400,
+      JSON.stringify({ 
+        error: 'Internal server error',
+        details: error.message || 'An unexpected error occurred'
+      }),
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500
       }
     )
   }
