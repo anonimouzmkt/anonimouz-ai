@@ -7,9 +7,9 @@ export const SidebarHeader = () => {
         <img
           src="/lovable-uploads/4321434b-2144-462b-b83b-2b1129bccb08.png"
           alt="Logo"
-          className="w-9 h-9 object-contain"
+          className="w-10 h-10 object-contain"
         />
-        <span className="text-lg font-semibold text-sidebar-foreground group-data-[collapsible=icon]:hidden">
+        <span className="text-base font-medium text-sidebar-foreground group-data-[collapsible=icon]:hidden">
           Anonimouz A.I
         </span>
       </div>

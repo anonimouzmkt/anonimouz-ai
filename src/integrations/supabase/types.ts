@@ -107,6 +107,7 @@ export type Database = {
           email: string | null
           id: string
           role: Database["public"]["Enums"]["user_role"]
+          theme_color: string
           unique_id: string
           updated_at: string
           webhook_url: string | null
@@ -117,6 +118,7 @@ export type Database = {
           email?: string | null
           id: string
           role?: Database["public"]["Enums"]["user_role"]
+          theme_color?: string
           unique_id?: string
           updated_at?: string
           webhook_url?: string | null
@@ -127,6 +129,7 @@ export type Database = {
           email?: string | null
           id?: string
           role?: Database["public"]["Enums"]["user_role"]
+          theme_color?: string
           unique_id?: string
           updated_at?: string
           webhook_url?: string | null
