@@ -47,11 +47,17 @@ export const useInstanceStatus = (
         (payload: WhatsAppInstanceChanges) => {
           console.log('Instance status changed:', payload);
           
-          if (payload.new && typeof payload.new === 'object' && 'status' in payload.new) {
+          if (payload.new && 'status' in payload.new) {
+            const newStatus = validateStatus(payload.new.status);
+            console.log('New validated status:', newStatus);
+            
             const updatedInstance = {
+              ...selectedInstance,
               ...payload.new,
-              status: validateStatus(payload.new.status)
+              status: newStatus
             } as WhatsAppInstance;
+
+            console.log('Updated instance:', updatedInstance);
 
             setLocalInstances(prev => 
               prev.map(inst => 
@@ -61,7 +67,7 @@ export const useInstanceStatus = (
 
             // Update current instance if status changed
             if (selectedInstance && updatedInstance.status !== selectedInstance.status) {
-              console.log('Updating current instance status:', updatedInstance.status);
+              console.log('Status changed from', selectedInstance.status, 'to', updatedInstance.status);
               setCurrentInstance(updatedInstance);
 
               // Show toast for connection status change
