@@ -10,10 +10,13 @@ interface Profile {
   email: string | null;
   webhook_url: string | null;
   theme_color: string;
-  admin_users: boolean;
+  admin_users: boolean | null;
   unique_id: string;
   role: 'admin_user' | 'user';
   language: string;
+  api_key: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export const useSettings = () => {
@@ -24,7 +27,7 @@ export const useSettings = () => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
 
-  // Fetch current user
+  // Fetch current user with better error handling
   const { data: currentUser, isLoading: isUserLoading } = useQuery({
     queryKey: ["currentUser"],
     queryFn: async () => {
@@ -34,13 +37,16 @@ export const useSettings = () => {
         console.error("Error fetching current user:", error);
         throw error;
       }
-      if (!user) throw new Error("User not found");
+      if (!user) {
+        console.error("No user found");
+        throw new Error("User not found");
+      }
       console.log("Current user fetched:", user);
       return user;
     },
   });
 
-  // Fetch profile data with simplified query
+  // Fetch profile data with complete error handling
   const { data: profile, refetch, isLoading: isProfileLoading } = useQuery<Profile | null>({
     queryKey: ["profile", selectedUserId || currentUser?.id],
     queryFn: async () => {
@@ -53,7 +59,7 @@ export const useSettings = () => {
       console.log("Fetching profile for user:", userId);
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, email, webhook_url, theme_color, admin_users, unique_id, role, language")
+        .select("*")
         .eq("id", userId)
         .maybeSingle();
 
@@ -70,12 +76,13 @@ export const useSettings = () => {
       return data;
     },
     enabled: !!(selectedUserId || currentUser?.id),
+    retry: 1,
   });
 
   // Theme management
   useEffect(() => {
     if (!isProfileLoading && profile) {
-      const theme = localStorage.getItem("theme") || profile?.theme_color || "dark";
+      const theme = profile.theme_color || "dark";
       setIsDarkMode(theme === "dark");
       document.documentElement.classList.toggle("dark", theme === "dark");
     }
