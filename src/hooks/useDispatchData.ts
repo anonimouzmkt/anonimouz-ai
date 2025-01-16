@@ -29,18 +29,21 @@ export const useDispatchData = (selectedUserId: string) => {
         throw authError;
       }
 
-      const { data: profile, error: profileError } = await supabase
+      // First check if the current user is an admin
+      const { data: currentUserProfile, error: currentProfileError } = await supabase
         .from("profiles")
-        .select("role")
+        .select("role, admin_users")
         .eq("id", user.id)
-        .maybeSingle();
+        .single();
 
-      if (profileError) {
-        console.error("Profile error:", profileError);
-        throw profileError;
+      if (currentProfileError) {
+        console.error("Current profile error:", currentProfileError);
+        throw currentProfileError;
       }
 
-      return { user, isAdmin: profile?.role === 'admin_user' };
+      const isAdmin = currentUserProfile?.admin_users === true;
+
+      return { user, isAdmin };
     } catch (error) {
       console.error("Error fetching user:", error);
       throw error;
