@@ -4,6 +4,7 @@ import { Webhook } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useEffect, useState } from "react";
 
 interface WebhookSectionProps {
   webhookUrl: string;
@@ -12,16 +13,25 @@ interface WebhookSectionProps {
   refetch: () => void;
 }
 
-export const WebhookSection = ({ webhookUrl, setWebhookUrl, userId, refetch }: WebhookSectionProps) => {
+export const WebhookSection = ({ webhookUrl: initialWebhookUrl, setWebhookUrl, userId, refetch }: WebhookSectionProps) => {
+  const [localWebhookUrl, setLocalWebhookUrl] = useState(initialWebhookUrl);
+
+  useEffect(() => {
+    setLocalWebhookUrl(initialWebhookUrl);
+  }, [initialWebhookUrl, userId]);
+
   const handleSaveWebhookUrl = async () => {
     try {
+      console.log('Saving webhook URL for user:', userId, 'URL:', localWebhookUrl);
+      
       const { error } = await supabase
         .from("profiles")
-        .update({ webhook_url: webhookUrl })
+        .update({ webhook_url: localWebhookUrl })
         .eq("id", userId);
 
       if (error) throw error;
 
+      setWebhookUrl(localWebhookUrl);
       toast.success("Webhook URL saved successfully!");
       refetch();
     } catch (error) {
@@ -38,8 +48,8 @@ export const WebhookSection = ({ webhookUrl, setWebhookUrl, userId, refetch }: W
       <CardContent>
         <div className="flex gap-2">
           <Input
-            value={webhookUrl}
-            onChange={(e) => setWebhookUrl(e.target.value)}
+            value={localWebhookUrl}
+            onChange={(e) => setLocalWebhookUrl(e.target.value)}
             placeholder="Enter webhook URL..."
             className="font-mono text-sm"
           />
