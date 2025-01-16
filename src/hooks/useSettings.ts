@@ -43,7 +43,6 @@ export const useSettings = () => {
       console.log("Current user fetched:", user);
       return user;
     },
-    retry: 1,
   });
 
   const { data: profile, refetch, isLoading: isProfileLoading } = useQuery<Profile>({
@@ -60,7 +59,7 @@ export const useSettings = () => {
         .from("profiles")
         .select("*")
         .eq("id", userId)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error("Error fetching profile:", error);
@@ -79,7 +78,6 @@ export const useSettings = () => {
       return data;
     },
     enabled: !!currentUser?.id || !!selectedUserId,
-    retry: 1,
   });
 
   const toggleTheme = async () => {
