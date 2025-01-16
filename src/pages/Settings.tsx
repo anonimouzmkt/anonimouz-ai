@@ -17,7 +17,6 @@ const Settings = () => {
   const { 
     currentUser,
     profile,
-    adminProfile,
     webhookUrl,
     setWebhookUrl,
     isDarkMode,
@@ -48,7 +47,7 @@ const Settings = () => {
     );
   }
 
-  const isAdmin = adminProfile?.role === 'admin_user';
+  const isAdmin = profile.role === 'admin_user';
   const userId = selectedUserId || currentUser.id;
 
   return (

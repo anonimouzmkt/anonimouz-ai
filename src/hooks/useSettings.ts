@@ -42,7 +42,7 @@ export const useSettings = () => {
       console.log("Fetching profile for user:", userId);
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, email, webhook_url, theme_color, admin_users")
+        .select("id, email, webhook_url, theme_color, admin_users, unique_id, role")
         .eq("id", userId)
         .maybeSingle();
 
