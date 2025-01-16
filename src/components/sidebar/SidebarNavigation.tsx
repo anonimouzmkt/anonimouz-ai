@@ -44,9 +44,9 @@ export const SidebarNavigation = ({ handleNavigation }: SidebarNavigationProps) 
               asChild 
               tooltip={item.tooltip}
               onClick={() => handleNavigation(item.path)}
-              className="text-sm py-2 transition-all duration-200 hover:translate-x-1 hover:bg-sidebar-accent/70 w-full flex items-center gap-3 group-data-[collapsible=icon]:justify-center"
+              className="text-sm py-2 transition-all duration-200 hover:translate-x-1 hover:bg-sidebar-accent/70 w-full flex items-center gap-3 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0"
             >
-              <Link to="#" onClick={(e) => e.preventDefault()}>
+              <Link to="#" onClick={(e) => e.preventDefault()} className="flex items-center gap-3 w-full group-data-[collapsible=icon]:justify-center">
                 {item.icon}
                 <span className="flex-1 group-data-[collapsible=icon]:hidden">{item.label}</span>
               </Link>
