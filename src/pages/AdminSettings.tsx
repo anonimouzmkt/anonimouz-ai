@@ -54,7 +54,7 @@ export default function AdminSettings() {
     );
   }
 
-  // Check if user is admin
+  // Check if user is admin_user
   if (!currentUser?.role || currentUser.role !== "admin_user") {
     toast.error("Você não tem permissão para acessar esta página");
     navigate("/");

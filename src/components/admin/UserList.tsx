@@ -25,7 +25,7 @@ type UserRole = Database["public"]["Enums"]["user_role"];
 export function UserList() {
   const queryClient = useQueryClient();
 
-  // Primeiro buscar o perfil do usuário atual para verificar se é admin
+  // Primeiro buscar o perfil do usuário atual para verificar se é admin_user
   const { data: currentUserProfile, isLoading: isLoadingProfile } = useQuery({
     queryKey: ["currentUserProfile"],
     queryFn: async () => {
@@ -53,7 +53,7 @@ export function UserList() {
     },
   });
 
-  // Depois buscar a lista de usuários apenas se for admin
+  // Depois buscar a lista de usuários apenas se for admin_user
   const { data: users, isLoading: isLoadingUsers } = useQuery({
     queryKey: ["users"],
     queryFn: async () => {
@@ -61,7 +61,7 @@ export function UserList() {
       const { data: profiles, error } = await supabase
         .from("profiles")
         .select("*")
-        .order("email");
+        .order('email');
 
       if (error) {
         console.error("Error fetching users:", error);
@@ -121,7 +121,7 @@ export function UserList() {
     await updateRoleMutation.mutate({ userId, newRole });
   };
 
-  // Verificar se o usuário atual é admin
+  // Verificar se o usuário atual é admin_user
   if (!currentUserProfile?.role || currentUserProfile.role !== "admin_user") {
     return (
       <div className="p-4 text-center text-red-500">
