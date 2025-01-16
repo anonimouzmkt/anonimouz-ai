@@ -32,6 +32,24 @@ export function UserList() {
       const { data: currentUser } = await supabase.auth.getUser();
       console.log("Current user:", currentUser);
 
+      const { data: currentProfile, error: profileError } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", currentUser.user?.id)
+        .single();
+
+      if (profileError) {
+        console.error("Error fetching current profile:", profileError);
+        throw profileError;
+      }
+
+      console.log("Current user profile:", currentProfile);
+
+      if (currentProfile.role !== "admin_user") {
+        console.error("User is not an admin");
+        throw new Error("Você não tem permissão para ver esta lista");
+      }
+
       const { data: profiles, error } = await supabase
         .from("profiles")
         .select("*")
@@ -58,11 +76,11 @@ export function UserList() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
-      toast.success("User deleted successfully");
+      toast.success("Usuário deletado com sucesso");
     },
     onError: (error) => {
       console.error("Error deleting user:", error);
-      toast.error("Failed to delete user");
+      toast.error("Falha ao deletar usuário");
     },
   });
 
@@ -77,16 +95,16 @@ export function UserList() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
-      toast.success("User role updated successfully");
+      toast.success("Papel do usuário atualizado com sucesso");
     },
     onError: (error) => {
       console.error("Error updating user role:", error);
-      toast.error("Failed to update user role");
+      toast.error("Falha ao atualizar papel do usuário");
     },
   });
 
   const handleDeleteUser = async (userId: string) => {
-    if (window.confirm("Are you sure you want to delete this user?")) {
+    if (window.confirm("Tem certeza que deseja deletar este usuário?")) {
       await deleteUserMutation.mutate(userId);
     }
   };
@@ -105,15 +123,15 @@ export function UserList() {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-semibold">User List</h2>
+      <h2 className="text-lg font-semibold">Lista de Usuários</h2>
       <div className="border rounded-md">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Email</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead>Created At</TableHead>
-              <TableHead>Actions</TableHead>
+              <TableHead>Papel</TableHead>
+              <TableHead>Criado em</TableHead>
+              <TableHead>Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -126,10 +144,10 @@ export function UserList() {
                     onValueChange={(value: UserRole) => handleRoleChange(user.id, value)}
                   >
                     <SelectTrigger className="w-32">
-                      <SelectValue placeholder="Select role" />
+                      <SelectValue placeholder="Selecione o papel" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="user">User</SelectItem>
+                      <SelectItem value="user">Usuário</SelectItem>
                       <SelectItem value="admin_user">Admin</SelectItem>
                     </SelectContent>
                   </Select>
