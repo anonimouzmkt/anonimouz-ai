@@ -1,59 +1,48 @@
-import { MessageSquare, MessageCircle, BarChart2 } from "lucide-react";
-import { Link } from "react-router-dom";
-import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
+import { Home, MessageSquare, Settings } from "lucide-react";
+import { NavLink } from "react-router-dom";
 
-interface SidebarNavigationProps {
-  handleNavigation: (path: string) => void;
-  isAdmin: boolean;
-}
-
-export const SidebarNavigation = ({ handleNavigation }: SidebarNavigationProps) => {
+export const SidebarNavigation = () => {
   return (
-    <SidebarMenu className="flex flex-col h-full">
-      {/* Main Navigation Group */}
-      <div className="flex-1 flex flex-col items-center gap-2 py-4">
-        <SidebarMenuItem>
-          <SidebarMenuButton 
-            asChild 
-            tooltip="Disparador" 
-            onClick={() => handleNavigation("/")}
-            className="w-10 h-10 flex items-center justify-center rounded-lg transition-all duration-200 hover:bg-sidebar-accent/70"
-          >
-            <Link to="#" onClick={(e) => e.preventDefault()}>
-              <MessageSquare className="w-5 h-5" />
-              <span className="sr-only">Disparador</span>
-            </Link>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-
-        <SidebarMenuItem>
-          <SidebarMenuButton 
-            asChild 
-            tooltip="Dashboard" 
-            onClick={() => handleNavigation("/dispatch-dashboard")}
-            className="w-10 h-10 flex items-center justify-center rounded-lg transition-all duration-200 hover:bg-sidebar-accent/70"
-          >
-            <Link to="#" onClick={(e) => e.preventDefault()}>
-              <BarChart2 className="w-5 h-5" />
-              <span className="sr-only">Dashboard</span>
-            </Link>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-
-        <SidebarMenuItem>
-          <SidebarMenuButton 
-            asChild 
-            tooltip="WhatsApp" 
-            onClick={() => handleNavigation("/whatsapp")}
-            className="w-10 h-10 flex items-center justify-center rounded-lg transition-all duration-200 hover:bg-sidebar-accent/70"
-          >
-            <Link to="#" onClick={(e) => e.preventDefault()}>
-              <MessageCircle className="w-5 h-5" />
-              <span className="sr-only">WhatsApp</span>
-            </Link>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-      </div>
-    </SidebarMenu>
+    <nav className="space-y-2">
+      <NavLink
+        to="/dashboard"
+        className={({ isActive }) =>
+          `flex items-center justify-center md:justify-start gap-2 px-3 py-2 rounded-lg transition-colors ${
+            isActive
+              ? "bg-white/10 text-white"
+              : "text-white/60 hover:text-white hover:bg-white/10"
+          }`
+        }
+      >
+        <Home className="w-5 h-5" />
+        <span className="hidden md:inline">Dashboard</span>
+      </NavLink>
+      <NavLink
+        to="/whatsapp"
+        className={({ isActive }) =>
+          `flex items-center justify-center md:justify-start gap-2 px-3 py-2 rounded-lg transition-colors ${
+            isActive
+              ? "bg-white/10 text-white"
+              : "text-white/60 hover:text-white hover:bg-white/10"
+          }`
+        }
+      >
+        <MessageSquare className="w-5 h-5" />
+        <span className="hidden md:inline">WhatsApp</span>
+      </NavLink>
+      <NavLink
+        to="/settings"
+        className={({ isActive }) =>
+          `flex items-center justify-center md:justify-start gap-2 px-3 py-2 rounded-lg transition-colors ${
+            isActive
+              ? "bg-white/10 text-white"
+              : "text-white/60 hover:text-white hover:bg-white/10"
+          }`
+        }
+      >
+        <Settings className="w-5 h-5" />
+        <span className="hidden md:inline">Settings</span>
+      </NavLink>
+    </nav>
   );
 };
