@@ -116,6 +116,9 @@ export const TaskBoard = ({ tasks }: TaskBoardProps) => {
 
   const updateColumn = useMutation({
     mutationFn: async (column: Column) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("User not authenticated");
+
       const { error } = await supabase
         .from("task_columns")
         .update({ title: column.title })
