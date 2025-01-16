@@ -1,4 +1,4 @@
-import { Settings, LogOut, Shield, Building } from "lucide-react";
+import { Settings, LogOut, Users, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -36,32 +36,15 @@ export const SidebarFooterActions = ({
   return (
     <div className="flex flex-col gap-4">
       {isAdmin && (
-        <div className="flex items-center gap-2 px-2">
-          <Building className="w-4 h-4" />
-          <Select
-            value={impersonatedUserId || currentUserId}
-            onValueChange={handleAccountSwitch}
-          >
-            <SelectTrigger className="w-full bg-background group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:p-0">
-              <SelectValue placeholder="Select an account" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={currentUserId}>My Account</SelectItem>
-              {profiles?.map((profile) => 
-                profile.id !== currentUserId && (
-                  <SelectItem key={profile.id} value={profile.id}>
-                    {profile.email}
-                  </SelectItem>
-                )
-              )}
-            </SelectContent>
-          </Select>
-        </div>
+        <AccountSwitcherSection 
+          currentUserId={currentUserId}
+          onAccountSwitch={handleAccountSwitch}
+        />
       )}
       <Button 
         variant="outline" 
         size="sm" 
-        className="w-full justify-start group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:justify-center"
+        className="w-full justify-start group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:aspect-square"
         onClick={() => handleNavigation("/settings")}
       >
         <Settings className="mr-2 h-4 w-4 group-data-[collapsible=icon]:mr-0" />
@@ -71,7 +54,7 @@ export const SidebarFooterActions = ({
         <Button 
           variant="outline" 
           size="sm" 
-          className="w-full justify-start group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:justify-center"
+          className="w-full justify-start group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:aspect-square"
           onClick={() => handleNavigation("/admin-settings")}
         >
           <Shield className="mr-2 h-4 w-4 group-data-[collapsible=icon]:mr-0" />
@@ -81,7 +64,7 @@ export const SidebarFooterActions = ({
       <Button
         variant="outline"
         size="sm"
-        className="w-full justify-start group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:justify-center"
+        className="w-full justify-start group-data-[collapsible=icon]:w-8 group-data-[collapsible-icon]:p-0 group-data-[collapsible=icon]:aspect-square"
         onClick={handleLogout}
       >
         <LogOut className="mr-2 h-4 w-4 group-data-[collapsible=icon]:mr-0" />
