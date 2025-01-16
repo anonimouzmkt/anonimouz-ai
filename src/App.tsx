@@ -13,6 +13,7 @@ import Settings from "./pages/Settings";
 import AdminSettings from "./pages/AdminSettings";
 import DispatchDashboard from "./pages/DispatchDashboard";
 import EmailConfirmation from "./pages/EmailConfirmation";
+import Tasks from "./pages/Tasks";
 
 const queryClient = new QueryClient();
 
@@ -87,6 +88,14 @@ const App = () => {
               element={
                 <ProtectedLayout>
                   <AdminSettings />
+                </ProtectedLayout>
+              }
+            />
+            <Route
+              path="/tasks"
+              element={
+                <ProtectedLayout>
+                  <Tasks />
                 </ProtectedLayout>
               }
             />

@@ -142,6 +142,39 @@ export type Database = {
         }
         Relationships: []
       }
+      tasks: {
+        Row: {
+          created_at: string
+          description: string | null
+          due_date: string | null
+          id: string
+          status: Database["public"]["Enums"]["task_status"] | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          status?: Database["public"]["Enums"]["task_status"] | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          status?: Database["public"]["Enums"]["task_status"] | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       whatsapp_instances: {
         Row: {
           created_at: string
@@ -186,6 +219,7 @@ export type Database = {
       }
     }
     Enums: {
+      task_status: "todo" | "in_progress" | "done"
       user_role: "admin_user" | "user"
     }
     CompositeTypes: {

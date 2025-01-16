@@ -1,4 +1,4 @@
-import { MessageSquare, MessageCircle, BarChart2 } from "lucide-react";
+import { MessageSquare, MessageCircle, BarChart2, ListTodo } from "lucide-react";
 import { Link } from "react-router-dom";
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
 
@@ -16,7 +16,7 @@ export const SidebarNavigation = ({ handleNavigation }: SidebarNavigationProps) 
             asChild 
             tooltip="Disparador" 
             onClick={() => handleNavigation("/")}
-            className="text-base py-3 transition-all duration-200 hover:translate-x-1 hover:bg-sidebar-accent/70 w-full"
+            className="text-base py-3 transition-all duration-200 hover:translate-x-1 hover:bg-sidebar-accent/70 w-full flex justify-center"
           >
             <Link to="#" onClick={(e) => e.preventDefault()}>
               <MessageSquare className="w-5 h-5" />
@@ -29,7 +29,7 @@ export const SidebarNavigation = ({ handleNavigation }: SidebarNavigationProps) 
             asChild 
             tooltip="Dashboard" 
             onClick={() => handleNavigation("/dispatch-dashboard")}
-            className="text-base py-3 transition-all duration-200 hover:translate-x-1 hover:bg-sidebar-accent/70 w-full"
+            className="text-base py-3 transition-all duration-200 hover:translate-x-1 hover:bg-sidebar-accent/70 w-full flex justify-center"
           >
             <Link to="#" onClick={(e) => e.preventDefault()}>
               <BarChart2 className="w-5 h-5" />
@@ -42,11 +42,24 @@ export const SidebarNavigation = ({ handleNavigation }: SidebarNavigationProps) 
             asChild 
             tooltip="WhatsApp" 
             onClick={() => handleNavigation("/whatsapp")}
-            className="text-base py-3 transition-all duration-200 hover:translate-x-1 hover:bg-sidebar-accent/70 w-full"
+            className="text-base py-3 transition-all duration-200 hover:translate-x-1 hover:bg-sidebar-accent/70 w-full flex justify-center"
           >
             <Link to="#" onClick={(e) => e.preventDefault()}>
               <MessageCircle className="w-5 h-5" />
               <span>WhatsApp</span>
+            </Link>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+        <SidebarMenuItem>
+          <SidebarMenuButton 
+            asChild 
+            tooltip="Tasks" 
+            onClick={() => handleNavigation("/tasks")}
+            className="text-base py-3 transition-all duration-200 hover:translate-x-1 hover:bg-sidebar-accent/70 w-full flex justify-center"
+          >
+            <Link to="#" onClick={(e) => e.preventDefault()}>
+              <ListTodo className="w-5 h-5" />
+              <span>Tasks</span>
             </Link>
           </SidebarMenuButton>
         </SidebarMenuItem>
