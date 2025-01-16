@@ -52,34 +52,27 @@ export const useSettings = () => {
         description: "Theme preference saved.",
       });
       
-      // Invalidate the profile query to refresh the data
       await queryClient.invalidateQueries({ queryKey: ["profile", userId] });
     } catch (error) {
       console.error("Error in theme toggle:", error);
     }
   };
 
-  const { data: currentUser, isError: isCurrentUserError } = useQuery({
+  const { data: currentUser } = useQuery({
     queryKey: ["currentUser"],
     queryFn: async () => {
       console.log("Fetching current user...");
       const { data: { user }, error } = await supabase.auth.getUser();
       if (error) {
         console.error("Error fetching current user:", error);
-        toast({
-          title: t("error"),
-          description: "Failed to fetch user information. Please try logging in again.",
-          variant: "destructive",
-        });
         throw error;
       }
       if (!user) throw new Error("User not found");
       return user;
     },
-    retry: 1,
   });
 
-  const { data: profile, refetch, isError: isProfileError } = useQuery({
+  const { data: profile, refetch } = useQuery({
     queryKey: ["profile", selectedUserId || currentUser?.id],
     queryFn: async () => {
       const userId = selectedUserId || currentUser?.id;
@@ -97,11 +90,6 @@ export const useSettings = () => {
 
       if (error) {
         console.error("Error fetching profile:", error);
-        toast({
-          title: "Error",
-          description: "Failed to fetch profile information.",
-          variant: "destructive",
-        });
         throw error;
       }
 
@@ -113,10 +101,10 @@ export const useSettings = () => {
       return profile;
     },
     enabled: !!(selectedUserId || currentUser?.id),
-    retry: 1,
+    retry: false,
   });
 
-  const { data: adminProfile, isError: isAdminError } = useQuery({
+  const { data: adminProfile } = useQuery({
     queryKey: ["adminProfile", currentUser?.id],
     queryFn: async () => {
       if (!currentUser) return null;
@@ -129,24 +117,14 @@ export const useSettings = () => {
 
       if (error) {
         console.error("Error fetching admin profile:", error);
-        toast({
-          title: "Error",
-          description: "Failed to fetch admin information.",
-          variant: "destructive",
-        });
         throw error;
       }
 
       return profile;
     },
     enabled: !!currentUser,
-    retry: 1,
+    retry: false,
   });
-
-  useEffect(() => {
-    console.log("Selected user changed in Settings, refetching data...");
-    refetch();
-  }, [selectedUserId, refetch]);
 
   useEffect(() => {
     if (profile?.webhook_url !== undefined) {
@@ -154,8 +132,6 @@ export const useSettings = () => {
       setWebhookUrl(profile.webhook_url || "");
     }
   }, [profile]);
-
-  const isError = isCurrentUserError || isProfileError || isAdminError;
 
   return {
     currentUser,
@@ -166,6 +142,5 @@ export const useSettings = () => {
     isDarkMode,
     toggleTheme,
     refetch,
-    isError
   };
 };

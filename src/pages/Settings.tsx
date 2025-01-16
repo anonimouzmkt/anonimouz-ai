@@ -1,17 +1,14 @@
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useState, useEffect } from "react";
 import { AccountInformation } from "@/components/settings/AccountInformation";
 import { APITokenSection } from "@/components/settings/APITokenSection";
 import { WebhookSection } from "@/components/settings/WebhookSection";
 import { SecuritySection } from "@/components/settings/SecuritySection";
 import { LanguageSelector } from "@/components/settings/LanguageSelector";
 import { useSelectedUser } from "@/components/sidebar/SidebarContext";
-import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/hooks/useTranslation";
 import { SettingsHeader } from "@/components/settings/SettingsHeader";
 import { SettingsContainer } from "@/components/settings/SettingsContainer";
 import { useSettings } from "@/hooks/useSettings";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Settings = () => {
   const { selectedUserId } = useSelectedUser();
@@ -25,21 +22,19 @@ const Settings = () => {
     isDarkMode,
     toggleTheme,
     refetch,
-    isError 
   } = useSettings();
 
-  if (isError) {
+  if (!currentUser) {
     return (
-      <div className="flex-1 p-8">
-        <div className="max-w-2xl mx-auto">
-          <h1 className="text-2xl font-bold text-red-500">{t("error")}</h1>
-          <p className="mt-2">Please try refreshing the page or logging in again.</p>
+      <SettingsContainer>
+        <div className="space-y-6">
+          <Skeleton className="h-8 w-full" />
+          <Skeleton className="h-[200px] w-full" />
+          <Skeleton className="h-[150px] w-full" />
         </div>
-      </div>
+      </SettingsContainer>
     );
   }
-
-  if (!profile || !currentUser) return null;
 
   const isAdmin = adminProfile?.role === 'admin_user';
   const userId = selectedUserId || currentUser.id;
@@ -49,25 +44,35 @@ const Settings = () => {
       <SettingsHeader isDarkMode={isDarkMode} toggleTheme={toggleTheme} />
       
       <div className="space-y-6">
-        <AccountInformation 
-          email={profile.email || ''} 
-          uniqueId={profile.unique_id || ''} 
-        />
+        {profile ? (
+          <>
+            <AccountInformation 
+              email={profile.email || ''} 
+              uniqueId={profile.unique_id || ''} 
+            />
 
-        <LanguageSelector />
+            <LanguageSelector />
 
-        <APITokenSection />
+            <APITokenSection />
 
-        {isAdmin && (
-          <WebhookSection
-            webhookUrl={webhookUrl}
-            setWebhookUrl={setWebhookUrl}
-            userId={userId}
-            refetch={refetch}
-          />
+            {isAdmin && (
+              <WebhookSection
+                webhookUrl={webhookUrl}
+                setWebhookUrl={setWebhookUrl}
+                userId={userId}
+                refetch={refetch}
+              />
+            )}
+
+            <SecuritySection email={profile.email || ''} />
+          </>
+        ) : (
+          <div className="space-y-6">
+            <Skeleton className="h-[200px] w-full" />
+            <Skeleton className="h-[150px] w-full" />
+            <Skeleton className="h-[100px] w-full" />
+          </div>
         )}
-
-        <SecuritySection email={profile.email || ''} />
       </div>
     </SettingsContainer>
   );
