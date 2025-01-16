@@ -4,8 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { AppSidebar } from "../AppSidebar";
 import { useSelectedUser, SelectedUserProvider } from "@/components/sidebar/SidebarContext";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { toast } from "sonner";
-import { useQuery } from "@tanstack/react-query";
 
 interface ProtectedLayoutProps {
   children: React.ReactNode;
@@ -13,24 +11,18 @@ interface ProtectedLayoutProps {
 
 export const ProtectedLayout = ({ children }: ProtectedLayoutProps) => {
   const navigate = useNavigate();
-  const { selectedUserId, setSelectedUserId } = useSelectedUser();
+  const { selectedUserId } = useSelectedUser();
 
-  // Check auth status and get session
-  const { data: session, isLoading: isSessionLoading } = useQuery({
-    queryKey: ["session"],
-    queryFn: async () => {
+  useEffect(() => {
+    const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         navigate("/login");
-        return null;
       }
-      return session;
-    },
-    retry: false,
-    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
-  });
+    };
 
-  useEffect(() => {
+    checkAuth();
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (event === "SIGNED_OUT") {
@@ -54,35 +46,18 @@ export const ProtectedLayout = ({ children }: ProtectedLayoutProps) => {
 
           if (error) {
             console.error("Error setting up impersonation:", error);
-            toast.error("Failed to switch user account");
-            setSelectedUserId(""); // Reset selected user on error
             return;
           }
 
           console.log("Impersonation setup successful:", data);
-          toast.success("Successfully switched user account");
         } catch (error) {
           console.error("Failed to setup impersonation:", error);
-          toast.error("Failed to switch user account");
-          setSelectedUserId(""); // Reset selected user on error
         }
       }
     };
 
     setupImpersonation();
-  }, [selectedUserId, setSelectedUserId]);
-
-  if (isSessionLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
-  if (!session) {
-    return null; // The useQuery hook will handle navigation
-  }
+  }, [selectedUserId]);
 
   return (
     <SelectedUserProvider>

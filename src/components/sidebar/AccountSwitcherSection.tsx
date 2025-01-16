@@ -25,13 +25,10 @@ interface AccountSwitcherSectionProps {
 export function AccountSwitcherSection({ currentUserId, onAccountSwitch }: AccountSwitcherSectionProps) {
   const { selectedUserId } = useSelectedUser();
   
-  const { data: profiles, isLoading: isLoadingProfiles } = useQuery({
+  const { data: profiles, isLoading } = useQuery({
     queryKey: ["profiles"],
     queryFn: async () => {
       console.log("Fetching all profiles for account switcher");
-      const { data: currentUser } = await supabase.auth.getUser();
-      console.log("Current user:", currentUser);
-
       const { data: profiles, error } = await supabase
         .from("profiles")
         .select("*")
@@ -42,12 +39,12 @@ export function AccountSwitcherSection({ currentUserId, onAccountSwitch }: Accou
         throw error;
       }
 
-      console.log("Fetched profiles for switcher:", profiles);
+      console.log("Fetched profiles:", profiles);
       return profiles as Profile[];
     },
   });
 
-  const { data: currentProfile, isLoading: isLoadingCurrentProfile } = useQuery({
+  const { data: currentProfile } = useQuery({
     queryKey: ["profile", currentUserId],
     queryFn: async () => {
       console.log("Fetching current profile:", currentUserId);
@@ -55,7 +52,7 @@ export function AccountSwitcherSection({ currentUserId, onAccountSwitch }: Accou
         .from("profiles")
         .select("*")
         .eq("id", currentUserId)
-        .maybeSingle();
+        .single();
 
       if (error) {
         console.error("Error fetching current profile:", error);
@@ -68,23 +65,8 @@ export function AccountSwitcherSection({ currentUserId, onAccountSwitch }: Accou
     enabled: !!currentUserId,
   });
 
-  const isLoading = isLoadingProfiles || isLoadingCurrentProfile;
-
   // Use selectedUserId if it exists, otherwise use currentUserId
   const effectiveUserId = selectedUserId || currentUserId;
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center gap-2 px-2">
-        <Users className="w-4 h-4" />
-        <Select disabled value={effectiveUserId}>
-          <SelectTrigger className="w-full bg-background">
-            <SelectValue placeholder="Loading..." />
-          </SelectTrigger>
-        </Select>
-      </div>
-    );
-  }
 
   // Get the profile for the currently selected/impersonated user
   const selectedProfile = profiles?.find(p => p.id === effectiveUserId);
@@ -105,16 +87,18 @@ export function AccountSwitcherSection({ currentUserId, onAccountSwitch }: Accou
             {selectedProfile?.admin_users && " (Admin)"}
           </SelectValue>
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent className="bg-background">
           <SelectItem value={currentUserId}>
             {currentProfile?.email || "My Account"}
             {currentProfile?.admin_users && " (Admin)"}
           </SelectItem>
-          {profiles?.filter(profile => profile.id !== currentUserId).map((profile) => (
-            <SelectItem key={profile.id} value={profile.id}>
-              {profile.email}
-              {profile.admin_users && " (Admin)"}
-            </SelectItem>
+          {profiles?.map((profile) => (
+            profile.id !== currentUserId && (
+              <SelectItem key={profile.id} value={profile.id}>
+                {profile.email}
+                {profile.admin_users && " (Admin)"}
+              </SelectItem>
+            )
           ))}
         </SelectContent>
       </Select>

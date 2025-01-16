@@ -51,6 +51,7 @@ export const useTranslation = () => {
       throw error;
     }
 
+    // Invalidate profile query to trigger UI update
     await queryClient.invalidateQueries({ queryKey: ["profile", currentUser.id] });
     console.log("Language updated successfully");
   };
