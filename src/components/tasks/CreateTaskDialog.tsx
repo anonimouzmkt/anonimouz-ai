@@ -40,12 +40,13 @@ export const CreateTaskDialog = ({ open, onOpenChange }: CreateTaskDialogProps) 
         throw new Error("User not authenticated");
       }
 
-      const taskData: Partial<Task> = {
-        title,
+      // Create a properly typed task object with required fields
+      const taskData = {
+        title, // Required
         description,
         due_date: dueDate?.toISOString(),
         status: "todo" as const,
-        user_id: user.id
+        user_id: user.id // Required
       };
 
       console.log("Inserting task with data:", taskData);
