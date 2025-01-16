@@ -13,7 +13,9 @@ export const SidebarHeader = () => {
           Anonimouz A.I
         </span>
       </div>
-      <SidebarTrigger />
+      <div className="flex items-center justify-center group-data-[collapsible=icon]:w-full">
+        <SidebarTrigger />
+      </div>
     </div>
   );
 };

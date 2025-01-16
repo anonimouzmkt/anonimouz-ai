@@ -37,7 +37,7 @@ export const SidebarFooterActions = ({
       <Button 
         variant="outline" 
         size="sm" 
-        className="w-full justify-start group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:aspect-square"
+        className="w-full justify-start group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:aspect-square"
         onClick={() => handleNavigation("/settings")}
       >
         <Settings className="mr-2 h-4 w-4 group-data-[collapsible=icon]:mr-0" />
@@ -47,7 +47,7 @@ export const SidebarFooterActions = ({
         <Button 
           variant="outline" 
           size="sm" 
-          className="w-full justify-start group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:aspect-square"
+          className="w-full justify-start group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:aspect-square"
           onClick={() => handleNavigation("/admin-settings")}
         >
           <Shield className="mr-2 h-4 w-4 group-data-[collapsible=icon]:mr-0" />
@@ -57,7 +57,7 @@ export const SidebarFooterActions = ({
       <Button
         variant="outline"
         size="sm"
-        className="w-full justify-start group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:aspect-square"
+        className="w-full justify-start group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:aspect-square"
         onClick={handleLogout}
       >
         <LogOut className="mr-2 h-4 w-4 group-data-[collapsible=icon]:mr-0" />
