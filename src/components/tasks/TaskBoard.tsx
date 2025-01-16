@@ -114,29 +114,6 @@ export const TaskBoard = ({ tasks }: TaskBoardProps) => {
     },
   });
 
-  const createColumn = useMutation({
-    mutationFn: async (title: string) => {
-      const { error } = await supabase
-        .from("task_columns")
-        .insert({
-          title,
-          order_index: columns.length,
-          user_id: user.id
-        });
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["columns"] });
-      setIsNewColumnDialogOpen(false);
-      setNewColumnTitle("");
-      toast({
-        title: "Column created",
-        description: "New column has been created successfully.",
-      });
-    },
-  });
-
   const updateColumn = useMutation({
     mutationFn: async (column: Column) => {
       const { error } = await supabase

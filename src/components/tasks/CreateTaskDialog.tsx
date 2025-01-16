@@ -12,6 +12,11 @@ import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
+interface CreateTaskDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
 export const CreateTaskDialog = ({ open, onOpenChange }: CreateTaskDialogProps) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
