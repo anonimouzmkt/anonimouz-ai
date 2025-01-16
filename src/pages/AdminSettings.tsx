@@ -40,7 +40,7 @@ export default function AdminSettings() {
     meta: {
       onError: (error: Error) => {
         console.error("Error loading user data:", error);
-        toast.error("Error loading user data. Please try again.");
+        toast.error("Erro ao carregar dados do usuário");
         navigate("/");
       }
     }
@@ -54,18 +54,11 @@ export default function AdminSettings() {
     );
   }
 
+  // Check if user is admin
   if (!currentUser?.role || currentUser.role !== "admin_user") {
-    return (
-      <div className="flex flex-col items-center justify-center h-full gap-4">
-        <p className="text-muted-foreground text-lg">You don't have permission to access this page.</p>
-        <button 
-          onClick={() => navigate("/")}
-          className="text-primary hover:underline"
-        >
-          Return to Home
-        </button>
-      </div>
-    );
+    toast.error("Você não tem permissão para acessar esta página");
+    navigate("/");
+    return null;
   }
 
   return (
