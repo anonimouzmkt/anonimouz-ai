@@ -34,7 +34,7 @@ export const useDispatchData = (selectedUserId: string) => {
         .from("profiles")
         .select("role, admin_users")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
 
       if (currentProfileError) {
         console.error("Current profile error:", currentProfileError);
