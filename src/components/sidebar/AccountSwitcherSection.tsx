@@ -72,8 +72,7 @@ export function AccountSwitcherSection({ currentUserId, onAccountSwitch }: Accou
   const selectedProfile = profiles?.find(p => p.id === effectiveUserId);
 
   return (
-    <div className="flex items-center gap-2 px-2">
-      <Users className="w-4 h-4" />
+    <div className="px-2">
       <Select
         value={effectiveUserId}
         onValueChange={(value) => {
@@ -81,8 +80,9 @@ export function AccountSwitcherSection({ currentUserId, onAccountSwitch }: Accou
           onAccountSwitch(value);
         }}
       >
-        <SelectTrigger className="w-full bg-background">
-          <SelectValue placeholder="Select an account">
+        <SelectTrigger className="w-full bg-background text-sm py-2 transition-all duration-200 hover:translate-x-1 hover:bg-sidebar-accent/70 flex items-center gap-3">
+          <Users className="w-4 h-4 shrink-0" />
+          <SelectValue placeholder="Select an account" className="flex-1">
             {selectedProfile?.email || currentProfile?.email || "My Account"}
             {selectedProfile?.admin_users && " (Admin)"}
           </SelectValue>
