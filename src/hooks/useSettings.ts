@@ -13,6 +13,7 @@ export const useSettings = () => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
 
+  // Fetch current user
   const { data: currentUser } = useQuery({
     queryKey: ["currentUser"],
     queryFn: async () => {
@@ -27,6 +28,7 @@ export const useSettings = () => {
     },
   });
 
+  // Fetch profile data
   const { data: profile, refetch } = useQuery({
     queryKey: ["profile", selectedUserId || currentUser?.id],
     queryFn: async () => {
@@ -41,15 +43,15 @@ export const useSettings = () => {
         .from("profiles")
         .select("*")
         .eq("id", userId)
-        .maybeSingle();
+        .single();
 
       if (error) {
         console.error("Error fetching profile:", error);
         throw error;
       }
 
+      console.log("Profile data fetched:", data);
       if (data?.webhook_url !== undefined) {
-        console.log("Setting webhook URL from profile:", data.webhook_url);
         setWebhookUrl(data.webhook_url || "");
       }
 
@@ -58,6 +60,7 @@ export const useSettings = () => {
     enabled: !!(selectedUserId || currentUser?.id),
   });
 
+  // Fetch admin profile
   const { data: adminProfile } = useQuery({
     queryKey: ["adminProfile", currentUser?.id],
     queryFn: async () => {
@@ -68,7 +71,7 @@ export const useSettings = () => {
         .from("profiles")
         .select("role, admin_users")
         .eq("id", currentUser.id)
-        .maybeSingle();
+        .single();
 
       if (error) {
         console.error("Error fetching admin profile:", error);
@@ -80,6 +83,7 @@ export const useSettings = () => {
     enabled: !!currentUser?.id,
   });
 
+  // Theme management
   useEffect(() => {
     const theme = localStorage.getItem("theme") || profile?.theme_color || "dark";
     setIsDarkMode(theme === "dark");
@@ -87,12 +91,12 @@ export const useSettings = () => {
   }, [profile?.theme_color]);
 
   const toggleTheme = async () => {
-    const newTheme = !isDarkMode ? "dark" : "light";
-    setIsDarkMode(!isDarkMode);
-    document.documentElement.classList.toggle("dark");
-    localStorage.setItem("theme", newTheme);
-
     try {
+      const newTheme = !isDarkMode ? "dark" : "light";
+      setIsDarkMode(!isDarkMode);
+      document.documentElement.classList.toggle("dark");
+      localStorage.setItem("theme", newTheme);
+
       const userId = selectedUserId || currentUser?.id;
       if (!userId) return;
 
