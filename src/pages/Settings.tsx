@@ -36,7 +36,7 @@ const Settings = () => {
     );
   }
 
-  const isAdmin = adminProfile?.role === 'admin_user';
+  const isAdmin = adminProfile?.admin_users === true;
   const userId = selectedUserId || currentUser.id;
 
   return (

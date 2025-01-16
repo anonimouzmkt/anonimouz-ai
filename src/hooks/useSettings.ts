@@ -7,56 +7,11 @@ import { useSelectedUser } from "@/components/sidebar/SidebarContext";
 
 export const useSettings = () => {
   const [webhookUrl, setWebhookUrl] = useState<string>("");
-  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const { selectedUserId } = useSelectedUser();
   const { toast } = useToast();
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-
-  useEffect(() => {
-    const theme = localStorage.getItem("theme");
-    const prefersDark = theme === "dark" || (!theme && window.matchMedia("(prefers-color-scheme: dark)").matches);
-    setIsDarkMode(prefersDark);
-    document.documentElement.classList.toggle("dark", prefersDark);
-  }, []);
-
-  const toggleTheme = async () => {
-    const newTheme = !isDarkMode ? "dark" : "light";
-    setIsDarkMode(!isDarkMode);
-    document.documentElement.classList.toggle("dark");
-    localStorage.setItem("theme", newTheme);
-
-    try {
-      const userId = selectedUserId || currentUser?.id;
-      if (!userId) return;
-
-      console.log("Updating theme color for user:", userId, "to:", newTheme);
-      const { error } = await supabase
-        .from("profiles")
-        .update({ theme_color: newTheme })
-        .eq("id", userId);
-
-      if (error) {
-        console.error("Error updating theme:", error);
-        toast({
-          title: "Error",
-          description: "Failed to save theme preference.",
-          variant: "destructive",
-        });
-        throw error;
-      }
-
-      console.log("Theme color updated successfully");
-      toast({
-        title: "Success",
-        description: "Theme preference saved.",
-      });
-      
-      await queryClient.invalidateQueries({ queryKey: ["profile", userId] });
-    } catch (error) {
-      console.error("Error in theme toggle:", error);
-    }
-  };
 
   const { data: currentUser } = useQuery({
     queryKey: ["currentUser"],
@@ -77,12 +32,12 @@ export const useSettings = () => {
     queryFn: async () => {
       const userId = selectedUserId || currentUser?.id;
       if (!userId) {
-        console.error("No user ID available");
+        console.log("No user ID available");
         return null;
       }
       
       console.log("Fetching profile for user:", userId);
-      const { data: profile, error } = await supabase
+      const { data, error } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", userId)
@@ -93,25 +48,25 @@ export const useSettings = () => {
         throw error;
       }
 
-      if (profile?.webhook_url !== undefined) {
-        console.log("Setting webhook URL from profile:", profile.webhook_url);
-        setWebhookUrl(profile.webhook_url || "");
+      if (data?.webhook_url !== undefined) {
+        console.log("Setting webhook URL from profile:", data.webhook_url);
+        setWebhookUrl(data.webhook_url || "");
       }
 
-      return profile;
+      return data;
     },
     enabled: !!(selectedUserId || currentUser?.id),
-    retry: false,
   });
 
   const { data: adminProfile } = useQuery({
     queryKey: ["adminProfile", currentUser?.id],
     queryFn: async () => {
-      if (!currentUser) return null;
-      console.log("Fetching admin profile...");
-      const { data: profile, error } = await supabase
+      if (!currentUser?.id) return null;
+      
+      console.log("Fetching admin profile for user:", currentUser.id);
+      const { data, error } = await supabase
         .from("profiles")
-        .select("role")
+        .select("role, admin_users")
         .eq("id", currentUser.id)
         .maybeSingle();
 
@@ -120,18 +75,54 @@ export const useSettings = () => {
         throw error;
       }
 
-      return profile;
+      return data;
     },
-    enabled: !!currentUser,
-    retry: false,
+    enabled: !!currentUser?.id,
   });
 
   useEffect(() => {
-    if (profile?.webhook_url !== undefined) {
-      console.log("Profile updated, setting webhook URL:", profile.webhook_url);
-      setWebhookUrl(profile.webhook_url || "");
+    const theme = localStorage.getItem("theme") || profile?.theme_color || "dark";
+    setIsDarkMode(theme === "dark");
+    document.documentElement.classList.toggle("dark", theme === "dark");
+  }, [profile?.theme_color]);
+
+  const toggleTheme = async () => {
+    const newTheme = !isDarkMode ? "dark" : "light";
+    setIsDarkMode(!isDarkMode);
+    document.documentElement.classList.toggle("dark");
+    localStorage.setItem("theme", newTheme);
+
+    try {
+      const userId = selectedUserId || currentUser?.id;
+      if (!userId) return;
+
+      console.log("Updating theme color for user:", userId, "to:", newTheme);
+      const { error } = await supabase
+        .from("profiles")
+        .update({ theme_color: newTheme })
+        .eq("id", userId);
+
+      if (error) {
+        console.error("Error updating theme:", error);
+        toast({
+          title: t("error"),
+          description: "Failed to save theme preference.",
+          variant: "destructive",
+        });
+        throw error;
+      }
+
+      console.log("Theme color updated successfully");
+      toast({
+        title: t("success"),
+        description: "Theme preference saved.",
+      });
+      
+      await queryClient.invalidateQueries({ queryKey: ["profile", userId] });
+    } catch (error) {
+      console.error("Error in theme toggle:", error);
     }
-  }, [profile]);
+  };
 
   return {
     currentUser,
