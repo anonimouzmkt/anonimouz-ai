@@ -11,6 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { Task } from "@/types/tasks";
 
 interface CreateTaskDialogProps {
   open: boolean;
@@ -27,27 +28,39 @@ export const CreateTaskDialog = ({ open, onOpenChange }: CreateTaskDialogProps) 
   const createTask = useMutation({
     mutationFn: async () => {
       console.log("Creating task:", { title, description, dueDate });
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
       
+      if (authError) {
+        console.error("Auth error:", authError);
+        throw new Error("Authentication error");
+      }
+
       if (!user) {
+        console.error("No user found");
         throw new Error("User not authenticated");
       }
 
+      const taskData: Partial<Task> = {
+        title,
+        description,
+        due_date: dueDate?.toISOString(),
+        status: "todo" as const,
+        user_id: user.id
+      };
+
+      console.log("Inserting task with data:", taskData);
       const { data, error } = await supabase
         .from("tasks")
-        .insert([
-          {
-            title,
-            description,
-            due_date: dueDate?.toISOString(),
-            status: "todo",
-            user_id: user.id
-          },
-        ])
+        .insert(taskData)
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error creating task:", error);
+        throw error;
+      }
+
+      console.log("Task created successfully:", data);
       return data;
     },
     onSuccess: () => {
@@ -62,7 +75,7 @@ export const CreateTaskDialog = ({ open, onOpenChange }: CreateTaskDialogProps) 
       setDueDate(undefined);
     },
     onError: (error) => {
-      console.error("Error creating task:", error);
+      console.error("Error in mutation:", error);
       toast({
         title: "Error",
         description: "Failed to create task. Please try again.",
