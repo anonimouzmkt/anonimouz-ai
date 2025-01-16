@@ -10,6 +10,7 @@ import { SettingsContainer } from "@/components/settings/SettingsContainer";
 import { useSettings } from "@/hooks/useSettings";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Loader2 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const Settings = () => {
   const { selectedUserId } = useSelectedUser();
@@ -38,11 +39,11 @@ const Settings = () => {
   if (!currentUser || !profile) {
     return (
       <SettingsContainer>
-        <div className="space-y-6">
-          <Skeleton className="h-8 w-full" />
-          <Skeleton className="h-[200px] w-full" />
-          <Skeleton className="h-[150px] w-full" />
-        </div>
+        <Alert variant="destructive">
+          <AlertDescription>
+            Failed to load user profile. Please try refreshing the page.
+          </AlertDescription>
+        </Alert>
       </SettingsContainer>
     );
   }

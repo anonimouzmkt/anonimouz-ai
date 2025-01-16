@@ -27,7 +27,6 @@ export const useSettings = () => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
 
-  // Fetch current user with better error handling
   const { data: currentUser, isLoading: isUserLoading } = useQuery({
     queryKey: ["currentUser"],
     queryFn: async () => {
@@ -44,16 +43,16 @@ export const useSettings = () => {
       console.log("Current user fetched:", user);
       return user;
     },
+    retry: 1,
   });
 
-  // Fetch profile data with complete error handling
-  const { data: profile, refetch, isLoading: isProfileLoading } = useQuery<Profile | null>({
+  const { data: profile, refetch, isLoading: isProfileLoading } = useQuery<Profile>({
     queryKey: ["profile", selectedUserId || currentUser?.id],
     queryFn: async () => {
       const userId = selectedUserId || currentUser?.id;
       if (!userId) {
         console.log("No user ID available");
-        return null;
+        throw new Error("No user ID available");
       }
       
       console.log("Fetching profile for user:", userId);
@@ -61,37 +60,33 @@ export const useSettings = () => {
         .from("profiles")
         .select("*")
         .eq("id", userId)
-        .maybeSingle();
+        .single();
 
       if (error) {
         console.error("Error fetching profile:", error);
         throw error;
       }
 
-      console.log("Profile data fetched:", data);
-      if (data?.webhook_url !== undefined) {
-        setWebhookUrl(data.webhook_url || "");
+      if (!data) {
+        console.error("No profile found");
+        throw new Error("Profile not found");
       }
+
+      console.log("Profile data fetched:", data);
+      setWebhookUrl(data.webhook_url || "");
+      setIsDarkMode(data.theme_color === "dark");
 
       return data;
     },
-    enabled: !!(selectedUserId || currentUser?.id),
+    enabled: !!currentUser?.id || !!selectedUserId,
     retry: 1,
   });
-
-  // Theme management
-  useEffect(() => {
-    if (!isProfileLoading && profile) {
-      const theme = profile.theme_color || "dark";
-      setIsDarkMode(theme === "dark");
-      document.documentElement.classList.toggle("dark", theme === "dark");
-    }
-  }, [profile, isProfileLoading]);
 
   const toggleTheme = async () => {
     try {
       const newTheme = !isDarkMode ? "dark" : "light";
       const userId = selectedUserId || currentUser?.id;
+      
       if (!userId) {
         console.error("No user ID available for theme toggle");
         return;
@@ -114,8 +109,7 @@ export const useSettings = () => {
       }
 
       setIsDarkMode(!isDarkMode);
-      document.documentElement.classList.toggle("dark");
-      localStorage.setItem("theme", newTheme);
+      document.documentElement.classList.toggle("dark", !isDarkMode);
 
       console.log("Theme color updated successfully");
       toast({
@@ -128,6 +122,15 @@ export const useSettings = () => {
       console.error("Error in theme toggle:", error);
     }
   };
+
+  // Update theme when profile changes
+  useEffect(() => {
+    if (profile?.theme_color) {
+      const isDark = profile.theme_color === "dark";
+      setIsDarkMode(isDark);
+      document.documentElement.classList.toggle("dark", isDark);
+    }
+  }, [profile?.theme_color]);
 
   return {
     currentUser,
