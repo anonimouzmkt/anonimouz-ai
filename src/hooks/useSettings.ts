@@ -29,7 +29,7 @@ export const useSettings = () => {
     },
   });
 
-  // Fetch profile data
+  // Fetch profile data with simplified query
   const { data: profile, refetch, isLoading: isProfileLoading } = useQuery({
     queryKey: ["profile", selectedUserId || currentUser?.id],
     queryFn: async () => {
@@ -42,7 +42,7 @@ export const useSettings = () => {
       console.log("Fetching profile for user:", userId);
       const { data, error } = await supabase
         .from("profiles")
-        .select("*")
+        .select("id, email, webhook_url, theme_color, admin_users")
         .eq("id", userId)
         .maybeSingle();
 
@@ -59,30 +59,6 @@ export const useSettings = () => {
       return data;
     },
     enabled: !!(selectedUserId || currentUser?.id),
-  });
-
-  // Fetch admin profile
-  const { data: adminProfile, isLoading: isAdminLoading } = useQuery({
-    queryKey: ["adminProfile", currentUser?.id],
-    queryFn: async () => {
-      if (!currentUser?.id) return null;
-      
-      console.log("Fetching admin profile for user:", currentUser.id);
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("role, admin_users")
-        .eq("id", currentUser.id)
-        .maybeSingle();
-
-      if (error) {
-        console.error("Error fetching admin profile:", error);
-        throw error;
-      }
-
-      console.log("Admin profile fetched:", data);
-      return data;
-    },
-    enabled: !!currentUser?.id,
   });
 
   // Theme management
@@ -138,12 +114,11 @@ export const useSettings = () => {
   return {
     currentUser,
     profile,
-    adminProfile,
     webhookUrl,
     setWebhookUrl,
     isDarkMode,
     toggleTheme,
     refetch,
-    isLoading: isUserLoading || isProfileLoading || isAdminLoading,
+    isLoading: isUserLoading || isProfileLoading,
   };
 };
