@@ -46,10 +46,13 @@ const Index = () => {
 
   useEffect(() => {
     if (currentDispatch) {
+      console.log('Updating contacts with dispatch results:', currentDispatch);
+      
       setContacts(prevContacts => 
         prevContacts.map(contact => {
           const result = currentDispatch.find(r => r.contact_phone === contact.phone);
           if (result) {
+            console.log(`Updating status for contact ${contact.phone} to ${result.status}`);
             return {
               ...contact,
               status: result.status as "pending" | "success" | "error",
@@ -75,6 +78,8 @@ const Index = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not authenticated");
 
+      console.log('Creating dispatch with contacts:', contacts);
+
       // Create dispatch record
       const { data: dispatch, error: dispatchError } = await supabase
         .from("dispatch_results")
@@ -90,6 +95,8 @@ const Index = () => {
         .single();
 
       if (dispatchError) throw dispatchError;
+
+      console.log('Created dispatch:', dispatch);
 
       // Create contact results
       const { error: contactsError } = await supabase
@@ -107,7 +114,7 @@ const Index = () => {
 
       setCurrentDispatchId(dispatch.id);
       
-      // Retorna o ID do disparo para ser usado no webhook
+      // Return the dispatch ID for webhook use
       return dispatch.id;
     } catch (error) {
       console.error("Error starting dispatch:", error);

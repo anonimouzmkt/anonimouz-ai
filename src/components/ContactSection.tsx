@@ -34,8 +34,9 @@ export function ContactSection({ contacts, dispatchId }: ContactSectionProps) {
         },
         (payload) => {
           console.log('Contact result updated:', payload);
-          // Here you would update the contacts array with the new status
-          // This will be handled by the parent component through React Query
+          
+          // The update will be handled by the parent component through React Query
+          // This subscription is mainly for debugging and real-time status monitoring
         }
       )
       .subscribe((status) => {
