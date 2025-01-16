@@ -1,12 +1,5 @@
 import { Settings, LogOut, Users, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { AccountSwitcherSection } from "./AccountSwitcherSection";
 
 interface SidebarFooterActionsProps {

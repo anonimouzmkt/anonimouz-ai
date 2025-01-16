@@ -52,7 +52,7 @@ export function AccountSwitcherSection({ currentUserId, onAccountSwitch }: Accou
         .from("profiles")
         .select("*")
         .eq("id", currentUserId)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error("Error fetching current profile:", error);
@@ -67,6 +67,19 @@ export function AccountSwitcherSection({ currentUserId, onAccountSwitch }: Accou
 
   // Use selectedUserId if it exists, otherwise use currentUserId
   const effectiveUserId = selectedUserId || currentUserId;
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center gap-2 px-2">
+        <Users className="w-4 h-4" />
+        <Select disabled value={effectiveUserId}>
+          <SelectTrigger className="w-full bg-background">
+            <SelectValue placeholder="Loading..." />
+          </SelectTrigger>
+        </Select>
+      </div>
+    );
+  }
 
   // Get the profile for the currently selected/impersonated user
   const selectedProfile = profiles?.find(p => p.id === effectiveUserId);
@@ -92,13 +105,11 @@ export function AccountSwitcherSection({ currentUserId, onAccountSwitch }: Accou
             {currentProfile?.email || "My Account"}
             {currentProfile?.admin_users && " (Admin)"}
           </SelectItem>
-          {profiles?.map((profile) => (
-            profile.id !== currentUserId && (
-              <SelectItem key={profile.id} value={profile.id}>
-                {profile.email}
-                {profile.admin_users && " (Admin)"}
-              </SelectItem>
-            )
+          {profiles?.filter(profile => profile.id !== currentUserId).map((profile) => (
+            <SelectItem key={profile.id} value={profile.id}>
+              {profile.email}
+              {profile.admin_users && " (Admin)"}
+            </SelectItem>
           ))}
         </SelectContent>
       </Select>
