@@ -15,30 +15,17 @@ export const ProtectedLayout = ({ children }: ProtectedLayoutProps) => {
 
   useEffect(() => {
     const checkAuth = async () => {
-      console.log("Checking authentication...");
-      const { data: { session }, error } = await supabase.auth.getSession();
-      
-      if (error) {
-        console.error("Auth error:", error);
-        navigate("/login");
-        return;
-      }
-
+      const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        console.log("No session found, redirecting to login");
         navigate("/login");
-      } else {
-        console.log("Session found:", session.user.id);
       }
     };
 
     checkAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log("Auth state changed:", event);
-        if (event === "SIGNED_OUT" || event === "TOKEN_REFRESHED" && !session) {
-          console.log("User signed out or token refresh failed");
+      (event, session) => {
+        if (event === "SIGNED_OUT") {
           navigate("/login");
         }
       }

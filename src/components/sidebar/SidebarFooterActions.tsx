@@ -27,7 +27,7 @@ export const SidebarFooterActions = ({
   console.log("SidebarFooterActions - Is admin:", isAdmin);
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col items-center gap-4 py-4">
       {isAdmin && (
         <AccountSwitcherSection 
           currentUserId={currentUserId}
@@ -35,33 +35,35 @@ export const SidebarFooterActions = ({
         />
       )}
       <Button 
-        variant="outline" 
-        size="sm" 
-        className="w-full justify-start group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:justify-center"
+        variant="ghost" 
+        size="icon"
+        className="w-10 h-10 rounded-lg"
         onClick={() => handleNavigation("/settings")}
       >
-        <Settings className="mr-2 h-4 w-4 group-data-[collapsible=icon]:mr-0" />
-        <span className="group-data-[collapsible=icon]:hidden">Settings</span>
+        <Settings className="h-5 w-5" />
+        <span className="sr-only">Settings</span>
       </Button>
+      
       {isAdmin && (
         <Button 
-          variant="outline" 
-          size="sm" 
-          className="w-full justify-start group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:justify-center"
+          variant="ghost" 
+          size="icon"
+          className="w-10 h-10 rounded-lg"
           onClick={() => handleNavigation("/admin-settings")}
         >
-          <Shield className="mr-2 h-4 w-4 group-data-[collapsible=icon]:mr-0" />
-          <span className="group-data-[collapsible=icon]:hidden">Admin Settings</span>
+          <Shield className="h-5 w-5" />
+          <span className="sr-only">Admin Settings</span>
         </Button>
       )}
+      
       <Button
-        variant="outline"
-        size="sm"
-        className="w-full justify-start group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:justify-center"
+        variant="ghost"
+        size="icon"
+        className="w-10 h-10 rounded-lg"
         onClick={handleLogout}
       >
-        <LogOut className="mr-2 h-4 w-4 group-data-[collapsible=icon]:mr-0" />
-        <span className="group-data-[collapsible=icon]:hidden">Logout</span>
+        <LogOut className="h-5 w-5" />
+        <span className="sr-only">Logout</span>
       </Button>
     </div>
   );

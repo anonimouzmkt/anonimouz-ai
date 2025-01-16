@@ -13,9 +13,7 @@ export const SidebarHeader = () => {
           Anonimouz A.I
         </span>
       </div>
-      <div className="flex items-center justify-center group-data-[collapsible=icon]:w-full">
-        <SidebarTrigger className="h-7 w-7" />
-      </div>
+      <SidebarTrigger />
     </div>
   );
 };
