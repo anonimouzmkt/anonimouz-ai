@@ -1,11 +1,20 @@
 import { Home, MessageSquare, Settings } from "lucide-react";
 import { NavLink } from "react-router-dom";
 
-export const SidebarNavigation = () => {
+interface SidebarNavigationProps {
+  handleNavigation: (path: string) => void;
+  isAdmin: boolean;
+}
+
+export const SidebarNavigation = ({ handleNavigation, isAdmin }: SidebarNavigationProps) => {
   return (
     <nav className="space-y-2">
       <NavLink
         to="/dashboard"
+        onClick={(e) => {
+          e.preventDefault();
+          handleNavigation("/dashboard");
+        }}
         className={({ isActive }) =>
           `flex items-center justify-center md:justify-start gap-2 px-3 py-2 rounded-lg transition-colors ${
             isActive
@@ -19,6 +28,10 @@ export const SidebarNavigation = () => {
       </NavLink>
       <NavLink
         to="/whatsapp"
+        onClick={(e) => {
+          e.preventDefault();
+          handleNavigation("/whatsapp");
+        }}
         className={({ isActive }) =>
           `flex items-center justify-center md:justify-start gap-2 px-3 py-2 rounded-lg transition-colors ${
             isActive
@@ -32,6 +45,10 @@ export const SidebarNavigation = () => {
       </NavLink>
       <NavLink
         to="/settings"
+        onClick={(e) => {
+          e.preventDefault();
+          handleNavigation("/settings");
+        }}
         className={({ isActive }) =>
           `flex items-center justify-center md:justify-start gap-2 px-3 py-2 rounded-lg transition-colors ${
             isActive
