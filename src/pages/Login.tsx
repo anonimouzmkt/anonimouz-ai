@@ -15,6 +15,12 @@ export default function Login() {
   const [error, setError] = useState<string | null>(null);
 
   const getErrorMessage = (error: AuthError) => {
+    console.log("Auth error:", error);
+    
+    if (error.message.includes("refresh_token_not_found")) {
+      return t("sessionExpired");
+    }
+    
     try {
       const errorMessage = JSON.parse(error.message);
       switch (errorMessage.code) {
@@ -22,6 +28,8 @@ export default function Login() {
           return t("invalidCredentials");
         case "email_not_confirmed":
           return t("emailNotConfirmed");
+        case "refresh_token_not_found":
+          return t("sessionExpired");
         default:
           return errorMessage.message;
       }
@@ -34,31 +42,43 @@ export default function Login() {
     // Force dark mode
     document.documentElement.classList.add("dark");
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("Auth state change event:", event);
+      
       if (event === "SIGNED_IN") {
+        console.log("User signed in, redirecting to home");
+        setError(null);
         navigate("/");
       }
       
-      if (event === "USER_UPDATED") {
-        console.log("User updated event received");
+      if (event === "TOKEN_REFRESHED") {
+        console.log("Token refreshed successfully");
+        setError(null);
       }
 
-      // Clear error on successful events
-      if (["SIGNED_IN", "PASSWORD_RECOVERY", "USER_UPDATED"].includes(event)) {
+      if (event === "SIGNED_OUT") {
+        console.log("User signed out");
         setError(null);
       }
     });
 
-    // Handle auth state changes for errors
-    const handleAuthError = async () => {
-      const { error: sessionError } = await supabase.auth.getSession();
+    // Handle initial session check
+    const checkSession = async () => {
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
       if (sessionError) {
-        console.error("Auth error:", sessionError);
+        console.error("Session error:", sessionError);
         setError(getErrorMessage(sessionError));
+        return;
+      }
+
+      if (session) {
+        console.log("Active session found, redirecting to home");
+        navigate("/");
       }
     };
 
-    handleAuthError();
+    checkSession();
 
     return () => {
       subscription.unsubscribe();
