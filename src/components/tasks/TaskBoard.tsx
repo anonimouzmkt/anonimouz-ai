@@ -51,6 +51,32 @@ export const TaskBoard = ({ tasks }: TaskBoardProps) => {
     },
   });
 
+  const createColumn = useMutation({
+    mutationFn: async (title: string) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("User not authenticated");
+
+      const { error } = await supabase
+        .from("task_columns")
+        .insert({
+          title,
+          order_index: columns.length,
+          user_id: user.id
+        });
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["columns"] });
+      setIsNewColumnDialogOpen(false);
+      setNewColumnTitle("");
+      toast({
+        title: "Column created",
+        description: "New column has been created successfully.",
+      });
+    },
+  });
+
   const updateTaskStatus = useMutation({
     mutationFn: async ({ taskId, columnId }: { taskId: string; columnId: string }) => {
       console.log("Updating task column:", { taskId, columnId });
@@ -95,6 +121,7 @@ export const TaskBoard = ({ tasks }: TaskBoardProps) => {
         .insert({
           title,
           order_index: columns.length,
+          user_id: user.id
         });
 
       if (error) throw error;
@@ -165,7 +192,7 @@ export const TaskBoard = ({ tasks }: TaskBoardProps) => {
     const doneColumn = columns.find(col => col.title.toLowerCase() === "done");
     const todoColumn = columns.find(col => col.title.toLowerCase() === "to do");
     
-    if (task.status === "done" && todoColumn) {
+    if (task.column_id === doneColumn?.id && todoColumn) {
       updateTaskStatus.mutate({ taskId: task.id, columnId: todoColumn.id });
     } else if (doneColumn) {
       updateTaskStatus.mutate({ taskId: task.id, columnId: doneColumn.id });

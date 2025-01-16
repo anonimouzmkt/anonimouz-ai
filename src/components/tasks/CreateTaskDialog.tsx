@@ -12,11 +12,6 @@ import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
-interface CreateTaskDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}
-
 export const CreateTaskDialog = ({ open, onOpenChange }: CreateTaskDialogProps) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -27,10 +22,14 @@ export const CreateTaskDialog = ({ open, onOpenChange }: CreateTaskDialogProps) 
   const { data: defaultColumn } = useQuery({
     queryKey: ["defaultColumn"],
     queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("User not authenticated");
+
       const { data, error } = await supabase
         .from("task_columns")
         .select("*")
         .eq("title", "To Do")
+        .eq("user_id", user.id)
         .single();
 
       if (error) throw error;
@@ -40,21 +39,13 @@ export const CreateTaskDialog = ({ open, onOpenChange }: CreateTaskDialogProps) 
 
   const createTask = useMutation({
     mutationFn: async () => {
-      console.log("Creating task:", { title, description, dueDate });
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      const { data: { user } } = await supabase.auth.getUser();
       
-      if (authError) {
-        console.error("Auth error:", authError);
-        throw new Error("Authentication error");
-      }
-
       if (!user) {
-        console.error("No user found");
         throw new Error("User not authenticated");
       }
 
       if (!defaultColumn) {
-        console.error("No default column found");
         throw new Error("Default column not found");
       }
 
@@ -66,19 +57,13 @@ export const CreateTaskDialog = ({ open, onOpenChange }: CreateTaskDialogProps) 
         column_id: defaultColumn.id
       };
 
-      console.log("Inserting task with data:", taskData);
       const { data, error } = await supabase
         .from("tasks")
         .insert(taskData)
         .select()
         .single();
 
-      if (error) {
-        console.error("Error creating task:", error);
-        throw error;
-      }
-
-      console.log("Task created successfully:", data);
+      if (error) throw error;
       return data;
     },
     onSuccess: () => {

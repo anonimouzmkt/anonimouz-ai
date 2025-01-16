@@ -7,4 +7,5 @@ export interface Task {
   status: "todo" | "in_progress" | "done";
   created_at: string;
   updated_at: string;
+  column_id: string | null;
 }
