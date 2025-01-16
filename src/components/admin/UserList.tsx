@@ -28,46 +28,22 @@ export function UserList() {
   const { data: users, isLoading } = useQuery({
     queryKey: ["users"],
     queryFn: async () => {
-      console.log("Fetching all users");
-      const { data: currentUser } = await supabase.auth.getUser();
-      console.log("Current user:", currentUser);
-
-      const { data: currentProfile, error: profileError } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", currentUser.user?.id)
-        .single();
-
-      if (profileError) {
-        console.error("Error fetching current profile:", profileError);
-        throw profileError;
-      }
-
-      console.log("Current user profile:", currentProfile);
-
-      if (currentProfile.role !== "admin_user") {
-        console.error("User is not an admin");
-        throw new Error("Você não tem permissão para ver esta lista");
-      }
-
       const { data: profiles, error } = await supabase
         .from("profiles")
         .select("*")
         .order("email");
 
       if (error) {
-        console.error("Error fetching users:", error);
+        toast.error("Erro ao carregar usuários");
         throw error;
       }
 
-      console.log("All fetched profiles:", profiles);
       return profiles;
     },
   });
 
   const deleteUserMutation = useMutation({
     mutationFn: async (userId: string) => {
-      console.log("Deleting user:", userId);
       const { error } = await supabase
         .from("profiles")
         .delete()
@@ -79,14 +55,12 @@ export function UserList() {
       toast.success("Usuário deletado com sucesso");
     },
     onError: (error) => {
-      console.error("Error deleting user:", error);
       toast.error("Falha ao deletar usuário");
     },
   });
 
   const updateRoleMutation = useMutation({
     mutationFn: async ({ userId, newRole }: { userId: string; newRole: UserRole }) => {
-      console.log("Updating user role:", userId, newRole);
       const { error } = await supabase
         .from("profiles")
         .update({ role: newRole })
@@ -98,7 +72,6 @@ export function UserList() {
       toast.success("Papel do usuário atualizado com sucesso");
     },
     onError: (error) => {
-      console.error("Error updating user role:", error);
       toast.error("Falha ao atualizar papel do usuário");
     },
   });
