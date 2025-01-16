@@ -9,47 +9,44 @@ interface SidebarNavigationProps {
 
 export const SidebarNavigation = ({ handleNavigation }: SidebarNavigationProps) => {
   return (
-    <SidebarMenu className="flex flex-col h-full">
-      {/* Main Navigation Group */}
-      <div className="flex-1 flex flex-col items-center gap-2 py-4">
+    <SidebarMenu className="mt-8 flex flex-col h-full">
+      <div className="px-2">
         <SidebarMenuItem>
           <SidebarMenuButton 
             asChild 
             tooltip="Disparador" 
             onClick={() => handleNavigation("/")}
-            className="w-10 h-10 flex items-center justify-center rounded-lg transition-all duration-200 hover:bg-sidebar-accent/70"
+            className="text-base py-3 transition-all duration-200 hover:translate-x-1 hover:bg-sidebar-accent/70 w-full"
           >
             <Link to="#" onClick={(e) => e.preventDefault()}>
               <MessageSquare className="w-5 h-5" />
-              <span className="sr-only">Disparador</span>
+              <span>Disparador</span>
             </Link>
           </SidebarMenuButton>
         </SidebarMenuItem>
-
         <SidebarMenuItem>
           <SidebarMenuButton 
             asChild 
             tooltip="Dashboard" 
             onClick={() => handleNavigation("/dispatch-dashboard")}
-            className="w-10 h-10 flex items-center justify-center rounded-lg transition-all duration-200 hover:bg-sidebar-accent/70"
+            className="text-base py-3 transition-all duration-200 hover:translate-x-1 hover:bg-sidebar-accent/70 w-full"
           >
             <Link to="#" onClick={(e) => e.preventDefault()}>
               <BarChart2 className="w-5 h-5" />
-              <span className="sr-only">Dashboard</span>
+              <span>Dashboard</span>
             </Link>
           </SidebarMenuButton>
         </SidebarMenuItem>
-
         <SidebarMenuItem>
           <SidebarMenuButton 
             asChild 
             tooltip="WhatsApp" 
             onClick={() => handleNavigation("/whatsapp")}
-            className="w-10 h-10 flex items-center justify-center rounded-lg transition-all duration-200 hover:bg-sidebar-accent/70"
+            className="text-base py-3 transition-all duration-200 hover:translate-x-1 hover:bg-sidebar-accent/70 w-full"
           >
             <Link to="#" onClick={(e) => e.preventDefault()}>
               <MessageCircle className="w-5 h-5" />
-              <span className="sr-only">WhatsApp</span>
+              <span>WhatsApp</span>
             </Link>
           </SidebarMenuButton>
         </SidebarMenuItem>
