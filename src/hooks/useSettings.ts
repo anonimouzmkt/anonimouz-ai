@@ -14,7 +14,7 @@ export const useSettings = () => {
   const queryClient = useQueryClient();
 
   // Fetch current user
-  const { data: currentUser } = useQuery({
+  const { data: currentUser, isLoading: isUserLoading } = useQuery({
     queryKey: ["currentUser"],
     queryFn: async () => {
       console.log("Fetching current user...");
@@ -24,12 +24,13 @@ export const useSettings = () => {
         throw error;
       }
       if (!user) throw new Error("User not found");
+      console.log("Current user fetched:", user);
       return user;
     },
   });
 
   // Fetch profile data
-  const { data: profile, refetch } = useQuery({
+  const { data: profile, refetch, isLoading: isProfileLoading } = useQuery({
     queryKey: ["profile", selectedUserId || currentUser?.id],
     queryFn: async () => {
       const userId = selectedUserId || currentUser?.id;
@@ -43,7 +44,7 @@ export const useSettings = () => {
         .from("profiles")
         .select("*")
         .eq("id", userId)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error("Error fetching profile:", error);
@@ -61,7 +62,7 @@ export const useSettings = () => {
   });
 
   // Fetch admin profile
-  const { data: adminProfile } = useQuery({
+  const { data: adminProfile, isLoading: isAdminLoading } = useQuery({
     queryKey: ["adminProfile", currentUser?.id],
     queryFn: async () => {
       if (!currentUser?.id) return null;
@@ -71,13 +72,14 @@ export const useSettings = () => {
         .from("profiles")
         .select("role, admin_users")
         .eq("id", currentUser.id)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error("Error fetching admin profile:", error);
         throw error;
       }
 
+      console.log("Admin profile fetched:", data);
       return data;
     },
     enabled: !!currentUser?.id,
@@ -85,20 +87,21 @@ export const useSettings = () => {
 
   // Theme management
   useEffect(() => {
-    const theme = localStorage.getItem("theme") || profile?.theme_color || "dark";
-    setIsDarkMode(theme === "dark");
-    document.documentElement.classList.toggle("dark", theme === "dark");
-  }, [profile?.theme_color]);
+    if (!isProfileLoading && profile) {
+      const theme = localStorage.getItem("theme") || profile?.theme_color || "dark";
+      setIsDarkMode(theme === "dark");
+      document.documentElement.classList.toggle("dark", theme === "dark");
+    }
+  }, [profile, isProfileLoading]);
 
   const toggleTheme = async () => {
     try {
       const newTheme = !isDarkMode ? "dark" : "light";
-      setIsDarkMode(!isDarkMode);
-      document.documentElement.classList.toggle("dark");
-      localStorage.setItem("theme", newTheme);
-
       const userId = selectedUserId || currentUser?.id;
-      if (!userId) return;
+      if (!userId) {
+        console.error("No user ID available for theme toggle");
+        return;
+      }
 
       console.log("Updating theme color for user:", userId, "to:", newTheme);
       const { error } = await supabase
@@ -115,6 +118,10 @@ export const useSettings = () => {
         });
         throw error;
       }
+
+      setIsDarkMode(!isDarkMode);
+      document.documentElement.classList.toggle("dark");
+      localStorage.setItem("theme", newTheme);
 
       console.log("Theme color updated successfully");
       toast({
@@ -137,5 +144,6 @@ export const useSettings = () => {
     isDarkMode,
     toggleTheme,
     refetch,
+    isLoading: isUserLoading || isProfileLoading || isAdminLoading,
   };
 };

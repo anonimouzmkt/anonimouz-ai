@@ -9,6 +9,7 @@ import { SettingsHeader } from "@/components/settings/SettingsHeader";
 import { SettingsContainer } from "@/components/settings/SettingsContainer";
 import { useSettings } from "@/hooks/useSettings";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Loader2 } from "lucide-react";
 
 const Settings = () => {
   const { selectedUserId } = useSelectedUser();
@@ -22,9 +23,20 @@ const Settings = () => {
     isDarkMode,
     toggleTheme,
     refetch,
+    isLoading
   } = useSettings();
 
-  if (!currentUser) {
+  if (isLoading) {
+    return (
+      <SettingsContainer>
+        <div className="flex items-center justify-center h-screen">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </SettingsContainer>
+    );
+  }
+
+  if (!currentUser || !profile) {
     return (
       <SettingsContainer>
         <div className="space-y-6">
@@ -44,35 +56,25 @@ const Settings = () => {
       <SettingsHeader isDarkMode={isDarkMode} toggleTheme={toggleTheme} />
       
       <div className="space-y-6">
-        {profile ? (
-          <>
-            <AccountInformation 
-              email={profile.email || ''} 
-              uniqueId={profile.unique_id || ''} 
-            />
+        <AccountInformation 
+          email={profile.email || ''} 
+          uniqueId={profile.unique_id || ''} 
+        />
 
-            <LanguageSelector />
+        <LanguageSelector />
 
-            <APITokenSection />
+        <APITokenSection />
 
-            {isAdmin && (
-              <WebhookSection
-                webhookUrl={webhookUrl}
-                setWebhookUrl={setWebhookUrl}
-                userId={userId}
-                refetch={refetch}
-              />
-            )}
-
-            <SecuritySection email={profile.email || ''} />
-          </>
-        ) : (
-          <div className="space-y-6">
-            <Skeleton className="h-[200px] w-full" />
-            <Skeleton className="h-[150px] w-full" />
-            <Skeleton className="h-[100px] w-full" />
-          </div>
+        {isAdmin && (
+          <WebhookSection
+            webhookUrl={webhookUrl}
+            setWebhookUrl={setWebhookUrl}
+            userId={userId}
+            refetch={refetch}
+          />
         )}
+
+        <SecuritySection email={profile.email || ''} />
       </div>
     </SettingsContainer>
   );
