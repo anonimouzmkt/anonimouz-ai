@@ -25,9 +25,39 @@ type UserRole = Database["public"]["Enums"]["user_role"];
 export function UserList() {
   const queryClient = useQueryClient();
 
-  const { data: users, isLoading } = useQuery({
+  // Primeiro buscar o perfil do usuário atual para verificar se é admin
+  const { data: currentUserProfile, isLoading: isLoadingProfile } = useQuery({
+    queryKey: ["currentUserProfile"],
+    queryFn: async () => {
+      console.log("Fetching current user profile...");
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        console.error("No user found");
+        throw new Error("No user found");
+      }
+
+      const { data: profile, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .single();
+
+      if (error) {
+        console.error("Error fetching current user profile:", error);
+        throw error;
+      }
+
+      console.log("Current user profile:", profile);
+      return profile;
+    },
+  });
+
+  // Depois buscar a lista de usuários apenas se for admin
+  const { data: users, isLoading: isLoadingUsers } = useQuery({
     queryKey: ["users"],
     queryFn: async () => {
+      console.log("Fetching all users...");
       const { data: profiles, error } = await supabase
         .from("profiles")
         .select("*")
@@ -42,6 +72,7 @@ export function UserList() {
       console.log("Fetched users:", profiles);
       return profiles;
     },
+    enabled: currentUserProfile?.role === "admin_user",
   });
 
   const deleteUserMutation = useMutation({
@@ -90,7 +121,16 @@ export function UserList() {
     await updateRoleMutation.mutate({ userId, newRole });
   };
 
-  if (isLoading) {
+  // Verificar se o usuário atual é admin
+  if (!currentUserProfile?.role || currentUserProfile.role !== "admin_user") {
+    return (
+      <div className="p-4 text-center text-red-500">
+        Você não tem permissão para acessar esta página.
+      </div>
+    );
+  }
+
+  if (isLoadingProfile || isLoadingUsers) {
     return (
       <div className="flex items-center justify-center h-24">
         <Loader2 className="w-6 h-6 animate-spin" />
