@@ -25,10 +25,13 @@ interface AccountSwitcherSectionProps {
 export function AccountSwitcherSection({ currentUserId, onAccountSwitch }: AccountSwitcherSectionProps) {
   const { selectedUserId } = useSelectedUser();
   
-  const { data: profiles, isLoading } = useQuery({
+  const { data: profiles, isLoading: isLoadingProfiles } = useQuery({
     queryKey: ["profiles"],
     queryFn: async () => {
       console.log("Fetching all profiles for account switcher");
+      const { data: currentUser } = await supabase.auth.getUser();
+      console.log("Current user:", currentUser);
+
       const { data: profiles, error } = await supabase
         .from("profiles")
         .select("*")
@@ -44,7 +47,7 @@ export function AccountSwitcherSection({ currentUserId, onAccountSwitch }: Accou
     },
   });
 
-  const { data: currentProfile } = useQuery({
+  const { data: currentProfile, isLoading: isLoadingCurrentProfile } = useQuery({
     queryKey: ["profile", currentUserId],
     queryFn: async () => {
       console.log("Fetching current profile:", currentUserId);
@@ -64,6 +67,8 @@ export function AccountSwitcherSection({ currentUserId, onAccountSwitch }: Accou
     },
     enabled: !!currentUserId,
   });
+
+  const isLoading = isLoadingProfiles || isLoadingCurrentProfile;
 
   // Use selectedUserId if it exists, otherwise use currentUserId
   const effectiveUserId = selectedUserId || currentUserId;
@@ -100,7 +105,7 @@ export function AccountSwitcherSection({ currentUserId, onAccountSwitch }: Accou
             {selectedProfile?.admin_users && " (Admin)"}
           </SelectValue>
         </SelectTrigger>
-        <SelectContent className="bg-background">
+        <SelectContent>
           <SelectItem value={currentUserId}>
             {currentProfile?.email || "My Account"}
             {currentProfile?.admin_users && " (Admin)"}

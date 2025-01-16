@@ -29,25 +29,31 @@ export function UserList() {
     queryKey: ["users"],
     queryFn: async () => {
       console.log("Fetching all users");
-      const { data, error } = await supabase
+      const { data: currentUser } = await supabase.auth.getUser();
+      console.log("Current user:", currentUser);
+
+      const { data: profiles, error } = await supabase
         .from("profiles")
         .select("*")
-        .order("created_at", { ascending: false });
+        .order("email");
 
       if (error) {
         console.error("Error fetching users:", error);
         throw error;
       }
 
-      console.log("Fetched users:", data);
-      return data;
+      console.log("Fetched profiles:", profiles);
+      return profiles;
     },
   });
 
   const deleteUserMutation = useMutation({
     mutationFn: async (userId: string) => {
       console.log("Deleting user:", userId);
-      const { error } = await supabase.auth.admin.deleteUser(userId);
+      const { error } = await supabase
+        .from("profiles")
+        .delete()
+        .eq("id", userId);
       if (error) throw error;
     },
     onSuccess: () => {
