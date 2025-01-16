@@ -24,17 +24,23 @@ export const useDispatchData = (selectedUserId: string) => {
     try {
       console.log("Fetching user data...");
       const { data: { user }, error: authError } = await supabase.auth.getUser();
-      if (authError) throw authError;
+      if (authError) {
+        console.error("Auth error:", authError);
+        throw authError;
+      }
 
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
-        .select("admin_users")
+        .select("role")
         .eq("id", user.id)
         .maybeSingle();
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error("Profile error:", profileError);
+        throw profileError;
+      }
 
-      return { user, isAdmin: profile?.admin_users === true };
+      return { user, isAdmin: profile?.role === 'admin_user' };
     } catch (error) {
       console.error("Error fetching user:", error);
       throw error;
@@ -49,11 +55,18 @@ export const useDispatchData = (selectedUserId: string) => {
   } = useQuery({
     queryKey: ['latestDispatch', selectedUserId],
     queryFn: async () => {
+      console.log("Fetching latest dispatch for user:", selectedUserId);
       const { user, isAdmin } = await fetchUserData();
       const userId = selectedUserId || user?.id;
       
-      if (!userId) return null;
-      if (selectedUserId && !isAdmin) return null;
+      if (!userId) {
+        console.error("No user ID available");
+        throw new Error("No user ID available");
+      }
+
+      if (selectedUserId && !isAdmin) {
+        throw new Error("Unauthorized");
+      }
 
       const { data, error } = await supabase
         .from('dispatch_results')
@@ -63,10 +76,14 @@ export const useDispatchData = (selectedUserId: string) => {
         .limit(1)
         .maybeSingle();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching latest dispatch:", error);
+        throw error;
+      }
+
+      console.log("Latest dispatch data:", data);
       return data as DispatchResult | null;
     },
-    retry: false,
     refetchInterval: 1000,
   });
 
@@ -78,11 +95,18 @@ export const useDispatchData = (selectedUserId: string) => {
   } = useQuery({
     queryKey: ['lastFiveDispatches', selectedUserId],
     queryFn: async () => {
+      console.log("Fetching last 5 dispatches for user:", selectedUserId);
       const { user, isAdmin } = await fetchUserData();
       const userId = selectedUserId || user?.id;
       
-      if (!userId) return [];
-      if (selectedUserId && !isAdmin) return [];
+      if (!userId) {
+        console.error("No user ID available");
+        throw new Error("No user ID available");
+      }
+
+      if (selectedUserId && !isAdmin) {
+        throw new Error("Unauthorized");
+      }
 
       const { data, error } = await supabase
         .from('dispatch_results')
@@ -91,10 +115,14 @@ export const useDispatchData = (selectedUserId: string) => {
         .order('created_at', { ascending: false })
         .limit(5);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching dispatches:", error);
+        throw error;
+      }
+
+      console.log("Last 5 dispatches data:", data);
       return data as DispatchResult[];
     },
-    retry: false,
     refetchInterval: 1000,
   });
 
@@ -105,11 +133,18 @@ export const useDispatchData = (selectedUserId: string) => {
   } = useQuery({
     queryKey: ['latestContactResults', selectedUserId],
     queryFn: async () => {
+      console.log("Fetching latest contact results for user:", selectedUserId);
       const { user, isAdmin } = await fetchUserData();
       const userId = selectedUserId || user?.id;
       
-      if (!userId) return [];
-      if (selectedUserId && !isAdmin) return [];
+      if (!userId) {
+        console.error("No user ID available");
+        throw new Error("No user ID available");
+      }
+
+      if (selectedUserId && !isAdmin) {
+        throw new Error("Unauthorized");
+      }
 
       const { data: latestDispatch, error: dispatchError } = await supabase
         .from('dispatch_results')
@@ -119,7 +154,12 @@ export const useDispatchData = (selectedUserId: string) => {
         .limit(1)
         .maybeSingle();
 
-      if (dispatchError || !latestDispatch) return [];
+      if (dispatchError) {
+        console.error("Error fetching latest dispatch:", dispatchError);
+        return [];
+      }
+
+      if (!latestDispatch) return [];
 
       const { data, error } = await supabase
         .from('dispatch_contact_results')
@@ -127,10 +167,14 @@ export const useDispatchData = (selectedUserId: string) => {
         .eq('dispatch_id', latestDispatch.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching contact results:", error);
+        throw error;
+      }
+
+      console.log("Latest contact results:", data);
       return data as ContactResult[];
     },
-    retry: false,
     refetchInterval: 1000,
   });
 
