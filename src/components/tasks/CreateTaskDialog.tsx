@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { Task } from "@/types/tasks";
 
 interface CreateTaskDialogProps {
   open: boolean;
@@ -24,6 +23,20 @@ export const CreateTaskDialog = ({ open, onOpenChange }: CreateTaskDialogProps) 
   const [dueDate, setDueDate] = useState<Date>();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  const { data: defaultColumn } = useQuery({
+    queryKey: ["defaultColumn"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("task_columns")
+        .select("*")
+        .eq("title", "To Do")
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const createTask = useMutation({
     mutationFn: async () => {
@@ -40,13 +53,17 @@ export const CreateTaskDialog = ({ open, onOpenChange }: CreateTaskDialogProps) 
         throw new Error("User not authenticated");
       }
 
-      // Create a properly typed task object with required fields
+      if (!defaultColumn) {
+        console.error("No default column found");
+        throw new Error("Default column not found");
+      }
+
       const taskData = {
-        title, // Required
+        title,
         description,
         due_date: dueDate?.toISOString(),
-        status: "todo" as const,
-        user_id: user.id // Required
+        user_id: user.id,
+        column_id: defaultColumn.id
       };
 
       console.log("Inserting task with data:", taskData);
@@ -142,7 +159,7 @@ export const CreateTaskDialog = ({ open, onOpenChange }: CreateTaskDialogProps) 
                   {dueDate ? format(dueDate, "PPP") : "Pick a date"}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
+              <PopoverContent className="w-auto p-0" align="start">
                 <Calendar
                   mode="single"
                   selected={dueDate}

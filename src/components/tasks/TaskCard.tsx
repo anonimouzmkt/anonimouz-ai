@@ -1,7 +1,7 @@
 import { format } from "date-fns";
 import { Task } from "@/types/tasks";
 import { Card } from "@/components/ui/card";
-import { CalendarIcon, Check, Pencil } from "lucide-react";
+import { CalendarIcon, Check, Pencil, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -11,9 +11,10 @@ interface TaskCardProps {
   onDragStart: (e: React.DragEvent) => void;
   onEdit: (task: Task) => void;
   onComplete: (task: Task) => void;
+  onDelete: (task: Task) => void;
 }
 
-export const TaskCard = ({ task, onDragStart, onEdit, onComplete }: TaskCardProps) => {
+export const TaskCard = ({ task, onDragStart, onEdit, onComplete, onDelete }: TaskCardProps) => {
   return (
     <motion.div
       layout
@@ -55,12 +56,20 @@ export const TaskCard = ({ task, onDragStart, onEdit, onComplete }: TaskCardProp
               )}
             </div>
           </div>
-          <button
-            onClick={() => onEdit(task)}
-            className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-accent rounded-md"
-          >
-            <Pencil className="h-4 w-4" />
-          </button>
+          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button
+              onClick={() => onEdit(task)}
+              className="p-1 hover:bg-accent rounded-md"
+            >
+              <Pencil className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => onDelete(task)}
+              className="p-1 hover:bg-destructive hover:text-destructive-foreground rounded-md"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          </div>
         </div>
       </Card>
     </motion.div>
