@@ -14,7 +14,7 @@ export const SidebarHeader = () => {
         </span>
       </div>
       <div className="flex items-center justify-center group-data-[collapsible=icon]:w-full">
-        <SidebarTrigger />
+        <SidebarTrigger className="h-7 w-7" />
       </div>
     </div>
   );
