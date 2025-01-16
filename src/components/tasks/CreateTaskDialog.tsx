@@ -27,6 +27,12 @@ export const CreateTaskDialog = ({ open, onOpenChange }: CreateTaskDialogProps) 
   const createTask = useMutation({
     mutationFn: async () => {
       console.log("Creating task:", { title, description, dueDate });
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        throw new Error("User not authenticated");
+      }
+
       const { data, error } = await supabase
         .from("tasks")
         .insert([
@@ -35,6 +41,7 @@ export const CreateTaskDialog = ({ open, onOpenChange }: CreateTaskDialogProps) 
             description,
             due_date: dueDate?.toISOString(),
             status: "todo",
+            user_id: user.id
           },
         ])
         .select()
