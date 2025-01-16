@@ -80,9 +80,9 @@ export function AccountSwitcherSection({ currentUserId, onAccountSwitch }: Accou
           onAccountSwitch(value);
         }}
       >
-        <SelectTrigger className="w-full bg-background text-sm py-2 transition-all duration-200 hover:translate-x-1 hover:bg-sidebar-accent/70 flex items-center gap-3">
+        <SelectTrigger className="w-full bg-background text-sm py-2 transition-all duration-200 hover:translate-x-1 hover:bg-sidebar-accent/70 flex items-center gap-3 group-data-[collapsible=icon]:justify-center">
           <Users className="w-4 h-4 shrink-0" />
-          <SelectValue placeholder="Select an account" className="flex-1">
+          <SelectValue placeholder="Select an account" className="flex-1 group-data-[collapsible=icon]:hidden">
             {selectedProfile?.email || currentProfile?.email || "My Account"}
             {selectedProfile?.admin_users && " (Admin)"}
           </SelectValue>
