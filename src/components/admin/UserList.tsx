@@ -34,10 +34,12 @@ export function UserList() {
         .order("email");
 
       if (error) {
+        console.error("Error fetching users:", error);
         toast.error("Erro ao carregar usuários");
         throw error;
       }
 
+      console.log("Fetched users:", profiles);
       return profiles;
     },
   });
@@ -55,6 +57,7 @@ export function UserList() {
       toast.success("Usuário deletado com sucesso");
     },
     onError: (error) => {
+      console.error("Error deleting user:", error);
       toast.error("Falha ao deletar usuário");
     },
   });
@@ -72,6 +75,7 @@ export function UserList() {
       toast.success("Papel do usuário atualizado com sucesso");
     },
     onError: (error) => {
+      console.error("Error updating user role:", error);
       toast.error("Falha ao atualizar papel do usuário");
     },
   });
