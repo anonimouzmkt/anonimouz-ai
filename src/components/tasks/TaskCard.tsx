@@ -1,7 +1,7 @@
 import { format } from "date-fns";
 import { Task } from "@/types/tasks";
 import { Card } from "@/components/ui/card";
-import { CalendarIcon, Check, Pencil, Trash2 } from "lucide-react";
+import { CalendarIcon, Pencil, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -62,7 +62,7 @@ export const TaskCard = ({ task, onDragStart, onEdit, onComplete, onDelete }: Ta
               variant="ghost"
               size="icon"
               onClick={() => onEdit(task)}
-              className="p-1 hover:bg-accent rounded-md"
+              className="h-8 w-8 p-0"
             >
               <Pencil className="h-4 w-4" />
             </Button>
@@ -70,7 +70,7 @@ export const TaskCard = ({ task, onDragStart, onEdit, onComplete, onDelete }: Ta
               variant="ghost"
               size="icon"
               onClick={() => onDelete(task)}
-              className="p-1 hover:bg-destructive hover:text-destructive-foreground rounded-md"
+              className="h-8 w-8 p-0 hover:bg-destructive hover:text-destructive-foreground"
             >
               <Trash2 className="h-4 w-4" />
             </Button>
