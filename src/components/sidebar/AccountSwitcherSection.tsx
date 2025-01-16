@@ -42,7 +42,7 @@ export function AccountSwitcherSection({ currentUserId, onAccountSwitch }: Accou
         throw error;
       }
 
-      console.log("Fetched profiles:", profiles);
+      console.log("Fetched profiles for switcher:", profiles);
       return profiles as Profile[];
     },
   });

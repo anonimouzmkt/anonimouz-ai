@@ -42,7 +42,7 @@ export function UserList() {
         throw error;
       }
 
-      console.log("Fetched profiles:", profiles);
+      console.log("All fetched profiles:", profiles);
       return profiles;
     },
   });
