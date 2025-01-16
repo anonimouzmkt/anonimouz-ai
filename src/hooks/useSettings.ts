@@ -5,6 +5,17 @@ import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useSelectedUser } from "@/components/sidebar/SidebarContext";
 
+interface Profile {
+  id: string;
+  email: string | null;
+  webhook_url: string | null;
+  theme_color: string;
+  admin_users: boolean;
+  unique_id: string;
+  role: 'admin_user' | 'user';
+  language: string;
+}
+
 export const useSettings = () => {
   const [webhookUrl, setWebhookUrl] = useState<string>("");
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -30,7 +41,7 @@ export const useSettings = () => {
   });
 
   // Fetch profile data with simplified query
-  const { data: profile, refetch, isLoading: isProfileLoading } = useQuery({
+  const { data: profile, refetch, isLoading: isProfileLoading } = useQuery<Profile | null>({
     queryKey: ["profile", selectedUserId || currentUser?.id],
     queryFn: async () => {
       const userId = selectedUserId || currentUser?.id;
@@ -42,7 +53,7 @@ export const useSettings = () => {
       console.log("Fetching profile for user:", userId);
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, email, webhook_url, theme_color, admin_users, unique_id, role")
+        .select("id, email, webhook_url, theme_color, admin_users, unique_id, role, language")
         .eq("id", userId)
         .maybeSingle();
 

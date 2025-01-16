@@ -57,7 +57,7 @@ const Settings = () => {
       <div className="space-y-6">
         <AccountInformation 
           email={profile.email || ''} 
-          uniqueId={profile.unique_id || ''} 
+          uniqueId={profile.unique_id} 
         />
 
         <LanguageSelector />
