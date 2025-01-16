@@ -62,7 +62,7 @@ export const TaskCard = ({ task, onDragStart, onEdit, onComplete, onDelete }: Ta
               variant="ghost"
               size="icon"
               onClick={() => onEdit(task)}
-              className="h-8 w-8 p-0"
+              className="p-1 hover:bg-accent rounded-md"
             >
               <Pencil className="h-4 w-4" />
             </Button>
@@ -70,7 +70,7 @@ export const TaskCard = ({ task, onDragStart, onEdit, onComplete, onDelete }: Ta
               variant="ghost"
               size="icon"
               onClick={() => onDelete(task)}
-              className="h-8 w-8 p-0 hover:bg-destructive hover:text-destructive-foreground"
+              className="p-1 hover:bg-destructive hover:text-destructive-foreground rounded-md"
             >
               <Trash2 className="h-4 w-4" />
             </Button>
