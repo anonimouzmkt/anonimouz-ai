@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSelectedUser } from "@/components/sidebar/SidebarContext";
 import { useToast } from "@/hooks/use-toast";
 import { DispatchMetrics } from "@/components/dashboard/DispatchMetrics";
@@ -38,47 +38,51 @@ export default function DispatchDashboard() {
     refetchContacts,
     latestError,
     chartError,
-    contactsError
+    contactsError,
+    isLoadingLatest,
+    isLoadingChart
   } = useDispatchData(selectedUserId);
+
+  const handleRefresh = useCallback(() => {
+    console.log("Manual refresh triggered");
+    refetchLatest();
+    refetchChart();
+    refetchContacts();
+  }, [refetchLatest, refetchChart, refetchContacts]);
 
   useEffect(() => {
     const handleRefreshData = () => {
       console.log("Refreshing data after deletion...");
-      refetchLatest();
-      refetchChart();
-      refetchContacts();
+      handleRefresh();
     };
 
     window.addEventListener('refetchDispatchData', handleRefreshData);
     return () => window.removeEventListener('refetchDispatchData', handleRefreshData);
-  }, [refetchLatest, refetchChart, refetchContacts]);
+  }, [handleRefresh]);
 
-  const handleRefresh = () => {
-    console.log("Refreshing dashboard data...");
-    refetchLatest();
-    refetchChart();
-    refetchContacts();
-  };
+  useEffect(() => {
+    if (latestError || chartError || contactsError) {
+      console.error("Dashboard errors:", { latestError, chartError, contactsError });
+      toast({
+        title: "Erro ao carregar dados",
+        description: "Houve um erro ao carregar os dados. Por favor, tente novamente.",
+        variant: "destructive",
+      });
+    }
+  }, [latestError, chartError, contactsError, toast]);
 
-  if (latestError || chartError || contactsError) {
-    console.error("Dashboard errors:", { latestError, chartError, contactsError });
-    toast({
-      title: "Erro ao carregar dados",
-      description: "Houve um erro ao carregar os dados. Por favor, tente novamente.",
-      variant: "destructive",
-    });
-  }
+  const chartData = lastFiveDispatches?.map(dispatch => ({
+    date: dispatch.created_at,
+    success: dispatch.success_count,
+    failed: dispatch.error_count
+  })) || [];
 
-  const chartData = lastFiveDispatches?.map(dispatch => {
-    console.log("Processing dispatch data:", dispatch);
-    return {
-      date: dispatch.created_at,
-      success: dispatch.success_count,
-      failed: dispatch.error_count
-    };
-  }) || [];
-
-  console.log("Prepared chart data:", chartData);
+  console.log("Rendering DispatchDashboard with data:", {
+    latestDispatch,
+    chartData,
+    isLoadingLatest,
+    isLoadingChart
+  });
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
